@@ -1,0 +1,19 @@
+[user]
+	name = Kari Hagemeier
+	email = kari@hagemeier.cloud
+
+[include]
+	path = ~/.gitconfig.local
+
+[core]
+	editor = vim
+	excludesfile = ~/.gitignore_global
+
+[color]
+	ui = auto
+
+[alias]
+	st = status
+	co = checkout
+	br = branch
+	ci = commit
