@@ -22,6 +22,12 @@ if command -v apt-get &> /dev/null; then
         fontconfig
         fzf
         bat
+        ripgrep
+        fd-find
+        tldr
+        btop
+        tmux
+        git-delta
     )
 
     # Add openssh-server if not on WSL

@@ -28,6 +28,11 @@ if command -v fzf &> /dev/null; then
     alias fe='printenv | fzf'
 fi
 
+# fd alias (if installed as fdfind)
+if command -v fdfind &> /dev/null; then
+    alias fd='fdfind'
+fi
+
 alias ..='cd ..'
 alias ...='cd ../..'
 alias gs='git status'

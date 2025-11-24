@@ -44,7 +44,17 @@ if [ -f "$DOTFILES_DIR/install/zoxide.sh" ]; then
     bash "$DOTFILES_DIR/install/zoxide.sh"
 fi
 
-# 8. Run Stow
+# 8. Install lazygit
+if [ -f "$DOTFILES_DIR/install/lazygit.sh" ]; then
+    bash "$DOTFILES_DIR/install/lazygit.sh"
+fi
+
+# 9. Install uv
+if [ -f "$DOTFILES_DIR/install/uv.sh" ]; then
+    bash "$DOTFILES_DIR/install/uv.sh"
+fi
+
+# 10. Run Stow
 # We want to stow directories that contain config files.
 # We exclude 'install' and '.git' and the script itself.
 STOW_DIRS="bash git vim zsh"
@@ -76,7 +86,7 @@ for dir in $STOW_DIRS; do
     stow -v -R -t "$HOME" -d "$DOTFILES_DIR" "$dir"
 done
 
-# 9. Set Zsh as default shell
+# 11. Set Zsh as default shell
 if command -v zsh >/dev/null; then
     if [ "$SHELL" != "$(command -v zsh)" ]; then
         echo "Changing default shell to zsh..."
