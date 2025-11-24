@@ -33,6 +33,41 @@ if command -v fdfind &> /dev/null; then
     alias fd='fdfind'
 fi
 
+# bat alias (use bat as cat)
+if command -v batcat &> /dev/null; then
+    alias cat='batcat'
+elif command -v bat &> /dev/null; then
+    alias cat='bat'
+fi
+
+# lazygit
+if command -v lazygit &> /dev/null; then
+    alias lg='lazygit'
+fi
+
+# python
+alias py='python3'
+
+# tmux
+alias t='tmux'
+alias ta='tmux attach -t'
+alias tn='tmux new -s'
+
+# git aliases
+alias g='git'
+alias ga='git add'
+alias gc='git commit'
+alias gcm='git commit -m'
+alias gd='git diff'
+alias gco='git checkout'
+alias gb='git branch'
+alias gl='git log --graph --pretty=format:"%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset" --abbrev-commit'
+
+# utils
+alias c='clear'
+alias mkdir='mkdir -p'
+alias grep='grep --color=auto'
+
 alias ..='cd ..'
 alias ...='cd ../..'
 alias gs='git status'
