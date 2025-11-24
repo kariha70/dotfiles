@@ -18,12 +18,16 @@ if command -v apt-get &> /dev/null; then
         htop
         jq
         build-essential
-        openssh-server
         zsh
         fontconfig
         fzf
         bat
     )
+
+    # Add openssh-server if not on WSL
+    if ! grep -qEi "(Microsoft|WSL)" /proc/version &> /dev/null; then
+        PACKAGES+=(openssh-server)
+    fi
     
     sudo apt-get install -y "${PACKAGES[@]}"
 else

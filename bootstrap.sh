@@ -12,7 +12,10 @@ if [ -f "$DOTFILES_DIR/install/packages.sh" ]; then
 fi
 
 # 2. Setup SSH
-if [ -f "$DOTFILES_DIR/install/ssh.sh" ]; then
+# Skip SSH setup on WSL as it's usually not needed or handled differently
+if grep -qEi "(Microsoft|WSL)" /proc/version &> /dev/null; then
+    echo "WSL detected. Skipping SSH server setup."
+elif [ -f "$DOTFILES_DIR/install/ssh.sh" ]; then
     bash "$DOTFILES_DIR/install/ssh.sh"
 fi
 
