@@ -57,7 +57,14 @@ if [ -f "$DOTFILES_DIR/install/uv.sh" ]; then
     bash "$DOTFILES_DIR/install/uv.sh"
 fi
 
-# 10. Run Stow
+# 10. WSL Specific Configuration
+if grep -qEi "(Microsoft|WSL)" /proc/version &> /dev/null; then
+    if [ -f "$DOTFILES_DIR/install/wsl.sh" ]; then
+        bash "$DOTFILES_DIR/install/wsl.sh"
+    fi
+fi
+
+# 11. Run Stow
 # We want to stow directories that contain config files.
 # We exclude 'install' and '.git' and the script itself.
 STOW_DIRS="bash git vim zsh"
@@ -89,7 +96,7 @@ for dir in $STOW_DIRS; do
     stow -v -R -t "$HOME" -d "$DOTFILES_DIR" "$dir"
 done
 
-# 11. Set Zsh as default shell
+# 12. Set Zsh as default shell
 if command -v zsh >/dev/null; then
     if [ "$SHELL" != "$(command -v zsh)" ]; then
         echo "Changing default shell to zsh..."
