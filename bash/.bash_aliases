@@ -68,6 +68,12 @@ alias c='clear'
 alias mkdir='mkdir -p'
 alias grep='grep --color=auto'
 
+# Neovim alias
+if command -v nvim &> /dev/null; then
+    alias vim='nvim'
+    alias v='nvim'
+fi
+
 alias ..='cd ..'
 alias ...='cd ../..'
 alias gs='git status'

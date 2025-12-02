@@ -62,6 +62,11 @@ if command -v zoxide &> /dev/null; then
     eval "$(zoxide init zsh)"
 fi
 
+# Initialize Atuin (Shell History)
+if command -v atuin &> /dev/null; then
+    eval "$(atuin init zsh)"
+fi
+
 # NVM Lazy Load
 export NVM_DIR="$HOME/.nvm"
 nvm_lazy_load() {
@@ -73,3 +78,5 @@ nvm_lazy_load() {
 for cmd in nvm node npm npx yarn pnpm; do
     eval "$cmd() { nvm_lazy_load $cmd \"\$@\"; }"
 done
+
+. "$HOME/.atuin/bin/env"

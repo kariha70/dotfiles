@@ -28,6 +28,11 @@ if command -v zoxide &> /dev/null; then
     eval "$(zoxide init bash)"
 fi
 
+# Initialize Atuin (Shell History)
+if command -v atuin &> /dev/null; then
+    eval "$(atuin init bash)"
+fi
+
 # FZF Configuration
 if command -v fdfind &> /dev/null; then
     export FZF_DEFAULT_COMMAND='fdfind --type f --hidden --follow --exclude .git'
@@ -45,3 +50,5 @@ nvm_lazy_load() {
 for cmd in nvm node npm npx yarn pnpm; do
     eval "$cmd() { nvm_lazy_load $cmd \"\$@\"; }"
 done
+
+. "$HOME/.atuin/bin/env"

@@ -27,6 +27,8 @@ if command -v apt-get &> /dev/null; then
         tldr
         btop
         tmux
+        neovim
+        unzip
     )
 
     # Add openssh-server if not on WSL

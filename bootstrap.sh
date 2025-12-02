@@ -69,7 +69,12 @@ if [ -f "$DOTFILES_DIR/install/delta.sh" ]; then
     bash "$DOTFILES_DIR/install/delta.sh"
 fi
 
-# 12. Run Stow
+# 12. Install Extras (Glow, Atuin, Fastfetch, Yazi)
+if [ -f "$DOTFILES_DIR/install/extras.sh" ]; then
+    bash "$DOTFILES_DIR/install/extras.sh"
+fi
+
+# 13. Run Stow
 # We want to stow directories that contain config files.
 # We exclude 'install' and '.git' and the script itself.
 STOW_DIRS="bash git vim zsh"
@@ -101,7 +106,7 @@ for dir in $STOW_DIRS; do
     stow -v -R -t "$HOME" -d "$DOTFILES_DIR" "$dir"
 done
 
-# 13. Set Zsh as default shell
+# 14. Set Zsh as default shell
 if command -v zsh >/dev/null; then
     if [ "$SHELL" != "$(command -v zsh)" ]; then
         echo "Changing default shell to zsh..."
