@@ -87,6 +87,7 @@ CONFLICT_FILES=(
     ".gitignore_global"
     ".vimrc"
     ".zshrc"
+    ".zlogin"
 )
 
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)

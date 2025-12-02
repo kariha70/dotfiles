@@ -28,10 +28,7 @@ if command -v zoxide &> /dev/null; then
     eval "$(zoxide init bash)"
 fi
 
-# Initialize Atuin (Shell History)
-if command -v atuin &> /dev/null; then
-    eval "$(atuin init bash)"
-fi
+# Initialize Atuin (Shell History) - init is handled by ~/.atuin/bin/env
 
 # FZF Configuration
 if command -v fdfind &> /dev/null; then
@@ -51,4 +48,5 @@ for cmd in nvm node npm npx yarn pnpm; do
     eval "$cmd() { nvm_lazy_load $cmd \"\$@\"; }"
 done
 
-. "$HOME/.atuin/bin/env"
+# Atuin environment (if installed)
+[ -f "$HOME/.atuin/bin/env" ] && . "$HOME/.atuin/bin/env"

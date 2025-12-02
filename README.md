@@ -11,17 +11,36 @@ My personal dotfiles, managed with [GNU Stow](https://www.gnu.org/software/stow/
 *   **Theme**: Powerlevel10k for a fast, informative prompt.
 *   **Fonts**: MesloLGS NF (Nerd Fonts) installed automatically.
 
-### Tools & Utilities
-*   **[eza](https://github.com/eza-community/eza)**: A modern, maintained replacement for `ls` with icons and git integration.
-*   **[zoxide](https://github.com/ajeetdsouza/zoxide)**: A smarter `cd` command that remembers your most used directories.
-*   **[fzf](https://github.com/junegunn/fzf)**: Command-line fuzzy finder for files and history.
-*   **[bat](https://github.com/sharkdp/bat)**: A `cat` clone with syntax highlighting and git integration.
-*   **SSH**: Automatically installs and enables the OpenSSH server.
-*   **Essentials**: `git`, `vim`, `curl`, `htop`, `jq`, `build-essential`.
+### Modern CLI Tools
+| Tool | Description |
+|------|-------------|
+| [eza](https://github.com/eza-community/eza) | Modern `ls` replacement with icons and git integration |
+| [zoxide](https://github.com/ajeetdsouza/zoxide) | Smarter `cd` that remembers your directories |
+| [fzf](https://github.com/junegunn/fzf) | Fuzzy finder for files and history |
+| [bat](https://github.com/sharkdp/bat) | `cat` with syntax highlighting |
+| [ripgrep](https://github.com/BurntSushi/ripgrep) | Ultra-fast `grep` replacement |
+| [fd](https://github.com/sharkdp/fd) | User-friendly `find` alternative |
+| [delta](https://github.com/dandavison/delta) | Syntax-highlighting pager for git diffs |
+| [tldr](https://tldr.sh/) | Simplified man pages with examples |
+| [btop](https://github.com/aristocratos/btop) | Modern resource monitor (replaces htop) |
+| [tmux](https://github.com/tmux/tmux) | Terminal multiplexer |
+| [lazygit](https://github.com/jesseduffield/lazygit) | Terminal UI for git |
+| [yazi](https://github.com/sxyazi/yazi) | Blazing fast terminal file manager |
+| [atuin](https://github.com/atuinsh/atuin) | Magical shell history with sync |
+| [fastfetch](https://github.com/fastfetch-cli/fastfetch) | System information tool |
+| [glow](https://github.com/charmbracelet/glow) | Terminal Markdown reader |
+| [neovim](https://neovim.io/) | Hyperextensible Vim-based editor |
 
 ### Development
-*   **Node.js**: Managed via `nvm` (Node Version Manager).
-*   **Lazy Loading**: `nvm` is lazy-loaded to ensure instant shell startup times.
+*   **Node.js**: Managed via `nvm` (Node Version Manager) with lazy loading.
+*   **Python**: [uv](https://github.com/astral-sh/uv) - Fast Python package manager.
+*   **SSH**: Automatically installs and enables the OpenSSH server (skipped on WSL).
+
+### WSL Support
+When running on WSL, the bootstrap script automatically:
+*   Skips SSH server and font installation (handled by Windows host).
+*   Configures Git to use Windows Credential Manager.
+*   Installs `wslu` for Windows integration.
 
 ## Installation
 
@@ -40,7 +59,7 @@ To set up a new machine:
     This will:
     *   Install system dependencies (requires `sudo`).
     *   Install and configure Zsh, Oh My Zsh, and plugins.
-    *   Install fonts and tools (eza, fzf, nvm).
+    *   Install fonts and tools.
     *   Symlink configuration files to your home directory.
     *   Set Zsh as your default shell.
 
@@ -49,54 +68,104 @@ To set up a new machine:
 
 ## Post-Installation
 
-*   **Powerlevel10k**: On first run, the Powerlevel10k configuration wizard should start. If not, run `p10k configure`.
-*   **Remote Access**: If you are connecting via SSH from another machine (e.g., Windows/macOS), you must install the **MesloLGS NF** fonts on your *local* machine and configure your terminal emulator to use them. The script installs them on the Linux box, which is sufficient for local desktops or X11 forwarding.
+*   **Powerlevel10k**: On first run, the configuration wizard should start. If not, run `p10k configure`.
+*   **Remote Access**: If connecting via SSH, install **MesloLGS NF** fonts on your *local* machine and configure your terminal to use them.
 
-## Aliases
+## Aliases Reference
 
-### General
-*   `..`, `...`: Navigate up directories.
-*   `gs`: `git status`
-*   `gp`: `git pull`
+### File Navigation (eza)
+| Alias | Command |
+|-------|---------|
+| `ls` | `eza` |
+| `ll` | `eza -alF --icons` |
+| `la` | `eza -a --icons` |
+| `lt` | `eza --tree --level=2 --icons` |
 
-### eza (ls replacement)
-*   `ls`: Mapped to `eza`
-*   `ll`: `eza -alF --icons`
-*   `la`: `eza -a --icons`
-*   `lt`: `eza --tree --level=2 --icons` (Tree view)
+### Fuzzy Finding (fzf)
+| Alias | Command |
+|-------|---------|
+| `fp` | Fuzzy find files with preview |
+| `fe` | Fuzzy find environment variables |
+| `Ctrl+R` | Fuzzy search history |
+| `Ctrl+T` | Fuzzy find files |
 
-### fzf
-*   `fp`: Fuzzy find files with preview (uses `bat` if available).
-*   `fe`: Fuzzy find environment variables.
+### Directory Navigation (zoxide)
+| Alias | Command |
+|-------|---------|
+| `z <path>` | Jump to directory (fuzzy match) |
+| `zi` | Interactive directory selection |
 
-### zoxide
-*   `z <path>`: Jump to a directory (fuzzy match).
-*   `z`: Jump to home directory.
-*   `zi`: Interactive directory selection (requires fzf).
+### Git
+| Alias | Command |
+|-------|---------|
+| `g` | `git` |
+| `gs` | `git status` |
+| `ga` | `git add` |
+| `gc` | `git commit` |
+| `gcm` | `git commit -m` |
+| `gd` | `git diff` |
+| `gco` | `git checkout` |
+| `gb` | `git branch` |
+| `gl` | `git log` (pretty graph) |
+| `gp` | `git pull` |
+| `lg` | `lazygit` |
+
+### Tools
+| Alias | Command |
+|-------|---------|
+| `v` / `vim` | `nvim` (Neovim) |
+| `y` | `yazi` (with directory change on exit) |
+| `cat` | `bat` (syntax highlighting) |
+| `t` | `tmux` |
+| `ta` | `tmux attach -t` |
+| `tn` | `tmux new -s` |
+| `c` | `clear` |
+
+### Navigation
+| Alias | Command |
+|-------|---------|
+| `..` | `cd ..` |
+| `...` | `cd ../..` |
 
 ## Directory Structure
 
-*   `bash/`: Bash configuration (.bashrc, .bash_aliases)
-*   `git/`: Git configuration (.gitconfig, .gitignore_global)
-*   `vim/`: Vim configuration (.vimrc)
-*   `zsh/`: Zsh configuration (.zshrc)
-*   `install/`: Installation scripts (modularized by component)
-*   `bootstrap.sh`: Main entry point
+```
+dotfiles/
+├── bash/           # Bash configuration (.bashrc, .bash_aliases)
+├── git/            # Git configuration (.gitconfig, .gitignore_global)
+├── vim/            # Vim configuration (.vimrc)
+├── zsh/            # Zsh configuration (.zshrc, .zlogin)
+├── install/        # Installation scripts (modularized)
+│   ├── packages.sh # Core apt packages
+│   ├── ohmyzsh.sh  # Oh My Zsh + plugins + P10k
+│   ├── fonts.sh    # MesloLGS NF fonts
+│   ├── eza.sh      # eza (ls replacement)
+│   ├── zoxide.sh   # zoxide (cd replacement)
+│   ├── nvm.sh      # Node Version Manager
+│   ├── delta.sh    # git-delta
+│   ├── extras.sh   # Glow, Atuin, Fastfetch, Yazi
+│   ├── lazygit.sh  # lazygit
+│   ├── uv.sh       # Python uv
+│   ├── ssh.sh      # SSH server setup
+│   └── wsl.sh      # WSL-specific config
+├── bootstrap.sh    # Main entry point
+└── README.md
+```
 
 ## Customization
 
-1.  **Git Identity**:
-    *   The `.gitconfig` includes `~/.gitconfig.local`.
-    *   Create `~/.gitconfig.local` to set your specific name, email, and signing keys without modifying the tracked file:
-        ```ini
-        [user]
-            name = My Real Name
-            email = me@example.com
-            signingkey = ...
-        ```
+### Git Identity
+The `.gitconfig` includes `~/.gitconfig.local`. Create this file for your personal details:
 
-2.  **Adding Configs**:
-    *   Create a new directory (e.g., `tmux`).
-    *   Add config files inside (e.g., `tmux/.tmux.conf`).
-    *   Add the directory name to `STOW_DIRS` in `bootstrap.sh`.
-    *   Run `./bootstrap.sh` to link them.
+```ini
+[user]
+    name = Your Name
+    email = you@example.com
+    signingkey = YOUR_GPG_KEY
+```
+
+### Adding New Configs
+1.  Create a new directory (e.g., `tmux/`).
+2.  Add config files inside (e.g., `tmux/.tmux.conf`).
+3.  Add the directory name to `STOW_DIRS` in `bootstrap.sh`.
+4.  Run `./bootstrap.sh` to link them.

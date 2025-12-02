@@ -34,13 +34,34 @@ source $ZSH/oh-my-zsh.sh
 
 # FZF Configuration
 # Use fd (faster than find) for fzf
-export FZF_DEFAULT_COMMAND='fdfind --type f --hidden --follow --exclude .git'
-export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
+if command -v fdfind &> /dev/null; then
+    FD_CMD="fdfind"
+elif command -v fd &> /dev/null; then
+    FD_CMD="fd"
+else
+    FD_CMD="find"
+fi
+
+if [ "$FD_CMD" != "find" ]; then
+    export FZF_DEFAULT_COMMAND="$FD_CMD --type f --hidden --follow --exclude .git"
+    export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
+fi
 
 # Use bat for previews
-export FZF_CTRL_T_OPTS="
-  --preview 'batcat -n --color=always {}'
-  --bind 'ctrl-/:change-preview-window(down|hidden|)'"
+if command -v batcat &> /dev/null; then
+    BAT_CMD="batcat"
+elif command -v bat &> /dev/null; then
+    BAT_CMD="bat"
+fi
+
+if [ -n "$BAT_CMD" ]; then
+    export FZF_CTRL_T_OPTS="
+      --preview '$BAT_CMD -n --color=always {}'
+      --bind 'ctrl-/:change-preview-window(down|hidden|)'"
+    
+    # Use bat as man pager
+    export MANPAGER="sh -c 'col -bx | $BAT_CMD -l man -p'"
+fi
 
 # User configuration
 
@@ -62,10 +83,7 @@ if command -v zoxide &> /dev/null; then
     eval "$(zoxide init zsh)"
 fi
 
-# Initialize Atuin (Shell History)
-if command -v atuin &> /dev/null; then
-    eval "$(atuin init zsh)"
-fi
+# Initialize Atuin (Shell History) - init is handled by ~/.atuin/bin/env
 
 # NVM Lazy Load
 export NVM_DIR="$HOME/.nvm"
@@ -79,4 +97,15 @@ for cmd in nvm node npm npx yarn pnpm; do
     eval "$cmd() { nvm_lazy_load $cmd \"\$@\"; }"
 done
 
-. "$HOME/.atuin/bin/env"
+# Yazi Shell Wrapper (allows changing directory on exit)
+function y() {
+	local tmp="$(mktemp -t "yazi-cwd.XXXXXX")"
+	yazi "$@" --cwd-file="$tmp"
+	if cwd="$(cat -- "$tmp")" && [ -n "$cwd" ] && [ "$cwd" != "$PWD" ]; then
+		builtin cd -- "$cwd"
+	fi
+	rm -f -- "$tmp"
+}
+
+# Atuin environment (if installed)
+[ -f "$HOME/.atuin/bin/env" ] && . "$HOME/.atuin/bin/env"
