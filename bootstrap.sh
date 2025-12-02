@@ -25,7 +25,10 @@ if [ -f "$DOTFILES_DIR/install/ohmyzsh.sh" ]; then
 fi
 
 # 4. Install Fonts
-if [ -f "$DOTFILES_DIR/install/fonts.sh" ]; then
+# Skip font installation on WSL as it should be done on the Windows host
+if grep -qEi "(Microsoft|WSL)" /proc/version &> /dev/null; then
+    echo "WSL detected. Skipping font installation (install on Windows host instead)."
+elif [ -f "$DOTFILES_DIR/install/fonts.sh" ]; then
     bash "$DOTFILES_DIR/install/fonts.sh"
 fi
 
