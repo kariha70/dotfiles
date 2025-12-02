@@ -26,9 +26,21 @@ plugins=(
     zsh-autosuggestions
     zsh-syntax-highlighting
     fzf
+    web-search
+    extract
 )
 
 source $ZSH/oh-my-zsh.sh
+
+# FZF Configuration
+# Use fd (faster than find) for fzf
+export FZF_DEFAULT_COMMAND='fdfind --type f --hidden --follow --exclude .git'
+export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
+
+# Use bat for previews
+export FZF_CTRL_T_OPTS="
+  --preview 'batcat -n --color=always {}'
+  --bind 'ctrl-/:change-preview-window(down|hidden|)'"
 
 # User configuration
 

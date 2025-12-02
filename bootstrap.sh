@@ -64,7 +64,12 @@ if grep -qEi "(Microsoft|WSL)" /proc/version &> /dev/null; then
     fi
 fi
 
-# 11. Run Stow
+# 11. Install git-delta
+if [ -f "$DOTFILES_DIR/install/delta.sh" ]; then
+    bash "$DOTFILES_DIR/install/delta.sh"
+fi
+
+# 12. Run Stow
 # We want to stow directories that contain config files.
 # We exclude 'install' and '.git' and the script itself.
 STOW_DIRS="bash git vim zsh"
@@ -96,7 +101,7 @@ for dir in $STOW_DIRS; do
     stow -v -R -t "$HOME" -d "$DOTFILES_DIR" "$dir"
 done
 
-# 12. Set Zsh as default shell
+# 13. Set Zsh as default shell
 if command -v zsh >/dev/null; then
     if [ "$SHELL" != "$(command -v zsh)" ]; then
         echo "Changing default shell to zsh..."

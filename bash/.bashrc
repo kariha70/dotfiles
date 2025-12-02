@@ -28,6 +28,12 @@ if command -v zoxide &> /dev/null; then
     eval "$(zoxide init bash)"
 fi
 
+# FZF Configuration
+if command -v fdfind &> /dev/null; then
+    export FZF_DEFAULT_COMMAND='fdfind --type f --hidden --follow --exclude .git'
+    export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
+fi
+
 # NVM Lazy Load
 export NVM_DIR="$HOME/.nvm"
 nvm_lazy_load() {
