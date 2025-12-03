@@ -1,8 +1,17 @@
 #!/bin/bash
 set -e
 
-INPUT_FILE="ssh_secrets.enc"
-DEST_DIR="$HOME/.ssh"
+# Default values
+DEFAULT_INPUT_FILE="ssh_secrets.enc"
+DEFAULT_DEST_DIR="$HOME/.ssh"
+
+# Prompt for Input File
+read -p "Enter input encrypted file [$DEFAULT_INPUT_FILE]: " INPUT_FILE
+INPUT_FILE="${INPUT_FILE:-$DEFAULT_INPUT_FILE}"
+
+# Prompt for Destination Directory
+read -p "Enter destination directory [$DEFAULT_DEST_DIR]: " DEST_DIR
+DEST_DIR="${DEST_DIR:-$DEFAULT_DEST_DIR}"
 
 if [ ! -f "$INPUT_FILE" ]; then
     echo "Error: $INPUT_FILE not found in current directory."
