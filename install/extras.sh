@@ -4,6 +4,23 @@ set -e
 
 echo "Installing extra modern tools (Glow, Atuin, Fastfetch, Yazi)..."
 
+# Detect architecture
+ARCH=$(uname -m)
+case $ARCH in
+    x86_64)
+        FASTFETCH_ARCH="linux-amd64"
+        YAZI_ARCH="x86_64-unknown-linux-gnu"
+        ;;
+    aarch64|arm64)
+        FASTFETCH_ARCH="linux-aarch64"
+        YAZI_ARCH="aarch64-unknown-linux-gnu"
+        ;;
+    *)
+        echo "Unsupported architecture: $ARCH"
+        exit 1
+        ;;
+esac
+
 # Ensure ~/.local/bin exists
 mkdir -p "$HOME/.local/bin"
 
@@ -38,7 +55,7 @@ if ! command -v fastfetch &> /dev/null; then
     else
         # Fallback to GitHub release
         echo "Fastfetch not in apt, downloading from GitHub..."
-        LATEST_URL=$(curl -s https://api.github.com/repos/fastfetch-cli/fastfetch/releases/latest | jq -r '.assets[] | select(.name | endswith("linux-amd64.deb")) | .browser_download_url')
+        LATEST_URL=$(curl -s https://api.github.com/repos/fastfetch-cli/fastfetch/releases/latest | jq -r --arg ARCH "$FASTFETCH_ARCH" '.assets[] | select(.name | endswith($ARCH + ".deb")) | .browser_download_url')
         if [ -n "$LATEST_URL" ] && [ "$LATEST_URL" != "null" ]; then
              curl -fLo /tmp/fastfetch.deb "$LATEST_URL"
              sudo dpkg -i /tmp/fastfetch.deb
@@ -55,7 +72,7 @@ fi
 if ! command -v yazi &> /dev/null; then
     echo "Installing Yazi..."
     # Download prebuilt binary
-    LATEST_URL=$(curl -s https://api.github.com/repos/sxyazi/yazi/releases/latest | jq -r '.assets[] | select(.name | contains("x86_64-unknown-linux-gnu.zip")) | .browser_download_url')
+    LATEST_URL=$(curl -s https://api.github.com/repos/sxyazi/yazi/releases/latest | jq -r --arg ARCH "$YAZI_ARCH" '.assets[] | select(.name | contains($ARCH + ".zip")) | .browser_download_url')
     if [ -n "$LATEST_URL" ] && [ "$LATEST_URL" != "null" ]; then
         curl -fLo /tmp/yazi.zip "$LATEST_URL"
         unzip -q /tmp/yazi.zip -d /tmp
