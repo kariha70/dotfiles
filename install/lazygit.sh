@@ -4,6 +4,11 @@ set -e
 
 echo "Installing lazygit..."
 
+if command -v lazygit &> /dev/null; then
+    echo "lazygit is already installed."
+    exit 0
+fi
+
 ARCH=$(uname -m)
 case $ARCH in
     x86_64)

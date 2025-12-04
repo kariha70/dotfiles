@@ -2,12 +2,25 @@
 
 set -e
 
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+HELPERS="$SCRIPT_DIR/lib/helpers.sh"
+if [ -f "$HELPERS" ]; then
+    # shellcheck source=/dev/null
+    source "$HELPERS"
+fi
+if ! command -v is_wsl >/dev/null 2>&1; then
+    is_wsl() { grep -qEi "(Microsoft|WSL)" /proc/version 2>/dev/null; }
+fi
+if ! command -v apt_update_once >/dev/null 2>&1; then
+    apt_update_once() { sudo apt-get update; }
+fi
+
 echo "Installing packages..."
 
 # Check for apt-get (Debian/Ubuntu)
 if command -v apt-get &> /dev/null; then
     echo "Detected apt-get. Updating and installing packages..."
-    sudo apt-get update
+    apt_update_once
     
     # List of packages to install
     PACKAGES=(
@@ -29,10 +42,11 @@ if command -v apt-get &> /dev/null; then
         tmux
         neovim
         unzip
+        shellcheck
     )
 
     # Add openssh-server if not on WSL
-    if ! grep -qEi "(Microsoft|WSL)" /proc/version &> /dev/null; then
+    if ! is_wsl; then
         PACKAGES+=(openssh-server)
     fi
     

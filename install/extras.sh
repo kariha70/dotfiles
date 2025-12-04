@@ -2,6 +2,13 @@
 
 set -e
 
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+HELPERS="$SCRIPT_DIR/lib/helpers.sh"
+if [ -f "$HELPERS" ]; then
+    # shellcheck source=/dev/null
+    source "$HELPERS"
+fi
+
 echo "Installing extra modern tools (Glow, Atuin, Fastfetch, Yazi)..."
 
 # Detect architecture
@@ -22,7 +29,11 @@ case $ARCH in
 esac
 
 # Ensure ~/.local/bin exists
-mkdir -p "$HOME/.local/bin"
+if command -v ensure_local_bin >/dev/null 2>&1; then
+    ensure_local_bin
+else
+    mkdir -p "$HOME/.local/bin"
+fi
 
 # 1. Glow (Markdown reader)
 if ! command -v glow &> /dev/null; then

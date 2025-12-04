@@ -4,6 +4,21 @@ set -e
 
 DOTFILES_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
+# Shared helpers
+HELPERS="$DOTFILES_DIR/install/lib/helpers.sh"
+if [ -f "$HELPERS" ]; then
+    # shellcheck source=/dev/null
+    source "$HELPERS"
+fi
+if ! command -v is_wsl >/dev/null 2>&1; then
+    is_wsl() { grep -qEi "(Microsoft|WSL)" /proc/version 2>/dev/null; }
+fi
+
+IS_WSL=false
+if is_wsl; then
+    IS_WSL=true
+fi
+
 echo "Bootstrapping dotfiles from $DOTFILES_DIR..."
 
 # 1. Install dependencies
@@ -13,7 +28,7 @@ fi
 
 # 2. Setup SSH
 # Skip SSH setup on WSL as it's usually not needed or handled differently
-if grep -qEi "(Microsoft|WSL)" /proc/version &> /dev/null; then
+if "$IS_WSL"; then
     echo "WSL detected. Skipping SSH server setup."
 elif [ -f "$DOTFILES_DIR/install/ssh.sh" ]; then
     bash "$DOTFILES_DIR/install/ssh.sh"
@@ -26,7 +41,7 @@ fi
 
 # 4. Install Fonts
 # Skip font installation on WSL as it should be done on the Windows host
-if grep -qEi "(Microsoft|WSL)" /proc/version &> /dev/null; then
+if "$IS_WSL"; then
     echo "WSL detected. Skipping font installation (install on Windows host instead)."
 elif [ -f "$DOTFILES_DIR/install/fonts.sh" ]; then
     bash "$DOTFILES_DIR/install/fonts.sh"
@@ -58,7 +73,7 @@ if [ -f "$DOTFILES_DIR/install/uv.sh" ]; then
 fi
 
 # 10. WSL Specific Configuration
-if grep -qEi "(Microsoft|WSL)" /proc/version &> /dev/null; then
+if "$IS_WSL"; then
     if [ -f "$DOTFILES_DIR/install/wsl.sh" ]; then
         bash "$DOTFILES_DIR/install/wsl.sh"
     fi
