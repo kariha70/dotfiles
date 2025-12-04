@@ -83,8 +83,6 @@ if command -v zoxide &> /dev/null; then
     eval "$(zoxide init zsh)"
 fi
 
-# Initialize Atuin (Shell History) - init is handled by ~/.atuin/bin/env
-
 # NVM Lazy Load
 export NVM_DIR="$HOME/.nvm"
 nvm_lazy_load() {
@@ -108,4 +106,10 @@ function y() {
 }
 
 # Atuin environment (if installed)
-[ -f "$HOME/.atuin/bin/env" ] && . "$HOME/.atuin/bin/env"
+if [ -f "$HOME/.atuin/bin/env" ]; then
+    . "$HOME/.atuin/bin/env"
+fi
+
+if command -v atuin &> /dev/null; then
+    eval "$(atuin init zsh)"
+fi
