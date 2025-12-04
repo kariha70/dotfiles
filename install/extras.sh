@@ -90,9 +90,11 @@ if ! command -v yazi &> /dev/null; then
         # Move binary to local bin
         mv /tmp/yazi-*-linux-gnu/yazi "$HOME/.local/bin/"
         # Also move 'ya' if it exists (helper tool)
-        if [ -f /tmp/yazi-*-linux-gnu/ya ]; then
-            mv /tmp/yazi-*-linux-gnu/ya "$HOME/.local/bin/"
-        fi
+        for YA_BIN in /tmp/yazi-*-linux-gnu/ya; do
+            if [ -f "$YA_BIN" ]; then
+                mv "$YA_BIN" "$HOME/.local/bin/"
+            fi
+        done
         rm -rf /tmp/yazi*
         echo "Yazi installed."
     else

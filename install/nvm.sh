@@ -16,6 +16,7 @@ fi
 
 # Load nvm for the current shell session
 if [ -s "$NVM_DIR/nvm.sh" ]; then
+    # shellcheck source=/dev/null
     \. "$NVM_DIR/nvm.sh"
 else
     echo "ERROR: nvm installation not found in $NVM_DIR"
