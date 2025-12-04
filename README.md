@@ -148,6 +148,7 @@ dotfiles/
 │   ├── uv.sh       # Python uv
 │   ├── ssh.sh      # SSH server setup
 │   └── wsl.sh      # WSL-specific config
+│   └── lib/helpers.sh # Shared helpers (WSL detection, apt update, paths)
 ├── bootstrap.sh    # Main entry point
 └── README.md
 ```
@@ -173,3 +174,7 @@ The `.gitconfig` includes `~/.gitconfig.local`. Create this file for your person
 ## Contributor Guide
 
 For repo structure, coding conventions, and testing expectations, see `AGENTS.md`. It covers how to add new config modules, restow safely, and validate changes on both Linux and WSL.
+
+Additional notes:
+*   Installer helpers live in `install/lib/helpers.sh` (WSL detection, one-time `apt-get update`, ensuring `~/.local/bin`). Source them in new installers instead of duplicating logic.
+*   Run `shellcheck install/*.sh install/lib/helpers.sh` before committing to keep scripts linted. Bootstrapping installs `shellcheck` automatically.
