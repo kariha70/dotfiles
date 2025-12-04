@@ -169,3 +169,7 @@ The `.gitconfig` includes `~/.gitconfig.local`. Create this file for your person
 2.  Add config files inside (e.g., `tmux/.tmux.conf`).
 3.  Add the directory name to `STOW_DIRS` in `bootstrap.sh`.
 4.  Run `./bootstrap.sh` to link them.
+
+## Contributor Guide
+
+For repo structure, coding conventions, and testing expectations, see `AGENTS.md`. It covers how to add new config modules, restow safely, and validate changes on both Linux and WSL.
