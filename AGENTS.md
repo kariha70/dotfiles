@@ -3,6 +3,7 @@
 ## Project Structure & Module Organization
 - Core configs live in `bash/`, `git/`, `vim/`, and `zsh/`; each mirrors files symlinked into `$HOME`.
 - `install/` holds modular installers (`packages.sh`, `ohmyzsh.sh`, `fonts.sh`, etc.) invoked by the bootstrap flow; each should be re-runnable.
+- Shared shell helpers live in `install/lib/helpers.sh` (WSL detection, one-time `apt-get update`, ensuring `~/.local/bin`); source this in installers instead of duplicating logic.
 - `bootstrap.sh` orchestrates installs, WSL detection, stow runs, and default-shell switching.
 - Adding configs: create a directory (e.g., `tmux/`), add the dotfiles, append it to `STOW_DIRS` in `bootstrap.sh`, then restow.
 
@@ -11,7 +12,7 @@
 - Bootstrap a machine: `./bootstrap.sh` (installs, stows configs, sets the login shell).
 - Iterate on one tool: `bash install/<script>.sh` (e.g., `bash install/eza.sh`) instead of the whole bootstrap.
 - Restow after config edits: `stow -v -R -t "$HOME" -d "$(pwd)" bash git vim zsh`.
-- Spot-check shell scripts: `shellcheck <file>.sh` to catch quoting and portability issues.
+- Spot-check shell scripts: `shellcheck install/*.sh install/lib/helpers.sh` to catch quoting and portability issues (bootstrap installs shellcheck).
 
 ## Coding Style & Naming Conventions
 - Shell scripts use Bash with `set -e`; keep commands strictly quoted, favor `command -v` checks, and gate OS-specific logic with the existing WSL detection pattern (`grep -qEi "(Microsoft|WSL)" /proc/version`).
