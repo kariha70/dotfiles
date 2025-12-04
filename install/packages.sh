@@ -24,7 +24,7 @@ if command -v apt-get &> /dev/null; then
         bat
         ripgrep
         fd-find
-        tldr
+        tealdeer   # provides the `tldr` command
         btop
         tmux
         neovim
