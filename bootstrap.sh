@@ -14,6 +14,10 @@ if ! command -v is_wsl >/dev/null 2>&1; then
     is_wsl() { grep -qEi "(Microsoft|WSL)" /proc/version 2>/dev/null; }
 fi
 
+# Shared apt update sentinel for this bootstrap run
+export APT_UPDATE_SENTINEL="${APT_UPDATE_SENTINEL:-/tmp/dotfiles_apt_updated_$$}"
+rm -f "$APT_UPDATE_SENTINEL" 2>/dev/null || true
+
 IS_WSL=false
 if is_wsl; then
     IS_WSL=true

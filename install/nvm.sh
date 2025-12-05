@@ -3,6 +3,7 @@
 set -e
 
 export NVM_DIR="$HOME/.nvm"
+NVM_DEFAULT_ALIAS="${NVM_DEFAULT_ALIAS:-lts/*}"
 
 # Install nvm only if it is not already present
 if [ -s "$NVM_DIR/nvm.sh" ]; then
@@ -23,15 +24,15 @@ else
     exit 1
 fi
 
-# Install latest node only if the "node" alias is not already installed
-if ! nvm version node >/dev/null 2>&1; then
-    echo "Installing latest node..."
-    nvm install node
+# Install default Node (LTS by default) only if the alias is not already installed
+if ! nvm version "$NVM_DEFAULT_ALIAS" >/dev/null 2>&1; then
+    echo "Installing Node version ($NVM_DEFAULT_ALIAS)..."
+    nvm install "$NVM_DEFAULT_ALIAS"
 else
-    echo "Latest node already installed via nvm."
+    echo "Node alias $NVM_DEFAULT_ALIAS already installed via nvm."
 fi
 
-# Ensure default alias points to latest node
-nvm alias default node
+# Ensure default alias points to the chosen line
+nvm alias default "$NVM_DEFAULT_ALIAS"
 
 echo "nvm setup complete."

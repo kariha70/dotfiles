@@ -8,6 +8,9 @@ if [ -f "$HELPERS" ]; then
     # shellcheck source=/dev/null
     source "$HELPERS"
 fi
+if ! command -v apt_update_once >/dev/null 2>&1; then
+    apt_update_once() { sudo apt-get update; }
+fi
 
 echo "Installing extra modern tools (Glow, Atuin, Fastfetch, Yazi)..."
 
@@ -28,6 +31,17 @@ case $ARCH in
         ;;
 esac
 
+# Ensure apt dependencies when available (for standalone runs)
+if command -v apt-get &> /dev/null; then
+    EXTRA_DEPS=()
+    command -v jq >/dev/null 2>&1 || EXTRA_DEPS+=(jq)
+    command -v unzip >/dev/null 2>&1 || EXTRA_DEPS+=(unzip)
+    if [ "${#EXTRA_DEPS[@]}" -gt 0 ]; then
+        apt_update_once
+        sudo apt-get install -y "${EXTRA_DEPS[@]}"
+    fi
+fi
+
 # Ensure ~/.local/bin exists
 if command -v ensure_local_bin >/dev/null 2>&1; then
     ensure_local_bin
@@ -40,9 +54,15 @@ if ! command -v glow &> /dev/null; then
     echo "Installing Glow..."
     # Add Charm repo
     sudo mkdir -p /etc/apt/keyrings
-    curl -fsSL https://repo.charm.sh/apt/gpg.key | sudo gpg --dearmor -o /etc/apt/keyrings/charm.gpg
-    echo "deb [signed-by=/etc/apt/keyrings/charm.gpg] https://repo.charm.sh/apt/ * *" | sudo tee /etc/apt/sources.list.d/charm.list
-    sudo apt-get update
+    if [ ! -f /etc/apt/keyrings/charm.gpg ]; then
+        curl -fsSL https://repo.charm.sh/apt/gpg.key | sudo gpg --dearmor -o /etc/apt/keyrings/charm.gpg
+    fi
+    if [ ! -f /etc/apt/sources.list.d/charm.list ]; then
+        echo "deb [signed-by=/etc/apt/keyrings/charm.gpg] https://repo.charm.sh/apt/ * *" | sudo tee /etc/apt/sources.list.d/charm.list
+        apt_update_once --force
+    else
+        apt_update_once
+    fi
     sudo apt-get install -y glow
 else
     echo "Glow is already installed."

@@ -43,6 +43,7 @@ if command -v apt-get &> /dev/null; then
         neovim
         unzip
         shellcheck
+        gnupg
     )
 
     # Add openssh-server if not on WSL
