@@ -121,6 +121,11 @@ To set up a new machine:
 | `tn` | `tmux new -s` |
 | `c` | `clear` |
 
+### Tmux
+*   Prefix is `Ctrl+a` (old `Ctrl+b` unbound).
+*   Mouse support is on; windows/panes start at 1 and renumber on close.
+*   Reload config with `Prefix + r` (`~/.tmux.conf`).
+
 ### Navigation
 | Alias | Command |
 |-------|---------|
