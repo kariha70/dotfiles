@@ -96,7 +96,7 @@ fi
 # 13. Run Stow
 # We want to stow directories that contain config files.
 # We exclude 'install' and '.git' and the script itself.
-STOW_DIRS="bash git vim zsh"
+STOW_DIRS="bash git vim zsh tmux nvim"
 
 # Pre-stow backup: Move existing files that are not symlinks to avoid conflicts
 CONFLICT_FILES=(
@@ -107,6 +107,7 @@ CONFLICT_FILES=(
     ".vimrc"
     ".zshrc"
     ".zlogin"
+    ".config/nvim"
 )
 
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
