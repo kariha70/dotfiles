@@ -107,6 +107,7 @@ CONFLICT_FILES=(
     ".vimrc"
     ".zshrc"
     ".zlogin"
+    ".tmux.conf"
     ".config/nvim"
 )
 
