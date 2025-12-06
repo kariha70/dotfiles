@@ -1,7 +1,14 @@
+# Disable Powerlevel10k instant prompt in tmux sessions to avoid raw OSC escape
+# sequences (e.g., background probes) leaking into the prompt. Keep it enabled
+# elsewhere for faster startup.
+if [[ -n "$TMUX" ]]; then
+  export POWERLEVEL9K_INSTANT_PROMPT=off
+fi
+
 # Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
 # Initialization code that may require console input (password prompts, [y/n]
 # confirmations, etc.) must go above this block; everything else may go below.
-if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
+if [[ "${POWERLEVEL9K_INSTANT_PROMPT:-}" != off && -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
   source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
 fi
 
