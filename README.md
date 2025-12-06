@@ -68,13 +68,13 @@ To set up a new machine:
 
 ### Installer integrity (required checksums)
 
-Some installers download third-party binaries or scripts. To avoid executing unverified payloads, the scripts require SHA256 environment variables before they will run. If a value is missing, the script prints the computed hash and exits so you can export it explicitly.
+Some installers download third-party binaries or scripts. To avoid executing unverified payloads, the scripts enforce SHA256 verification. Most installers require you to export a SHA256 environment variable up front; `uv` ships with a pinned checksum and only needs `UV_INSTALLER_SHA256` if the upstream installer hash changes.
 
 Set these variables before running `./bootstrap.sh` (or the individual installers):
 
 | Env var | What it secures |
 |---------|-----------------|
-| `UV_INSTALLER_SHA256` | uv installer script |
+| `UV_INSTALLER_SHA256` | uv installer script (override pinned default) |
 | `ZOXIDE_INSTALLER_SHA256` | zoxide fallback installer script |
 | `FASTFETCH_DEB_SHA256` | Fastfetch .deb fallback |
 | `YAZI_ZIP_SHA256` | Yazi prebuilt zip |
