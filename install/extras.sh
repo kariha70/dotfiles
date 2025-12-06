@@ -21,13 +21,13 @@ case $ARCH in
         FASTFETCH_ARCH="linux-amd64"
         YAZI_ARCH="x86_64-unknown-linux-gnu"
         ATUIN_ARCH="x86_64-unknown-linux-gnu"
-        GLOW_ARCH="linux_amd64.deb"
+        GLOW_ARCH="amd64.deb"
         ;;
     aarch64|arm64)
         FASTFETCH_ARCH="linux-aarch64"
         YAZI_ARCH="aarch64-unknown-linux-gnu"
         ATUIN_ARCH="aarch64-unknown-linux-gnu"
-        GLOW_ARCH="linux_arm64.deb"
+        GLOW_ARCH="arm64.deb"
         ;;
     *)
         echo "Unsupported architecture: $ARCH"
