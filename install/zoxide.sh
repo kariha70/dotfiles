@@ -29,7 +29,22 @@ if command -v apt-get &> /dev/null; then
     echo "apt installation failed, falling back to upstream installer."
 fi
 
-# Fallback: install zoxide to ~/.local/bin
-curl -sS https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | bash
+# Fallback: install zoxide to ~/.local/bin with checksum enforcement
+INSTALLER_PATH=/tmp/zoxide-install.sh
+curl -sS https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh -o "$INSTALLER_PATH"
+ACTUAL_SHA=$(sha256sum "$INSTALLER_PATH" | awk '{print $1}')
+if [ -z "${ZOXIDE_INSTALLER_SHA256:-}" ]; then
+    echo "Installer SHA256: $ACTUAL_SHA"
+    echo "Set ZOXIDE_INSTALLER_SHA256 to the value above to proceed (aborting to avoid running an unverified installer)."
+    exit 1
+fi
+if [ "$ACTUAL_SHA" != "$ZOXIDE_INSTALLER_SHA256" ]; then
+    echo "Checksum mismatch for zoxide installer."
+    echo "Expected: $ZOXIDE_INSTALLER_SHA256"
+    echo "Actual:   $ACTUAL_SHA"
+    exit 1
+fi
+bash "$INSTALLER_PATH"
+rm -f "$INSTALLER_PATH"
 
 echo "zoxide installed."
