@@ -21,11 +21,13 @@ case $ARCH in
         FASTFETCH_ARCH="linux-amd64"
         YAZI_ARCH="x86_64-unknown-linux-gnu"
         ATUIN_ARCH="x86_64-unknown-linux-gnu"
+        GLOW_ARCH="linux_amd64.deb"
         ;;
     aarch64|arm64)
         FASTFETCH_ARCH="linux-aarch64"
         YAZI_ARCH="aarch64-unknown-linux-gnu"
         ATUIN_ARCH="aarch64-unknown-linux-gnu"
+        GLOW_ARCH="linux_arm64.deb"
         ;;
     *)
         echo "Unsupported architecture: $ARCH"
@@ -71,18 +73,17 @@ fi
 # 1. Glow (Markdown reader)
 if ! command -v glow &> /dev/null; then
     echo "Installing Glow..."
-    # Add Charm repo
-    sudo mkdir -p /etc/apt/keyrings
-    if [ ! -f /etc/apt/keyrings/charm.gpg ]; then
-        curl -fsSL https://repo.charm.sh/apt/gpg.key | sudo gpg --dearmor -o /etc/apt/keyrings/charm.gpg
+    # Download latest release .deb from GitHub with checksum enforcement
+    GLOW_URL=$(curl -s https://api.github.com/repos/charmbracelet/glow/releases/latest | jq -r --arg DEB "$GLOW_ARCH" '.assets[] | select(.name | endswith($DEB)) | .browser_download_url' | head -1)
+    if [ -z "$GLOW_URL" ] || [ "$GLOW_URL" = "null" ]; then
+        echo "Could not find Glow release asset for $GLOW_ARCH."
+        exit 1
     fi
-    if [ ! -f /etc/apt/sources.list.d/charm.list ]; then
-        echo "deb [signed-by=/etc/apt/keyrings/charm.gpg] https://repo.charm.sh/apt/ stable main" | sudo tee /etc/apt/sources.list.d/charm.list
-        apt_update_once --force
-    else
-        apt_update_once
-    fi
-    sudo apt-get install -y glow
+    curl -fLo /tmp/glow.deb "$GLOW_URL"
+    verify_sha256 /tmp/glow.deb "${GLOW_DEB_SHA256:-}" "GLOW_DEB_SHA256" || exit 1
+    apt_update_once
+    sudo apt-get install -y /tmp/glow.deb
+    rm -f /tmp/glow.deb
 else
     echo "Glow is already installed."
 fi

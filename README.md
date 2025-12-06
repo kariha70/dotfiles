@@ -75,6 +75,7 @@ Set these variables before running `./bootstrap.sh` (or the individual installer
 | Env var | What it secures |
 |---------|-----------------|
 | `UV_INSTALLER_SHA256` | uv installer script (override pinned default) |
+| `GLOW_DEB_SHA256` | Glow release .deb |
 | `ZOXIDE_INSTALLER_SHA256` | zoxide fallback installer script |
 | `FASTFETCH_DEB_SHA256` | Fastfetch .deb fallback |
 | `YAZI_ZIP_SHA256` | Yazi prebuilt zip |
