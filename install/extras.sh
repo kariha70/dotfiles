@@ -22,12 +22,14 @@ case $ARCH in
         YAZI_ARCH="x86_64-unknown-linux-gnu"
         ATUIN_ARCH="x86_64-unknown-linux-gnu"
         GLOW_ARCH="amd64.deb"
+        GLOW_DEFAULT_DEB_SHA256="4d34c7100b1ee6d6eb74ea2513bf076b361489b5165394ac8f21a3485f982d99"
         ;;
     aarch64|arm64)
         FASTFETCH_ARCH="linux-aarch64"
         YAZI_ARCH="aarch64-unknown-linux-gnu"
         ATUIN_ARCH="aarch64-unknown-linux-gnu"
         GLOW_ARCH="arm64.deb"
+        GLOW_DEFAULT_DEB_SHA256="51abf1f0aa8b686ef29bbebb96b758b6286c11d0e5ab38b5265ae8bf5bf9494c"
         ;;
     *)
         echo "Unsupported architecture: $ARCH"
@@ -80,7 +82,13 @@ if ! command -v glow &> /dev/null; then
         exit 1
     fi
     curl -fLo /tmp/glow.deb "$GLOW_URL"
-    verify_sha256 /tmp/glow.deb "${GLOW_DEB_SHA256:-}" "GLOW_DEB_SHA256" || exit 1
+    GLOW_EXPECTED_SHA="${GLOW_DEB_SHA256:-$GLOW_DEFAULT_DEB_SHA256}"
+    if ! verify_sha256 /tmp/glow.deb "$GLOW_EXPECTED_SHA" "GLOW_DEB_SHA256"; then
+        if [ -z "${GLOW_DEB_SHA256:-}" ]; then
+            echo "If the release changed, set GLOW_DEB_SHA256 to the new SHA256 after verifying it."
+        fi
+        exit 1
+    fi
     apt_update_once
     sudo apt-get install -y /tmp/glow.deb
     rm -f /tmp/glow.deb
