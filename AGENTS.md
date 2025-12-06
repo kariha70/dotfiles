@@ -33,3 +33,4 @@
 ## Security & Configuration Tips
 - Installers call `sudo apt-get` and modify login shells; avoid secrets or machine-specific paths. Prefer env vars to tokens.
 - Respect WSL/host differences: keep font installs gated to non-WSL and leave SSH changes skipped on WSL unless explicitly needed.
+- For any installer that downloads a script or prebuilt archive, require a SHA256 and fail closed if it is missing or mismatched. Existing env vars used by the scripts: `UV_INSTALLER_SHA256`, `ZOXIDE_INSTALLER_SHA256`, `FASTFETCH_DEB_SHA256`, `YAZI_ZIP_SHA256`, `ATUIN_TAR_SHA256`. When updating versions, download the asset, compute `sha256sum`, and export the matching env var before running.

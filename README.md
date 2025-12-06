@@ -66,6 +66,30 @@ To set up a new machine:
 3.  **Restart your shell:**
     Log out and log back in, or restart your terminal to enter Zsh.
 
+### Installer integrity (required checksums)
+
+Some installers download third-party binaries or scripts. To avoid executing unverified payloads, the scripts require SHA256 environment variables before they will run. If a value is missing, the script prints the computed hash and exits so you can export it explicitly.
+
+Set these variables before running `./bootstrap.sh` (or the individual installers):
+
+| Env var | What it secures |
+|---------|-----------------|
+| `UV_INSTALLER_SHA256` | uv installer script |
+| `ZOXIDE_INSTALLER_SHA256` | zoxide fallback installer script |
+| `FASTFETCH_DEB_SHA256` | Fastfetch .deb fallback |
+| `YAZI_ZIP_SHA256` | Yazi prebuilt zip |
+| `ATUIN_TAR_SHA256` | Atuin prebuilt tarball |
+
+How to set a value (example for Fastfetch):
+
+```bash
+curl -fLo /tmp/fastfetch.deb "<release asset url>"
+sha256sum /tmp/fastfetch.deb
+export FASTFETCH_DEB_SHA256=<sha printed above>
+```
+
+Repeat with the matching asset type for each tool. The scripts will refuse to proceed if the checksum does not match.
+
 ## Post-Installation
 
 *   **Powerlevel10k**: On first run, the configuration wizard should start. If not, run `p10k configure`.
