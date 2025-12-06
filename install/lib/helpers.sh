@@ -10,6 +10,15 @@ is_wsl() {
     grep -qEi "(Microsoft|WSL)" /proc/version 2>/dev/null
 }
 
+# Clean up deprecated/broken third-party apt sources to prevent update failures.
+remove_deprecated_apt_sources() {
+    local charm_list="/etc/apt/sources.list.d/charm.list"
+    if [ -f "$charm_list" ] && grep -q "repo.charm.sh/apt" "$charm_list"; then
+        echo "Removing deprecated Charm apt source (no longer used for Glow)."
+        sudo rm -f "$charm_list"
+    fi
+}
+
 # Run apt-get update only once per script invocation.
 apt_update_once() {
     if ! command -v apt-get >/dev/null; then
@@ -22,6 +31,7 @@ apt_update_once() {
         return 0
     fi
     echo "Updating apt package index..."
+    remove_deprecated_apt_sources
     sudo apt-get update
     export APT_UPDATED=1
     touch "${APT_UPDATE_SENTINEL:-/tmp/dotfiles_apt_updated}"
