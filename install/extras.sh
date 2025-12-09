@@ -8,6 +8,14 @@ if [ -f "$HELPERS" ]; then
     # shellcheck source=/dev/null
     source "$HELPERS"
 fi
+VERSIONS_FILE="${VERSIONS_FILE:-$SCRIPT_DIR/versions.env}"
+if [ -f "$VERSIONS_FILE" ]; then
+    # shellcheck source=/dev/null
+    source "$VERSIONS_FILE"
+else
+    echo "versions.env not found at $VERSIONS_FILE. Run scripts/bump-versions.sh to generate it."
+    exit 1
+fi
 if ! command -v apt_update_once >/dev/null 2>&1; then
     apt_update_once() { sudo apt-get update; }
 fi
@@ -38,20 +46,24 @@ case $ARCH in
 esac
 
 verify_sha256() {
-    local file="$1" expected="$2" env_name="$3"
+    local file="$1" expected="$2" label="$3"
     local actual
     actual=$(sha256sum "$file" | awk '{print $1}')
     if [ -z "$expected" ]; then
-        echo "SHA256 for $file: $actual"
-        echo "Set $env_name to the value above to proceed (aborting to avoid running an unverified download)."
+        echo "Missing checksum for $label. Run scripts/bump-versions.sh to refresh install/versions.env."
         return 1
     fi
     if [ "$actual" != "$expected" ]; then
-        echo "Checksum mismatch for $file"
+        echo "Checksum mismatch for $label"
         echo "Expected: $expected"
         echo "Actual:   $actual"
+        echo "Run scripts/bump-versions.sh if a new release is available."
         return 1
     fi
+}
+
+var_for_arch() {
+    echo "${1//-/_}"
 }
 
 # Ensure apt dependencies when available (for standalone runs)
@@ -99,13 +111,15 @@ fi
 # 2. Atuin (Shell history)
 if ! command -v atuin &> /dev/null; then
     echo "Installing Atuin..."
-    ATUIN_URL=$(curl -s https://api.github.com/repos/atuinsh/atuin/releases/latest | jq -r --arg ARCH "$ATUIN_ARCH" '.assets[] | select(.name | endswith($ARCH + ".tar.gz")) | .browser_download_url' | head -1)
-    if [ -z "$ATUIN_URL" ] || [ "$ATUIN_URL" = "null" ]; then
-        echo "Could not find Atuin release asset for $ATUIN_ARCH."
+    if [ -z "${ATUIN_VERSION:-}" ]; then
+        echo "ATUIN_VERSION is missing. Run scripts/bump-versions.sh."
         exit 1
     fi
+    ATUIN_SHA_VAR="ATUIN_TAR_SHA256_$(var_for_arch "$ATUIN_ARCH")"
+    ATUIN_EXPECTED="${!ATUIN_SHA_VAR:-}"
+    ATUIN_URL="https://github.com/atuinsh/atuin/releases/download/${ATUIN_VERSION}/atuin-${ATUIN_ARCH}.tar.gz"
     curl -fLo /tmp/atuin.tar.gz "$ATUIN_URL"
-    verify_sha256 /tmp/atuin.tar.gz "${ATUIN_TAR_SHA256:-}" "ATUIN_TAR_SHA256"
+    verify_sha256 /tmp/atuin.tar.gz "$ATUIN_EXPECTED" "Atuin ($ATUIN_ARCH)"
     tar -xf /tmp/atuin.tar.gz -C /tmp
     ATUIN_BIN=$(find /tmp -maxdepth 3 -type f -name atuin | head -1)
     if [ -z "$ATUIN_BIN" ]; then
@@ -128,15 +142,17 @@ if ! command -v fastfetch &> /dev/null; then
         else
            # Fallback to GitHub release (with checksum enforcement)
            echo "Fastfetch not in apt, downloading from GitHub..."
-           LATEST_URL=$(curl -s https://api.github.com/repos/fastfetch-cli/fastfetch/releases/latest | jq -r --arg ARCH "$FASTFETCH_ARCH" '.assets[] | select(.name | endswith($ARCH + ".deb")) | .browser_download_url' | head -1)
-           if [ -n "$LATEST_URL" ] && [ "$LATEST_URL" != "null" ]; then
-               curl -fLo /tmp/fastfetch.deb "$LATEST_URL"
-               verify_sha256 /tmp/fastfetch.deb "${FASTFETCH_DEB_SHA256:-}" "FASTFETCH_DEB_SHA256"
-               sudo dpkg -i /tmp/fastfetch.deb
-               rm /tmp/fastfetch.deb
-           else
-               echo "Could not find fastfetch deb asset."
+           if [ -z "${FASTFETCH_VERSION:-}" ]; then
+               echo "FASTFETCH_VERSION is missing. Run scripts/bump-versions.sh."
+               exit 1
            fi
+           FF_SHA_VAR="FASTFETCH_DEB_SHA256_$(var_for_arch "$FASTFETCH_ARCH")"
+           FF_EXPECTED="${!FF_SHA_VAR:-}"
+           FF_URL="https://github.com/fastfetch-cli/fastfetch/releases/download/${FASTFETCH_VERSION}/fastfetch-${FASTFETCH_ARCH}.deb"
+           curl -fLo /tmp/fastfetch.deb "$FF_URL"
+           verify_sha256 /tmp/fastfetch.deb "$FF_EXPECTED" "Fastfetch ($FASTFETCH_ARCH)"
+           sudo dpkg -i /tmp/fastfetch.deb
+           rm /tmp/fastfetch.deb
         fi
 else
     echo "Fastfetch is already installed."
@@ -145,25 +161,26 @@ fi
 # 4. Yazi (File manager)
 if ! command -v yazi &> /dev/null; then
     echo "Installing Yazi..."
-    # Download prebuilt binary
-    LATEST_URL=$(curl -s https://api.github.com/repos/sxyazi/yazi/releases/latest | jq -r --arg ARCH "$YAZI_ARCH" '.assets[] | select(.name | contains($ARCH + ".zip")) | .browser_download_url' | head -1)
-    if [ -n "$LATEST_URL" ] && [ "$LATEST_URL" != "null" ]; then
-        curl -fLo /tmp/yazi.zip "$LATEST_URL"
-        verify_sha256 /tmp/yazi.zip "${YAZI_ZIP_SHA256:-}" "YAZI_ZIP_SHA256"
-        unzip -q /tmp/yazi.zip -d /tmp
-        # Move binary to local bin
-        mv /tmp/yazi-*-linux-gnu/yazi "$HOME/.local/bin/"
-        # Also move 'ya' if it exists (helper tool)
-        for YA_BIN in /tmp/yazi-*-linux-gnu/ya; do
-            if [ -f "$YA_BIN" ]; then
-                mv "$YA_BIN" "$HOME/.local/bin/"
-            fi
-        done
-        rm -rf /tmp/yazi*
-        echo "Yazi installed."
-    else
-        echo "Could not find yazi zip asset."
+    if [ -z "${YAZI_VERSION:-}" ]; then
+        echo "YAZI_VERSION is missing. Run scripts/bump-versions.sh."
+        exit 1
     fi
+    YAZI_SHA_VAR="YAZI_ZIP_SHA256_$(var_for_arch "$YAZI_ARCH")"
+    YAZI_EXPECTED="${!YAZI_SHA_VAR:-}"
+    YAZI_URL="https://github.com/sxyazi/yazi/releases/download/${YAZI_VERSION}/yazi-${YAZI_ARCH}.zip"
+    curl -fLo /tmp/yazi.zip "$YAZI_URL"
+    verify_sha256 /tmp/yazi.zip "$YAZI_EXPECTED" "Yazi ($YAZI_ARCH)"
+    unzip -q /tmp/yazi.zip -d /tmp
+    # Move binary to local bin
+    mv /tmp/yazi-*-linux-gnu/yazi "$HOME/.local/bin/"
+    # Also move 'ya' if it exists (helper tool)
+    for YA_BIN in /tmp/yazi-*-linux-gnu/ya; do
+        if [ -f "$YA_BIN" ]; then
+            mv "$YA_BIN" "$HOME/.local/bin/"
+        fi
+    done
+    rm -rf /tmp/yazi*
+    echo "Yazi installed."
 else
     echo "Yazi is already installed."
 fi

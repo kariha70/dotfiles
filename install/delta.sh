@@ -2,6 +2,16 @@
 
 set -e
 
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+VERSIONS_FILE="${VERSIONS_FILE:-$SCRIPT_DIR/versions.env}"
+if [ -f "$VERSIONS_FILE" ]; then
+    # shellcheck source=/dev/null
+    source "$VERSIONS_FILE"
+else
+    echo "versions.env not found at $VERSIONS_FILE. Run scripts/bump-versions.sh to generate it."
+    exit 1
+fi
+
 echo "Installing git-delta..."
 
 if command -v delta &> /dev/null; then
@@ -19,7 +29,10 @@ fi
 
 # Fallback: Download .deb from GitHub (for x86_64)
 # We use a fixed version for stability, but you might want to fetch the latest release tag.
-VERSION="0.16.5"
+if [ -z "${DELTA_VERSION:-}" ]; then
+    echo "DELTA_VERSION is missing. Run scripts/bump-versions.sh to refresh install/versions.env."
+    exit 1
+fi
 
 ARCH=$(uname -m)
 case $ARCH in
@@ -35,11 +48,27 @@ case $ARCH in
         ;;
 esac
 
-DEB_FILE="git-delta_${VERSION}_${DELTA_ARCH}.deb"
-URL="https://github.com/dandavison/delta/releases/download/${VERSION}/${DEB_FILE}"
+EXPECTED_DELTA_VAR="DELTA_DEB_SHA256_${DELTA_ARCH}"
+EXPECTED_DELTA_SHA="${!EXPECTED_DELTA_VAR:-}"
+if [ -z "$EXPECTED_DELTA_SHA" ]; then
+    echo "Missing checksum for ${DELTA_ARCH} in install/versions.env (${EXPECTED_DELTA_VAR}). Run scripts/bump-versions.sh."
+    exit 1
+fi
 
-echo "Downloading git-delta $VERSION from GitHub..."
+DEB_FILE="git-delta_${DELTA_VERSION}_${DELTA_ARCH}.deb"
+URL="https://github.com/dandavison/delta/releases/download/${DELTA_VERSION}/${DEB_FILE}"
+
+echo "Downloading git-delta $DELTA_VERSION from GitHub..."
 curl -fLo "/tmp/$DEB_FILE" "$URL"
+DELTA_SHA=$(sha256sum "/tmp/$DEB_FILE" | awk '{print $1}')
+if [ "$DELTA_SHA" != "$EXPECTED_DELTA_SHA" ]; then
+    echo "Checksum mismatch for git-delta deb."
+    echo "Expected: $EXPECTED_DELTA_SHA"
+    echo "Actual:   $DELTA_SHA"
+    echo "Update install/versions.env with scripts/bump-versions.sh if a new release is available."
+    rm -f "/tmp/$DEB_FILE"
+    exit 1
+fi
 
 echo "Installing..."
 sudo dpkg -i "/tmp/$DEB_FILE"

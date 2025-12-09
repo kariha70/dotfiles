@@ -8,6 +8,14 @@ if [ -f "$HELPERS" ]; then
     # shellcheck source=/dev/null
     source "$HELPERS"
 fi
+VERSIONS_FILE="${VERSIONS_FILE:-$SCRIPT_DIR/versions.env}"
+if [ -f "$VERSIONS_FILE" ]; then
+    # shellcheck source=/dev/null
+    source "$VERSIONS_FILE"
+else
+    echo "versions.env not found at $VERSIONS_FILE. Run scripts/bump-versions.sh to generate it."
+    exit 1
+fi
 if ! command -v apt_update_once >/dev/null 2>&1; then
     apt_update_once() { sudo apt-get update; }
 fi
@@ -33,15 +41,18 @@ fi
 INSTALLER_PATH=/tmp/zoxide-install.sh
 curl -sS https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh -o "$INSTALLER_PATH"
 ACTUAL_SHA=$(sha256sum "$INSTALLER_PATH" | awk '{print $1}')
-if [ -z "${ZOXIDE_INSTALLER_SHA256:-}" ]; then
-    echo "Installer SHA256: $ACTUAL_SHA"
-    echo "Set ZOXIDE_INSTALLER_SHA256 to the value above to proceed (aborting to avoid running an unverified installer)."
+EXPECTED_ZOXIDE_SHA="${ZOXIDE_INSTALLER_SHA256:-}"
+if [ -z "$EXPECTED_ZOXIDE_SHA" ]; then
+    echo "ZOXIDE_INSTALLER_SHA256 missing. Run scripts/bump-versions.sh to refresh install/versions.env."
+    rm -f "$INSTALLER_PATH"
     exit 1
 fi
-if [ "$ACTUAL_SHA" != "$ZOXIDE_INSTALLER_SHA256" ]; then
+if [ "$ACTUAL_SHA" != "$EXPECTED_ZOXIDE_SHA" ]; then
     echo "Checksum mismatch for zoxide installer."
-    echo "Expected: $ZOXIDE_INSTALLER_SHA256"
+    echo "Expected: $EXPECTED_ZOXIDE_SHA"
     echo "Actual:   $ACTUAL_SHA"
+    echo "Update install/versions.env with scripts/bump-versions.sh if a new release is available."
+    rm -f "$INSTALLER_PATH"
     exit 1
 fi
 bash "$INSTALLER_PATH"

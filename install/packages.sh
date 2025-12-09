@@ -52,6 +52,22 @@ if command -v apt-get &> /dev/null; then
     fi
     
     sudo apt-get install -y "${PACKAGES[@]}"
+
+    # Ensure libsecret credential helper for Git on non-WSL installs
+    if ! is_wsl; then
+        if ! command -v git-credential-libsecret >/dev/null 2>&1; then
+            if ! sudo apt-get install -y git-credential-libsecret 2>/dev/null; then
+                echo "git-credential-libsecret package not available; attempting to build from git contrib."
+                sudo apt-get install -y libsecret-1-0 libsecret-1-dev
+                HELPER_SRC="/usr/share/doc/git/contrib/credential/libsecret"
+                if [ -d "$HELPER_SRC" ]; then
+                    (cd "$HELPER_SRC" && sudo make && sudo install git-credential-libsecret /usr/local/bin/)
+                else
+                    echo "libsecret helper source not found at $HELPER_SRC; skipping helper build."
+                fi
+            fi
+        fi
+    fi
 else
     echo "Package manager not supported in this script yet. Please install 'stow' manually."
 fi
