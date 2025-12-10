@@ -44,6 +44,7 @@ if command -v apt-get &> /dev/null; then
         unzip
         shellcheck
         gnupg
+        wakeonlan
     )
 
     # Add openssh-server if not on WSL
