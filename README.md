@@ -36,6 +36,8 @@ My personal dotfiles, managed with [GNU Stow](https://www.gnu.org/software/stow/
 | [glow](https://github.com/charmbracelet/glow) | Terminal Markdown reader |
 | [neovim](https://neovim.io/) | Hyperextensible Vim-based editor |
 
+Some tools may be skipped if the distro's apt repo does not ship them yet (e.g., dust/procs/gping/hyperfine/HTTPie).
+
 ### Development
 *   **Node.js**: Managed via `nvm` (Node Version Manager) with lazy loading.
 *   **Python**: [uv](https://github.com/astral-sh/uv) - Fast Python package manager.

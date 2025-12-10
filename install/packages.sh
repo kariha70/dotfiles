@@ -21,7 +21,7 @@ echo "Installing packages..."
 if command -v apt-get &> /dev/null; then
     echo "Detected apt-get. Updating and installing packages..."
     apt_update_once
-    
+
     # List of packages to install
     PACKAGES=(
         curl
@@ -45,12 +45,31 @@ if command -v apt-get &> /dev/null; then
         shellcheck
         gnupg
         wakeonlan
-        hyperfine   # command-line benchmarking
-        du-dust     # fast disk usage with better visuals
-        procs       # modern replacement for ps
-        gping       # ping with charts
-        httpie      # modern HTTP client (command: http)
     )
+
+    add_first_available() {
+        local label="$1"
+        shift
+        for pkg in "$@"; do
+            if apt-cache show "$pkg" >/dev/null 2>&1; then
+                PACKAGES+=("$pkg")
+                return 0
+            fi
+        done
+        echo "Skipping $label (apt package not available on this distro)"
+    }
+
+    add_optional_package() {
+        local pkg="$1" label="${2:-$1}"
+        add_first_available "$label" "$pkg"
+    }
+
+    # Optional modern CLI tools when available on this distro
+    add_first_available "dust" du-dust dust   # package name varies by distro
+    add_optional_package "procs" "procs"
+    add_optional_package "gping" "gping"
+    add_optional_package "hyperfine" "hyperfine"
+    add_optional_package "httpie" "HTTPie"
 
     # Add openssh-server if not on WSL
     if ! is_wsl; then
