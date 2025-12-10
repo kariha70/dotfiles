@@ -45,6 +45,11 @@ if command -v apt-get &> /dev/null; then
         shellcheck
         gnupg
         wakeonlan
+        hyperfine   # command-line benchmarking
+        du-dust     # fast disk usage with better visuals
+        procs       # modern replacement for ps
+        gping       # ping with charts
+        httpie      # modern HTTP client (command: http)
     )
 
     # Add openssh-server if not on WSL

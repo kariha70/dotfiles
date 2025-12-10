@@ -25,6 +25,11 @@ My personal dotfiles, managed with [GNU Stow](https://www.gnu.org/software/stow/
 | [btop](https://github.com/aristocratos/btop) | Modern resource monitor (replaces htop) |
 | [tmux](https://github.com/tmux/tmux) | Terminal multiplexer |
 | [lazygit](https://github.com/jesseduffield/lazygit) | Terminal UI for git |
+| [hyperfine](https://github.com/sharkdp/hyperfine) | Fast, statistically sound command-line benchmarking |
+| [dust](https://github.com/bootandy/dust) | Visual, fast alternative to `du` for disk usage |
+| [procs](https://github.com/dalance/procs) | Modern `ps` replacement with color and tree views |
+| [gping](https://github.com/orf/gping) | Ping with live charts for host comparisons |
+| [HTTPie](https://httpie.io/cli) | Human-friendly HTTP client (`http`) |
 | [yazi](https://github.com/sxyazi/yazi) | Blazing fast terminal file manager |
 | [atuin](https://github.com/atuinsh/atuin) | Magical shell history with sync |
 | [fastfetch](https://github.com/fastfetch-cli/fastfetch) | System information tool |
