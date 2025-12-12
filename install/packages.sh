@@ -1,6 +1,7 @@
 #!/bin/bash
 
 set -e
+set -o pipefail
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 HELPERS="$SCRIPT_DIR/lib/helpers.sh"
@@ -76,7 +77,20 @@ if command -v apt-get &> /dev/null; then
         PACKAGES+=(openssh-server)
     fi
     
-    sudo apt-get install -y "${PACKAGES[@]}"
+    # Filter already-installed packages for faster reruns.
+    MISSING_PACKAGES=()
+    for pkg in "${PACKAGES[@]}"; do
+        if dpkg -s "$pkg" >/dev/null 2>&1; then
+            continue
+        fi
+        MISSING_PACKAGES+=("$pkg")
+    done
+
+    if [ "${#MISSING_PACKAGES[@]}" -gt 0 ]; then
+        sudo apt-get install -y --no-install-recommends "${MISSING_PACKAGES[@]}"
+    else
+        echo "All requested packages already installed."
+    fi
 
     # Ensure libsecret credential helper for Git on non-WSL installs
     if ! is_wsl; then

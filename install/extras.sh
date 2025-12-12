@@ -1,6 +1,7 @@
 #!/bin/bash
 
 set -e
+set -o pipefail
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 HELPERS="$SCRIPT_DIR/lib/helpers.sh"
@@ -23,44 +24,21 @@ fi
 echo "Installing extra modern tools (Glow, Atuin, Fastfetch, Yazi)..."
 
 # Detect architecture
-ARCH=$(uname -m)
-case $ARCH in
+ARCH="$(get_arch)"
+case "$ARCH" in
     x86_64)
         FASTFETCH_ARCH="linux-amd64"
         YAZI_ARCH="x86_64-unknown-linux-gnu"
         ATUIN_ARCH="x86_64-unknown-linux-gnu"
-        GLOW_ARCH="amd64.deb"
-        GLOW_DEFAULT_DEB_SHA256="4d34c7100b1ee6d6eb74ea2513bf076b361489b5165394ac8f21a3485f982d99"
+        GLOW_ARCH="amd64"
         ;;
-    aarch64|arm64)
+    arm64)
         FASTFETCH_ARCH="linux-aarch64"
         YAZI_ARCH="aarch64-unknown-linux-gnu"
         ATUIN_ARCH="aarch64-unknown-linux-gnu"
-        GLOW_ARCH="arm64.deb"
-        GLOW_DEFAULT_DEB_SHA256="51abf1f0aa8b686ef29bbebb96b758b6286c11d0e5ab38b5265ae8bf5bf9494c"
-        ;;
-    *)
-        echo "Unsupported architecture: $ARCH"
-        exit 1
+        GLOW_ARCH="arm64"
         ;;
 esac
-
-verify_sha256() {
-    local file="$1" expected="$2" label="$3"
-    local actual
-    actual=$(sha256sum "$file" | awk '{print $1}')
-    if [ -z "$expected" ]; then
-        echo "Missing checksum for $label. Run scripts/bump-versions.sh to refresh install/versions.env."
-        return 1
-    fi
-    if [ "$actual" != "$expected" ]; then
-        echo "Checksum mismatch for $label"
-        echo "Expected: $expected"
-        echo "Actual:   $actual"
-        echo "Run scripts/bump-versions.sh if a new release is available."
-        return 1
-    fi
-}
 
 var_for_arch() {
     echo "${1//-/_}"
@@ -84,26 +62,25 @@ else
     mkdir -p "$HOME/.local/bin"
 fi
 
+TMP_DIR="$(mktemp -d)"
+trap 'rm -rf "$TMP_DIR"' EXIT
+
 # 1. Glow (Markdown reader)
 if ! command -v glow &> /dev/null; then
     echo "Installing Glow..."
-    # Download latest release .deb from GitHub with checksum enforcement
-    GLOW_URL=$(curl -s https://api.github.com/repos/charmbracelet/glow/releases/latest | jq -r --arg DEB "$GLOW_ARCH" '.assets[] | select(.name | endswith($DEB)) | .browser_download_url' | head -1)
-    if [ -z "$GLOW_URL" ] || [ "$GLOW_URL" = "null" ]; then
-        echo "Could not find Glow release asset for $GLOW_ARCH."
+    if [ -z "${GLOW_VERSION:-}" ]; then
+        echo "GLOW_VERSION is missing. Run scripts/bump-versions.sh."
         exit 1
     fi
-    curl -fLo /tmp/glow.deb "$GLOW_URL"
-    GLOW_EXPECTED_SHA="${GLOW_DEB_SHA256:-$GLOW_DEFAULT_DEB_SHA256}"
-    if ! verify_sha256 /tmp/glow.deb "$GLOW_EXPECTED_SHA" "GLOW_DEB_SHA256"; then
-        if [ -z "${GLOW_DEB_SHA256:-}" ]; then
-            echo "If the release changed, set GLOW_DEB_SHA256 to the new SHA256 after verifying it."
-        fi
-        exit 1
-    fi
+    glow_version="${GLOW_VERSION#v}"
+    GLOW_SHA_VAR="GLOW_DEB_SHA256_${GLOW_ARCH}"
+    GLOW_EXPECTED_SHA="${!GLOW_SHA_VAR:-}"
+    GLOW_URL="https://github.com/charmbracelet/glow/releases/download/${GLOW_VERSION}/glow_${glow_version}_${GLOW_ARCH}.deb"
+    GLOW_DEB="$TMP_DIR/glow.deb"
+    curl -fLsS "$GLOW_URL" -o "$GLOW_DEB"
+    verify_sha256 "$GLOW_DEB" "$GLOW_EXPECTED_SHA" "Glow (${GLOW_ARCH})"
     apt_update_once
-    sudo apt-get install -y /tmp/glow.deb
-    rm -f /tmp/glow.deb
+    sudo apt-get install -y "$GLOW_DEB"
 else
     echo "Glow is already installed."
 fi
@@ -118,16 +95,16 @@ if ! command -v atuin &> /dev/null; then
     ATUIN_SHA_VAR="ATUIN_TAR_SHA256_$(var_for_arch "$ATUIN_ARCH")"
     ATUIN_EXPECTED="${!ATUIN_SHA_VAR:-}"
     ATUIN_URL="https://github.com/atuinsh/atuin/releases/download/${ATUIN_VERSION}/atuin-${ATUIN_ARCH}.tar.gz"
-    curl -fLo /tmp/atuin.tar.gz "$ATUIN_URL"
-    verify_sha256 /tmp/atuin.tar.gz "$ATUIN_EXPECTED" "Atuin ($ATUIN_ARCH)"
-    tar -xf /tmp/atuin.tar.gz -C /tmp
-    ATUIN_BIN=$(find /tmp -maxdepth 3 -type f -name atuin | head -1)
+    ATUIN_TAR="$TMP_DIR/atuin.tar.gz"
+    curl -fLsS "$ATUIN_URL" -o "$ATUIN_TAR"
+    verify_sha256 "$ATUIN_TAR" "$ATUIN_EXPECTED" "Atuin ($ATUIN_ARCH)"
+    tar -xf "$ATUIN_TAR" -C "$TMP_DIR"
+    ATUIN_BIN=$(find "$TMP_DIR" -maxdepth 3 -type f -name atuin | head -1)
     if [ -z "$ATUIN_BIN" ]; then
         echo "Atuin binary not found in extracted archive."
         exit 1
     fi
     install -m 0755 "$ATUIN_BIN" "$HOME/.local/bin/atuin"
-    rm -rf /tmp/atuin.tar.gz /tmp/atuin*
     echo "Atuin installed."
 else
     echo "Atuin is already installed."
@@ -149,10 +126,10 @@ if ! command -v fastfetch &> /dev/null; then
            FF_SHA_VAR="FASTFETCH_DEB_SHA256_$(var_for_arch "$FASTFETCH_ARCH")"
            FF_EXPECTED="${!FF_SHA_VAR:-}"
            FF_URL="https://github.com/fastfetch-cli/fastfetch/releases/download/${FASTFETCH_VERSION}/fastfetch-${FASTFETCH_ARCH}.deb"
-           curl -fLo /tmp/fastfetch.deb "$FF_URL"
-           verify_sha256 /tmp/fastfetch.deb "$FF_EXPECTED" "Fastfetch ($FASTFETCH_ARCH)"
-           sudo dpkg -i /tmp/fastfetch.deb
-           rm /tmp/fastfetch.deb
+           FF_DEB="$TMP_DIR/fastfetch.deb"
+           curl -fLsS "$FF_URL" -o "$FF_DEB"
+           verify_sha256 "$FF_DEB" "$FF_EXPECTED" "Fastfetch ($FASTFETCH_ARCH)"
+           sudo dpkg -i "$FF_DEB"
         fi
 else
     echo "Fastfetch is already installed."
@@ -168,18 +145,19 @@ if ! command -v yazi &> /dev/null; then
     YAZI_SHA_VAR="YAZI_ZIP_SHA256_$(var_for_arch "$YAZI_ARCH")"
     YAZI_EXPECTED="${!YAZI_SHA_VAR:-}"
     YAZI_URL="https://github.com/sxyazi/yazi/releases/download/${YAZI_VERSION}/yazi-${YAZI_ARCH}.zip"
-    curl -fLo /tmp/yazi.zip "$YAZI_URL"
-    verify_sha256 /tmp/yazi.zip "$YAZI_EXPECTED" "Yazi ($YAZI_ARCH)"
-    unzip -q /tmp/yazi.zip -d /tmp
-    # Move binary to local bin
-    mv /tmp/yazi-*-linux-gnu/yazi "$HOME/.local/bin/"
-    # Also move 'ya' if it exists (helper tool)
-    for YA_BIN in /tmp/yazi-*-linux-gnu/ya; do
-        if [ -f "$YA_BIN" ]; then
-            mv "$YA_BIN" "$HOME/.local/bin/"
-        fi
-    done
-    rm -rf /tmp/yazi*
+    YAZI_ZIP="$TMP_DIR/yazi.zip"
+    curl -fLsS "$YAZI_URL" -o "$YAZI_ZIP"
+    verify_sha256 "$YAZI_ZIP" "$YAZI_EXPECTED" "Yazi ($YAZI_ARCH)"
+    unzip -q "$YAZI_ZIP" -d "$TMP_DIR"
+    YAZI_DIR=$(find "$TMP_DIR" -maxdepth 1 -type d -name "yazi-*-linux-gnu" | head -1)
+    if [ -z "$YAZI_DIR" ]; then
+        echo "Yazi directory not found in extracted archive."
+        exit 1
+    fi
+    mv "$YAZI_DIR/yazi" "$HOME/.local/bin/"
+    if [ -f "$YAZI_DIR/ya" ]; then
+        mv "$YAZI_DIR/ya" "$HOME/.local/bin/"
+    fi
     echo "Yazi installed."
 else
     echo "Yazi is already installed."

@@ -1,8 +1,14 @@
 #!/bin/bash
 
 set -e
+set -o pipefail
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+HELPERS="$SCRIPT_DIR/lib/helpers.sh"
+if [ -f "$HELPERS" ]; then
+    # shellcheck source=/dev/null
+    source "$HELPERS"
+fi
 VERSIONS_FILE="${VERSIONS_FILE:-$SCRIPT_DIR/versions.env}"
 if [ -f "$VERSIONS_FILE" ]; then
     # shellcheck source=/dev/null
@@ -34,44 +40,29 @@ if [ -z "${DELTA_VERSION:-}" ]; then
     exit 1
 fi
 
-ARCH=$(uname -m)
-case $ARCH in
+ARCH="$(get_arch)"
+case "$ARCH" in
     x86_64)
         DELTA_ARCH="amd64"
         ;;
-    aarch64|arm64)
+    arm64)
         DELTA_ARCH="arm64"
-        ;;
-    *)
-        echo "Unsupported architecture: $ARCH"
-        exit 1
         ;;
 esac
 
 EXPECTED_DELTA_VAR="DELTA_DEB_SHA256_${DELTA_ARCH}"
 EXPECTED_DELTA_SHA="${!EXPECTED_DELTA_VAR:-}"
-if [ -z "$EXPECTED_DELTA_SHA" ]; then
-    echo "Missing checksum for ${DELTA_ARCH} in install/versions.env (${EXPECTED_DELTA_VAR}). Run scripts/bump-versions.sh."
-    exit 1
-fi
 
 DEB_FILE="git-delta_${DELTA_VERSION}_${DELTA_ARCH}.deb"
 URL="https://github.com/dandavison/delta/releases/download/${DELTA_VERSION}/${DEB_FILE}"
 
 echo "Downloading git-delta $DELTA_VERSION from GitHub..."
-curl -fLo "/tmp/$DEB_FILE" "$URL"
-DELTA_SHA=$(sha256sum "/tmp/$DEB_FILE" | awk '{print $1}')
-if [ "$DELTA_SHA" != "$EXPECTED_DELTA_SHA" ]; then
-    echo "Checksum mismatch for git-delta deb."
-    echo "Expected: $EXPECTED_DELTA_SHA"
-    echo "Actual:   $DELTA_SHA"
-    echo "Update install/versions.env with scripts/bump-versions.sh if a new release is available."
-    rm -f "/tmp/$DEB_FILE"
-    exit 1
-fi
+TMP_DEB="$(mktemp /tmp/git-delta.XXXXXX.deb)"
+trap 'rm -f "$TMP_DEB"' EXIT
+curl -fLsS "$URL" -o "$TMP_DEB"
+verify_sha256 "$TMP_DEB" "$EXPECTED_DELTA_SHA" "git-delta deb (${DELTA_ARCH})"
 
 echo "Installing..."
-sudo dpkg -i "/tmp/$DEB_FILE"
-rm "/tmp/$DEB_FILE"
+sudo dpkg -i "$TMP_DEB"
 
 echo "git-delta installed successfully."

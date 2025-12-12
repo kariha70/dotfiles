@@ -1,6 +1,7 @@
 #!/bin/bash
 
 set -e
+set -o pipefail
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 HELPERS="$SCRIPT_DIR/lib/helpers.sh"
@@ -38,24 +39,11 @@ if command -v apt-get &> /dev/null; then
 fi
 
 # Fallback: install zoxide to ~/.local/bin with checksum enforcement
-INSTALLER_PATH=/tmp/zoxide-install.sh
-curl -sS https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh -o "$INSTALLER_PATH"
-ACTUAL_SHA=$(sha256sum "$INSTALLER_PATH" | awk '{print $1}')
+INSTALLER_PATH="$(mktemp /tmp/zoxide-install.XXXXXX.sh)"
+trap 'rm -f "$INSTALLER_PATH"' EXIT
+curl -fsS https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh -o "$INSTALLER_PATH"
 EXPECTED_ZOXIDE_SHA="${ZOXIDE_INSTALLER_SHA256:-}"
-if [ -z "$EXPECTED_ZOXIDE_SHA" ]; then
-    echo "ZOXIDE_INSTALLER_SHA256 missing. Run scripts/bump-versions.sh to refresh install/versions.env."
-    rm -f "$INSTALLER_PATH"
-    exit 1
-fi
-if [ "$ACTUAL_SHA" != "$EXPECTED_ZOXIDE_SHA" ]; then
-    echo "Checksum mismatch for zoxide installer."
-    echo "Expected: $EXPECTED_ZOXIDE_SHA"
-    echo "Actual:   $ACTUAL_SHA"
-    echo "Update install/versions.env with scripts/bump-versions.sh if a new release is available."
-    rm -f "$INSTALLER_PATH"
-    exit 1
-fi
+verify_sha256 "$INSTALLER_PATH" "$EXPECTED_ZOXIDE_SHA" "zoxide installer"
 bash "$INSTALLER_PATH"
-rm -f "$INSTALLER_PATH"
 
 echo "zoxide installed."

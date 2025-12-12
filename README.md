@@ -70,6 +70,14 @@ To set up a new machine:
     *   Symlink configuration files to your home directory.
     *   Set Zsh as your default shell.
 
+### Bootstrap options
+
+You can control what `bootstrap.sh` does via environment variables:
+
+*   `ONLY_STOW=1` — skip all installers and only run stow (plus shell switch unless `SKIP_SHELL=1`).
+*   `SKIP_<STEP>=1` — skip a specific step, where `<STEP>` is one of: `PACKAGES`, `SSH`, `OHMYZSH`, `FONTS`, `EZA`, `NVM`, `ZOXIDE`, `LAZYGIT`, `UV`, `WSL`, `DELTA`, `EXTRAS`, `STOW`, `SHELL`.
+*   `EXTRA_CONFLICT_FILES="path1 path2"` — space‑separated additional files/dirs to back up before stow.
+
 3.  **Restart your shell:**
     Log out and log back in, or restart your terminal to enter Zsh.
 
@@ -86,6 +94,7 @@ Pinned in `install/versions.env` (per-arch where applicable):
 | `ZOXIDE_INSTALLER_SHA256` | zoxide installer script (fallback when apt unavailable) |
 | `LAZYGIT_TAR_SHA256_x86_64` / `_arm64` | lazygit release tarballs |
 | `DELTA_DEB_SHA256_amd64` / `_arm64` | git-delta fallback .deb |
+| `GLOW_DEB_SHA256_amd64` / `_arm64` | Glow .deb fallback |
 | `FASTFETCH_DEB_SHA256_linux_amd64` / `_linux_aarch64` | Fastfetch .deb fallback |
 | `YAZI_ZIP_SHA256_x86_64_unknown_linux_gnu` / `_aarch64_unknown_linux_gnu` | Yazi prebuilt zips |
 | `ATUIN_TAR_SHA256_x86_64_unknown_linux_gnu` / `_aarch64_unknown_linux_gnu` | Atuin prebuilt tarballs |

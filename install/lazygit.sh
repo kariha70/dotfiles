@@ -1,8 +1,14 @@
 #!/bin/bash
 
 set -e
+set -o pipefail
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+HELPERS="$SCRIPT_DIR/lib/helpers.sh"
+if [ -f "$HELPERS" ]; then
+    # shellcheck source=/dev/null
+    source "$HELPERS"
+fi
 VERSIONS_FILE="${VERSIONS_FILE:-$SCRIPT_DIR/versions.env}"
 if [ -f "$VERSIONS_FILE" ]; then
     # shellcheck source=/dev/null
@@ -24,39 +30,17 @@ if [ -z "${LAZYGIT_VERSION:-}" ]; then
     exit 1
 fi
 
-ARCH=$(uname -m)
-case $ARCH in
-    x86_64)
-        LAZYGIT_ARCH="x86_64"
-        ;;
-    aarch64|arm64)
-        LAZYGIT_ARCH="arm64"
-        ;;
-    *)
-        echo "Unsupported architecture: $ARCH"
-        exit 1
-        ;;
-esac
+LAZYGIT_ARCH="$(get_arch)"
 
 EXPECTED_VAR="LAZYGIT_TAR_SHA256_${LAZYGIT_ARCH}"
 EXPECTED_LAZYGIT_SHA="${!EXPECTED_VAR:-}"
-if [ -z "$EXPECTED_LAZYGIT_SHA" ]; then
-    echo "Missing checksum for ${LAZYGIT_ARCH} in install/versions.env (${EXPECTED_VAR}). Run scripts/bump-versions.sh."
-    exit 1
-fi
 
-curl -fLo /tmp/lazygit.tar.gz "https://github.com/jesseduffield/lazygit/releases/download/v${LAZYGIT_VERSION}/lazygit_${LAZYGIT_VERSION}_Linux_${LAZYGIT_ARCH}.tar.gz"
-LAZYGIT_SHA=$(sha256sum /tmp/lazygit.tar.gz | awk '{print $1}')
-if [ "$LAZYGIT_SHA" != "$EXPECTED_LAZYGIT_SHA" ]; then
-    echo "Checksum mismatch for lazygit tarball."
-    echo "Expected: $EXPECTED_LAZYGIT_SHA"
-    echo "Actual:   $LAZYGIT_SHA"
-    echo "Update install/versions.env with scripts/bump-versions.sh if a new release is available."
-    rm -f /tmp/lazygit.tar.gz
-    exit 1
-fi
-tar xf /tmp/lazygit.tar.gz -C /tmp lazygit
+TMP_TAR="$(mktemp /tmp/lazygit.XXXXXX.tar.gz)"
+trap 'rm -f "$TMP_TAR"' EXIT
+curl -fLsS "https://github.com/jesseduffield/lazygit/releases/download/v${LAZYGIT_VERSION}/lazygit_${LAZYGIT_VERSION}_Linux_${LAZYGIT_ARCH}.tar.gz" -o "$TMP_TAR"
+verify_sha256 "$TMP_TAR" "$EXPECTED_LAZYGIT_SHA" "lazygit tarball (${LAZYGIT_ARCH})"
+tar xf "$TMP_TAR" -C /tmp lazygit
 sudo install /tmp/lazygit /usr/local/bin
-rm -f /tmp/lazygit /tmp/lazygit.tar.gz
+rm -f /tmp/lazygit
 
 echo "lazygit installed successfully."

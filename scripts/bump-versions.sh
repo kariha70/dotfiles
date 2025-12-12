@@ -59,6 +59,16 @@ delta_version="${delta_tag#v}"
 delta_sha_amd64=$(fetch_sha "https://github.com/dandavison/delta/releases/download/${delta_version}/git-delta_${delta_version}_amd64.deb" "$TMP_DIR/git-delta_${delta_version}_amd64.deb")
 delta_sha_arm64=$(fetch_sha "https://github.com/dandavison/delta/releases/download/${delta_version}/git-delta_${delta_version}_arm64.deb" "$TMP_DIR/git-delta_${delta_version}_arm64.deb")
 
+# glow
+glow_tag="${GLOW_VERSION_OVERRIDE:-$(latest_tag "charmbracelet/glow")}"
+if [ -z "$glow_tag" ] || [ "$glow_tag" = "null" ]; then
+    echo "Could not determine latest glow release tag."
+    exit 1
+fi
+glow_version="${glow_tag#v}"
+glow_sha_amd64=$(fetch_sha "https://github.com/charmbracelet/glow/releases/download/${glow_tag}/glow_${glow_version}_amd64.deb" "$TMP_DIR/glow_${glow_version}_amd64.deb")
+glow_sha_arm64=$(fetch_sha "https://github.com/charmbracelet/glow/releases/download/${glow_tag}/glow_${glow_version}_arm64.deb" "$TMP_DIR/glow_${glow_version}_arm64.deb")
+
 # fastfetch
 fastfetch_tag="${FASTFETCH_VERSION_OVERRIDE:-$(latest_tag "fastfetch-cli/fastfetch")}"
 if [ -z "$fastfetch_tag" ] || [ "$fastfetch_tag" = "null" ]; then
@@ -113,6 +123,10 @@ LAZYGIT_TAR_SHA256_arm64=${lazygit_sha_arm64}
 DELTA_VERSION=${delta_version}
 DELTA_DEB_SHA256_amd64=${delta_sha_amd64}
 DELTA_DEB_SHA256_arm64=${delta_sha_arm64}
+
+GLOW_VERSION=${glow_tag}
+GLOW_DEB_SHA256_amd64=${glow_sha_amd64}
+GLOW_DEB_SHA256_arm64=${glow_sha_arm64}
 
 FASTFETCH_VERSION=${fastfetch_tag}
 FASTFETCH_DEB_SHA256_linux_amd64=${fastfetch_sha_linux_amd64}

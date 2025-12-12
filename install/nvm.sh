@@ -1,8 +1,14 @@
 #!/bin/bash
 
 set -e
+set -o pipefail
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+HELPERS="$SCRIPT_DIR/lib/helpers.sh"
+if [ -f "$HELPERS" ]; then
+    # shellcheck source=/dev/null
+    source "$HELPERS"
+fi
 VERSIONS_FILE="${VERSIONS_FILE:-$SCRIPT_DIR/versions.env}"
 if [ -f "$VERSIONS_FILE" ]; then
     # shellcheck source=/dev/null
@@ -27,21 +33,13 @@ if [ -s "$NVM_DIR/nvm.sh" ]; then
     echo "nvm is already installed."
 else
     echo "Installing nvm..."
-    INSTALLER_PATH=/tmp/nvm-install.sh
-    curl -fLo "$INSTALLER_PATH" "https://raw.githubusercontent.com/nvm-sh/nvm/${NVM_VERSION}/install.sh"
-    INSTALLER_SHA=$(sha256sum "$INSTALLER_PATH" | awk '{print $1}')
-    if [ "$INSTALLER_SHA" != "$EXPECTED_NVM_SHA" ]; then
-        echo "Checksum mismatch for nvm installer."
-        echo "Expected: $EXPECTED_NVM_SHA"
-        echo "Actual:   $INSTALLER_SHA"
-        echo "Update install/versions.env with scripts/bump-versions.sh if a new release is available."
-        rm -f "$INSTALLER_PATH"
-        exit 1
-    fi
+    INSTALLER_PATH="$(mktemp /tmp/nvm-install.XXXXXX.sh)"
+    trap 'rm -f "$INSTALLER_PATH"' EXIT
+    curl -fLsS "https://raw.githubusercontent.com/nvm-sh/nvm/${NVM_VERSION}/install.sh" -o "$INSTALLER_PATH"
+    verify_sha256 "$INSTALLER_PATH" "$EXPECTED_NVM_SHA" "nvm installer"
     # We use PROFILE=/dev/null to prevent the install script from modifying .bashrc/.zshrc
     # because we manage those files ourselves.
     PROFILE=/dev/null bash "$INSTALLER_PATH"
-    rm -f "$INSTALLER_PATH"
 fi
 
 # Load nvm for the current shell session

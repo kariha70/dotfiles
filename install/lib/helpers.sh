@@ -41,3 +41,39 @@ apt_update_once() {
 ensure_local_bin() {
     mkdir -p "$HOME/.local/bin"
 }
+
+# Normalize uname arch to stable tokens used by installers.
+get_arch() {
+    local arch
+    arch="$(uname -m)"
+    case "$arch" in
+        x86_64|amd64)
+            echo "x86_64"
+            ;;
+        aarch64|arm64)
+            echo "arm64"
+            ;;
+        *)
+            echo "Unsupported architecture: $arch" >&2
+            return 1
+            ;;
+    esac
+}
+
+# Verify a file against an expected sha256 checksum.
+verify_sha256() {
+    local file="$1" expected="$2" label="${3:-$1}"
+    local actual
+    actual=$(sha256sum "$file" | awk '{print $1}')
+    if [ -z "$expected" ]; then
+        echo "Missing checksum for $label. Run scripts/bump-versions.sh to refresh install/versions.env." >&2
+        return 1
+    fi
+    if [ "$actual" != "$expected" ]; then
+        echo "Checksum mismatch for $label" >&2
+        echo "Expected: $expected" >&2
+        echo "Actual:   $actual" >&2
+        echo "Run scripts/bump-versions.sh if a new release is available." >&2
+        return 1
+    fi
+}
