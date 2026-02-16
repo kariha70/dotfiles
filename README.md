@@ -54,6 +54,7 @@ When running on WSL, the bootstrap script automatically:
 On Windows (PowerShell 7+), the bootstrap flow:
 *   Uses `winget` to install tools with idempotent installer modules in `install/*.ps1`.
 *   Links dotfiles (PowerShell profile, Starship config, Git config, Neovim config) with backup-on-conflict behavior.
+*   Installs Starship and initializes it from the managed PowerShell profile.
 *   Supports `SKIP_*` and `ONLY_LINK`/`ONLY_STOW` environment flags similar to the Linux flow.
 
 ## Installation
@@ -101,7 +102,8 @@ You can control what `bootstrap.sh` does via environment variables:
     pwsh -NoLogo -NoProfile -ExecutionPolicy Bypass -File .\bootstrap.ps1
     ```
     This will:
-    *   Install base packages and CLI tools via `winget`.
+    *   Install base packages and CLI tools via `winget` (including Starship).
+    *   Attempt optional extras (`Glow`, `Atuin`, `Fastfetch`, `Yazi`) without failing bootstrap.
     *   Install optional PowerShell modules (`Terminal-Icons`, `PSFzf`).
     *   Link PowerShell, Starship, Git, and Neovim config files into your home/profile paths.
     *   Back up existing non-link files before creating links.
@@ -114,6 +116,12 @@ You can control what `bootstrap.ps1` does via environment variables:
 *   `ONLY_LINK=1` (or `ONLY_STOW=1`) — skip all installers and only run link management.
 *   `SKIP_<STEP>=1` — skip a specific installer step, where `<STEP>` is one of: `PACKAGES`, `GIT_TOOLS`, `FONTS`, `EXTRAS`, `PROFILE`.
 *   `SKIP_LINK=1` (or `SKIP_STOW=1`) — skip link management entirely.
+
+### Windows link behavior
+
+`bootstrap.ps1` tries to create symbolic links for mapped files and directories. If symlink/junction creation is unavailable (common in restricted shells or some UNC scenarios), it falls back to managed copies.
+
+Managed copies are tracked with sidecar marker files named `<target>.dotfiles-managed` so reruns can update in place rather than repeatedly backing up the same target.
 
 ### Installer integrity (required checksums)
 
@@ -143,9 +151,13 @@ Pinned in `install/versions.env` (per-arch where applicable):
 ## Post-Installation
 
 *   **Powerlevel10k**: On first run, the configuration wizard should start. If not, run `p10k configure`.
+*   **Windows prompt**: Starship is initialized from `Microsoft.PowerShell_profile.ps1` and configured by `~/.config/starship.toml`.
+*   **PowerShell reload**: Restart PowerShell after running `bootstrap.ps1` to load the updated profile.
 *   **Remote Access**: If connecting via SSH, install **MesloLGS NF** fonts on your *local* machine and configure your terminal to use them.
 
 ## Aliases Reference
+
+Most aliases below are defined in Linux shell configs. The Windows PowerShell profile includes matching functions/aliases for `eza`, `git`, `yazi`, and `zoxide`, plus Starship prompt initialization.
 
 ### File Navigation (eza)
 | Alias | Command |
