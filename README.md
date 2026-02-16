@@ -40,7 +40,7 @@ My personal dotfiles, managed with [GNU Stow](https://www.gnu.org/software/stow/
 | [neovim](https://neovim.io/) | Hyperextensible Vim-based editor |
 | [starship](https://starship.rs/) | Cross-shell prompt for PowerShell and other shells |
 
-Some tools may be skipped if the distro's apt repo does not ship them yet (e.g., dust/procs/gping/hyperfine/HTTPie).
+Some tools may be skipped if the distro's apt repo does not ship them yet (e.g., dust/gping/hyperfine/HTTPie/just/xh/bottom). For `procs`, the Linux installer now attempts a cargo fallback when apt does not provide it (common on some WSL images).
 
 ### Development
 *   **Node.js**: Managed via `nvm` on Linux and `nvm-windows` on Windows.
@@ -90,6 +90,10 @@ You can control what `bootstrap.sh` does via environment variables:
 *   `ONLY_STOW=1` — skip all installers and only run stow (plus shell switch unless `SKIP_SHELL=1`).
 *   `SKIP_<STEP>=1` — skip a specific step, where `<STEP>` is one of: `PACKAGES`, `SSH`, `OHMYZSH`, `FONTS`, `EZA`, `NVM`, `ZOXIDE`, `LAZYGIT`, `UV`, `WSL`, `DELTA`, `EXTRAS`, `STOW`, `SHELL`.
 *   `EXTRA_CONFLICT_FILES="path1 path2"` — space‑separated additional files/dirs to back up before stow.
+
+### Linux tool fallback behavior
+
+On Linux/WSL, if `procs` is not available in apt, `install/packages.sh` now attempts a cargo fallback install into `~/.local/bin` so it can still be used on distros where apt does not package it.
 
 3.  **Restart your shell:**
     Log out and log back in, or restart your terminal to enter Zsh.

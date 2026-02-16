@@ -47,6 +47,7 @@ if command -v apt-get &> /dev/null; then
         gnupg
         wakeonlan
     )
+    PROCS_APT_AVAILABLE=0
 
     add_first_available() {
         local label="$1"
@@ -67,10 +68,18 @@ if command -v apt-get &> /dev/null; then
 
     # Optional modern CLI tools when available on this distro
     add_first_available "dust" du-dust dust   # package name varies by distro
-    add_optional_package "procs" "procs"
+    if apt-cache show procs >/dev/null 2>&1; then
+        PACKAGES+=(procs)
+        PROCS_APT_AVAILABLE=1
+    else
+        echo "procs not available via apt; will try cargo fallback."
+    fi
     add_optional_package "gping" "gping"
     add_optional_package "hyperfine" "hyperfine"
     add_optional_package "httpie" "HTTPie"
+    add_optional_package "just" "just"
+    add_optional_package "xh" "xh"
+    add_optional_package "bottom" "bottom"
 
     # Add openssh-server if not on WSL
     if ! is_wsl; then
@@ -90,6 +99,34 @@ if command -v apt-get &> /dev/null; then
         sudo apt-get install -y --no-install-recommends "${MISSING_PACKAGES[@]}"
     else
         echo "All requested packages already installed."
+    fi
+
+    # Fallback for procs when apt package is unavailable on this distro/WSL image.
+    if ! command -v procs >/dev/null 2>&1 && [ "$PROCS_APT_AVAILABLE" -eq 0 ]; then
+        echo "Attempting procs install via cargo fallback..."
+
+        if ! command -v cargo >/dev/null 2>&1; then
+            if apt-cache show cargo >/dev/null 2>&1; then
+                apt_update_once
+                sudo apt-get install -y cargo
+            else
+                echo "Skipping procs fallback (cargo package not available)."
+            fi
+        fi
+
+        if command -v cargo >/dev/null 2>&1; then
+            if command -v ensure_local_bin >/dev/null 2>&1; then
+                ensure_local_bin
+            else
+                mkdir -p "$HOME/.local/bin"
+            fi
+
+            if cargo install --locked --root "$HOME/.local" procs; then
+                echo "procs installed via cargo fallback."
+            else
+                echo "procs cargo fallback failed; continuing without procs."
+            fi
+        fi
     fi
 
     # Ensure libsecret credential helper for Git on non-WSL installs
