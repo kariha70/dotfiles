@@ -15,7 +15,8 @@ $optionalPackages = @(
     @{ Id = "charmbracelet.glow"; Name = "Glow" },
     @{ Id = "Atuinsh.Atuin"; Name = "Atuin" },
     @{ Id = "Fastfetch-cli.Fastfetch"; Name = "Fastfetch" },
-    @{ Id = "sxyazi.yazi"; Name = "Yazi" }
+    @{ Id = "sxyazi.yazi"; Name = "Yazi" },
+    @{ Id = "Clement.bottom"; Name = "bottom" }
 )
 
 foreach ($pkg in $optionalPackages) {

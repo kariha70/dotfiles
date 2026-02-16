@@ -31,6 +31,7 @@ $onlyLink = (Test-EnvFlag -Name "ONLY_LINK") -or (Test-EnvFlag -Name "ONLY_STOW"
 $installerSteps = @(
     @{ Name = "PACKAGES"; Script = "install/packages.ps1" },
     @{ Name = "GIT_TOOLS"; Script = "install/git-tools.ps1" },
+    @{ Name = "NVM"; Script = "install/nvm.ps1" },
     @{ Name = "FONTS"; Script = "install/fonts.ps1" },
     @{ Name = "EXTRAS"; Script = "install/extras.ps1" },
     @{ Name = "PROFILE"; Script = "install/powershell-profile.ps1" }

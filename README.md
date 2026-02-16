@@ -22,14 +22,17 @@ My personal dotfiles, managed with [GNU Stow](https://www.gnu.org/software/stow/
 | [fd](https://github.com/sharkdp/fd) | User-friendly `find` alternative |
 | [delta](https://github.com/dandavison/delta) | Syntax-highlighting pager for git diffs |
 | [tldr](https://tldr.sh/) | Simplified man pages with examples |
+| [just](https://github.com/casey/just) | Handy command runner for project tasks |
 | [btop](https://github.com/aristocratos/btop) | Modern resource monitor (replaces htop) |
 | [tmux](https://github.com/tmux/tmux) | Terminal multiplexer |
 | [lazygit](https://github.com/jesseduffield/lazygit) | Terminal UI for git |
 | [hyperfine](https://github.com/sharkdp/hyperfine) | Fast, statistically sound command-line benchmarking |
 | [dust](https://github.com/bootandy/dust) | Visual, fast alternative to `du` for disk usage |
 | [procs](https://github.com/dalance/procs) | Modern `ps` replacement with color and tree views |
+| [bottom](https://github.com/ClementTsang/bottom) | Cross-platform terminal system monitor (`btm`) |
 | [gping](https://github.com/orf/gping) | Ping with live charts for host comparisons |
 | [HTTPie](https://httpie.io/cli) | Human-friendly HTTP client (`http`) |
+| [xh](https://github.com/ducaale/xh) | Friendly HTTP client with curl-like UX |
 | [yazi](https://github.com/sxyazi/yazi) | Blazing fast terminal file manager |
 | [atuin](https://github.com/atuinsh/atuin) | Magical shell history with sync |
 | [fastfetch](https://github.com/fastfetch-cli/fastfetch) | System information tool |
@@ -40,7 +43,7 @@ My personal dotfiles, managed with [GNU Stow](https://www.gnu.org/software/stow/
 Some tools may be skipped if the distro's apt repo does not ship them yet (e.g., dust/procs/gping/hyperfine/HTTPie).
 
 ### Development
-*   **Node.js**: Managed via `nvm` (Node Version Manager) with lazy loading.
+*   **Node.js**: Managed via `nvm` on Linux and `nvm-windows` on Windows.
 *   **Python**: [uv](https://github.com/astral-sh/uv) - Fast Python package manager.
 *   **SSH**: Automatically installs and enables the OpenSSH server (skipped on WSL).
 
@@ -53,7 +56,9 @@ When running on WSL, the bootstrap script automatically:
 ### Windows / PowerShell Support
 On Windows (PowerShell 7+), the bootstrap flow:
 *   Uses `winget` to install tools with idempotent installer modules in `install/*.ps1`.
+*   Adds a modern core CLI pack (`just`, `xh`, `hyperfine`, `procs`) during package install.
 *   Links dotfiles (PowerShell profile, Starship config, Git config, Neovim config) with backup-on-conflict behavior.
+*   Installs `nvm-windows` for Node.js version management.
 *   Installs Starship and initializes it from the managed PowerShell profile.
 *   Supports `SKIP_*` and `ONLY_LINK`/`ONLY_STOW` environment flags similar to the Linux flow.
 
@@ -102,8 +107,8 @@ You can control what `bootstrap.sh` does via environment variables:
     pwsh -NoLogo -NoProfile -ExecutionPolicy Bypass -File .\bootstrap.ps1
     ```
     This will:
-    *   Install base packages and CLI tools via `winget` (including Starship).
-    *   Attempt optional extras (`Glow`, `Atuin`, `Fastfetch`, `Yazi`) without failing bootstrap.
+    *   Install base packages and CLI tools via `winget` (including Starship, `nvm-windows`, `just`, `xh`, `hyperfine`, and `procs`).
+    *   Attempt optional extras (`Glow`, `Atuin`, `Fastfetch`, `Yazi`, `bottom`) without failing bootstrap.
     *   Install optional PowerShell modules (`Terminal-Icons`, `PSFzf`).
     *   Link PowerShell, Starship, Git, and Neovim config files into your home/profile paths.
     *   Back up existing non-link files before creating links.
@@ -114,7 +119,7 @@ You can control what `bootstrap.sh` does via environment variables:
 You can control what `bootstrap.ps1` does via environment variables:
 
 *   `ONLY_LINK=1` (or `ONLY_STOW=1`) — skip all installers and only run link management.
-*   `SKIP_<STEP>=1` — skip a specific installer step, where `<STEP>` is one of: `PACKAGES`, `GIT_TOOLS`, `FONTS`, `EXTRAS`, `PROFILE`.
+*   `SKIP_<STEP>=1` — skip a specific installer step, where `<STEP>` is one of: `PACKAGES`, `GIT_TOOLS`, `NVM`, `FONTS`, `EXTRAS`, `PROFILE`.
 *   `SKIP_LINK=1` (or `SKIP_STOW=1`) — skip link management entirely.
 
 ### Windows link behavior
@@ -152,8 +157,21 @@ Pinned in `install/versions.env` (per-arch where applicable):
 
 *   **Powerlevel10k**: On first run, the configuration wizard should start. If not, run `p10k configure`.
 *   **Windows prompt**: Starship is initialized from `Microsoft.PowerShell_profile.ps1` and configured by `~/.config/starship.toml`.
+*   **Windows Node.js**: After bootstrap, install and activate a Node version with `nvm install lts` then `nvm use lts`.
 *   **PowerShell reload**: Restart PowerShell after running `bootstrap.ps1` to load the updated profile.
 *   **Remote Access**: If connecting via SSH, install **MesloLGS NF** fonts on your *local* machine and configure your terminal to use them.
+
+### Windows command checks
+
+Run these after bootstrap to verify the Windows modern CLI pack:
+
+```powershell
+just --version
+xh --version
+hyperfine --version
+procs --version
+btm --version
+```
 
 ## Aliases Reference
 
@@ -233,6 +251,7 @@ dotfiles/
 ├── install/        # Installation scripts (modularized)
 │   ├── packages.ps1            # Windows base packages (winget)
 │   ├── git-tools.ps1           # Windows git/shell tools
+│   ├── nvm.ps1                 # Windows nvm-windows installer
 │   ├── fonts.ps1               # Windows fonts
 │   ├── extras.ps1              # Windows extras
 │   ├── powershell-profile.ps1  # PowerShell module setup
