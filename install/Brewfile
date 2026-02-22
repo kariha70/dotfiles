@@ -31,3 +31,6 @@ brew "uv"
 brew "xh"
 brew "yazi"
 brew "zoxide"
+
+# macOS GUI apps
+cask "iterm2"
