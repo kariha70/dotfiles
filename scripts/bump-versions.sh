@@ -102,6 +102,9 @@ zoxide_sha=$(fetch_sha "https://raw.githubusercontent.com/ajeetdsouza/zoxide/mai
 # uv installer
 uv_sha=$(fetch_sha "https://astral.sh/uv/install.sh" "$TMP_DIR/uv-install.sh")
 
+# Homebrew installer
+homebrew_installer_sha=$(fetch_sha "https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh" "$TMP_DIR/homebrew-install.sh")
+
 # MesloLGS fonts
 font_base="https://github.com/romkatv/powerlevel10k-media/raw/master"
 meslo_regular_sha=$(fetch_sha "$font_base/MesloLGS%20NF%20Regular.ttf" "$TMP_DIR/MesloLGS NF Regular.ttf")
@@ -143,6 +146,8 @@ ATUIN_TAR_SHA256_aarch64_unknown_linux_gnu=${atuin_sha_arm64}
 ZOXIDE_INSTALLER_SHA256=${zoxide_sha}
 
 UV_INSTALLER_SHA256=${uv_sha}
+
+HOMEBREW_INSTALLER_SHA256=${homebrew_installer_sha}
 
 MESLO_REGULAR_TTF_SHA256=${meslo_regular_sha}
 MESLO_BOLD_TTF_SHA256=${meslo_bold_sha}
