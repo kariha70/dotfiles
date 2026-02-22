@@ -23,6 +23,11 @@ fi
 
 echo "Installing zoxide..."
 
+if command -v is_macos >/dev/null 2>&1 && is_macos; then
+    echo "macOS detected. zoxide is managed via Homebrew (install/Brewfile)."
+    exit 0
+fi
+
 if command -v zoxide &> /dev/null; then
     echo "zoxide is already installed."
     exit 0

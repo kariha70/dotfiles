@@ -20,6 +20,11 @@ fi
 
 echo "Installing lazygit..."
 
+if command -v is_macos >/dev/null 2>&1 && is_macos; then
+    echo "macOS detected. lazygit is managed via Homebrew (install/Brewfile)."
+    exit 0
+fi
+
 if command -v lazygit &> /dev/null; then
     echo "lazygit is already installed."
     exit 0

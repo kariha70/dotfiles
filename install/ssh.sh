@@ -4,6 +4,11 @@ set -e
 
 echo "Configuring SSH Server..."
 
+if [ "$(uname -s)" = "Darwin" ]; then
+    echo "macOS detected. Skipping SSH server configuration."
+    exit 0
+fi
+
 # Check if systemctl is available (systemd)
 if command -v systemctl &> /dev/null; then
     echo "Enabling and starting SSH service..."

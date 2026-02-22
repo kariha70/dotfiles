@@ -1,6 +1,6 @@
 # Dotfiles
 
-My personal dotfiles, managed with [GNU Stow](https://www.gnu.org/software/stow/) on Linux and PowerShell scripts on Windows. This repository bootstraps fresh Linux or Windows installations with a robust, modern development environment.
+My personal dotfiles, managed with [GNU Stow](https://www.gnu.org/software/stow/) on Linux/macOS and PowerShell scripts on Windows. This repository bootstraps fresh Linux, macOS, or Windows installations with a robust, modern development environment.
 
 ## Features
 
@@ -8,7 +8,7 @@ My personal dotfiles, managed with [GNU Stow](https://www.gnu.org/software/stow/
 *   **Management**: GNU Stow for symlink management.
 *   **Shell**: Zsh configured as the default shell.
 *   **Framework**: Oh My Zsh with `zsh-autosuggestions` and `zsh-syntax-highlighting`.
-*   **Prompt**: Powerlevel10k on Linux Zsh and Starship on Windows PowerShell.
+*   **Prompt**: Powerlevel10k on Linux/macOS Zsh and Starship on Windows PowerShell.
 *   **Fonts**: MesloLGS NF (Nerd Fonts) installed automatically.
 
 ### Modern CLI Tools
@@ -43,7 +43,7 @@ My personal dotfiles, managed with [GNU Stow](https://www.gnu.org/software/stow/
 Some tools may be skipped if the distro's apt repo does not ship them yet (e.g., dust/gping/hyperfine/HTTPie/just/xh/bottom). For `procs`, the Linux installer now attempts a cargo fallback when apt does not provide it (common on some WSL images).
 
 ### Development
-*   **Node.js**: Managed via `nvm` on Linux and `nvm-windows` on Windows.
+*   **Node.js**: Managed via `nvm` on Linux/macOS and `nvm-windows` on Windows.
 *   **Python**: [uv](https://github.com/astral-sh/uv) - Fast Python package manager.
 *   **SSH**: Automatically installs and enables the OpenSSH server (skipped on WSL).
 
@@ -52,6 +52,13 @@ When running on WSL, the bootstrap script automatically:
 *   Skips SSH server and font installation (handled by Windows host).
 *   Configures Git to use Windows Credential Manager.
 *   Installs `wslu` for Windows integration.
+
+### macOS Support
+On macOS, the Bash bootstrap flow:
+*   Uses Homebrew (`install/macos.sh`) and a declarative `install/Brewfile`.
+*   Installs Meslo Nerd Font via Homebrew cask (`font-meslo-lg-nerd-font`).
+*   Reuses the same stow-managed dotfiles as Linux (`bash git vim zsh tmux nvim`).
+*   Skips Linux-only SSH server setup.
 
 ### Windows / PowerShell Support
 On Windows (PowerShell 7+), the bootstrap flow:
@@ -64,7 +71,7 @@ On Windows (PowerShell 7+), the bootstrap flow:
 
 ## Installation
 
-To set up a new Linux machine:
+To set up a new Linux or macOS machine:
 
 1.  **Clone this repository:**
     ```bash
@@ -72,24 +79,26 @@ To set up a new Linux machine:
     cd ~/dotfiles
     ```
 
-2.  **Run the Linux bootstrap script:**
+2.  **Run the Bash bootstrap script (Linux/macOS):**
     ```bash
     ./bootstrap.sh
     ```
     This will:
-    *   Install system dependencies (requires `sudo`).
+    *   Install system dependencies (`apt` on Linux, Homebrew on macOS).
     *   Install and configure Zsh, Oh My Zsh, and plugins.
     *   Install fonts and tools.
     *   Symlink configuration files to your home directory.
     *   Set Zsh as your default shell.
 
-### Linux bootstrap options
+### Linux/macOS bootstrap options
 
 You can control what `bootstrap.sh` does via environment variables:
 
 *   `ONLY_STOW=1` — skip all installers and only run stow (plus shell switch unless `SKIP_SHELL=1`).
-*   `SKIP_<STEP>=1` — skip a specific step, where `<STEP>` is one of: `PACKAGES`, `SSH`, `OHMYZSH`, `FONTS`, `EZA`, `NVM`, `ZOXIDE`, `LAZYGIT`, `UV`, `WSL`, `DELTA`, `EXTRAS`, `STOW`, `SHELL`.
+*   `SKIP_<STEP>=1` — skip a specific step, where `<STEP>` is one of: `PACKAGES`, `MACOS`, `SSH`, `OHMYZSH`, `FONTS`, `EZA`, `NVM`, `ZOXIDE`, `LAZYGIT`, `UV`, `WSL`, `DELTA`, `EXTRAS`, `STOW`, `SHELL`.
 *   `EXTRA_CONFLICT_FILES="path1 path2"` — space‑separated additional files/dirs to back up before stow.
+*   `BREWFILE_PATH=/path/to/Brewfile` — override the Brewfile used by `install/macos.sh`.
+*   `BREW_CLEANUP=1` — remove Homebrew packages not listed in the Brewfile after install.
 
 ### Linux tool fallback behavior
 
@@ -97,6 +106,10 @@ On Linux/WSL, if `procs` is not available in apt, `install/packages.sh` now atte
 
 3.  **Restart your shell:**
     Log out and log back in, or restart your terminal to enter Zsh.
+
+### macOS prerequisite
+
+`install/macos.sh` requires Homebrew. If `brew` is missing, bootstrap exits with instructions to install Homebrew from <https://brew.sh>.
 
 ### Windows installation (PowerShell 7+)
 
@@ -260,6 +273,8 @@ dotfiles/
 │   ├── extras.ps1              # Windows extras
 │   ├── powershell-profile.ps1  # PowerShell module setup
 │   ├── versions.ps1            # PowerShell versions/checksum map
+│   ├── Brewfile                # Homebrew package manifest for macOS
+│   ├── macos.sh                # macOS Homebrew bootstrap
 │   ├── packages.sh             # Core apt packages
 │   ├── ohmyzsh.sh              # Oh My Zsh + plugins + P10k
 │   ├── fonts.sh                # MesloLGS NF fonts
@@ -278,7 +293,7 @@ dotfiles/
 ├── scripts/
 │   ├── bump-versions.sh        # Linux version/checksum updater
 │   └── bump-versions.ps1       # Sync versions.ps1 from versions.env
-├── bootstrap.sh    # Linux entry point
+├── bootstrap.sh    # Linux/macOS entry point
 ├── bootstrap.ps1   # Windows entry point
 └── README.md
 ```
@@ -303,9 +318,9 @@ The `.gitconfig` includes `~/.gitconfig.local`. Create this file for your person
 
 ## Contributor Guide
 
-For repo structure, coding conventions, and testing expectations, see `AGENTS.md`. It covers how to add new config modules, restow safely, and validate changes on both Linux and WSL.
+For repo structure, coding conventions, and testing expectations, see `AGENTS.md`. It covers how to add new config modules, restow safely, and validate changes on Linux, WSL, and macOS.
 
 Additional notes:
-*   Installer helpers live in `install/lib/helpers.sh` (WSL detection, one-time `apt-get update`, ensuring `~/.local/bin`). Source them in new installers instead of duplicating logic.
+*   Installer helpers live in `install/lib/helpers.sh` (WSL/macOS detection, one-time `apt-get update`, ensuring `~/.local/bin`, checksum helpers). Source them in new installers instead of duplicating logic.
 *   Windows installer helpers live in `install/lib/helpers.ps1` (winget install wrapper, link/backup helpers, env flag parsing).
 *   Run `shellcheck install/*.sh install/lib/helpers.sh` before committing to keep scripts linted. Bootstrapping installs `shellcheck` automatically.

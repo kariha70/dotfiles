@@ -12,11 +12,19 @@ fi
 if ! command -v is_wsl >/dev/null 2>&1; then
     is_wsl() { grep -qEi "(Microsoft|WSL)" /proc/version 2>/dev/null; }
 fi
+if ! command -v is_macos >/dev/null 2>&1; then
+    is_macos() { [ "$(uname -s)" = "Darwin" ]; }
+fi
 if ! command -v apt_update_once >/dev/null 2>&1; then
     apt_update_once() { sudo apt-get update; }
 fi
 
 echo "Installing packages..."
+
+if is_macos; then
+    echo "macOS detected. Package installation is handled by install/macos.sh."
+    exit 0
+fi
 
 # Check for apt-get (Debian/Ubuntu)
 if command -v apt-get &> /dev/null; then

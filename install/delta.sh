@@ -20,6 +20,11 @@ fi
 
 echo "Installing git-delta..."
 
+if command -v is_macos >/dev/null 2>&1 && is_macos; then
+    echo "macOS detected. git-delta is managed via Homebrew (install/Brewfile)."
+    exit 0
+fi
+
 if command -v delta &> /dev/null; then
     echo "git-delta is already installed."
     exit 0

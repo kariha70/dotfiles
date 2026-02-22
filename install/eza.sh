@@ -15,6 +15,11 @@ fi
 
 echo "Installing eza..."
 
+if command -v is_macos >/dev/null 2>&1 && is_macos; then
+    echo "macOS detected. eza is managed via Homebrew (install/Brewfile)."
+    exit 0
+fi
+
 # Check if eza is already installed
 if command -v eza &> /dev/null; then
     echo "eza is already installed."

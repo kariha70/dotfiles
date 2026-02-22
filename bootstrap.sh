@@ -14,6 +14,9 @@ fi
 if ! command -v is_wsl >/dev/null 2>&1; then
     is_wsl() { grep -qEi "(Microsoft|WSL)" /proc/version 2>/dev/null; }
 fi
+if ! command -v is_macos >/dev/null 2>&1; then
+    is_macos() { [ "$(uname -s)" = "Darwin" ]; }
+fi
 
 # Shared apt update sentinel for this bootstrap run
 export APT_UPDATE_SENTINEL="${APT_UPDATE_SENTINEL:-/tmp/dotfiles_apt_updated_$$}"
@@ -22,6 +25,11 @@ rm -f "$APT_UPDATE_SENTINEL" 2>/dev/null || true
 IS_WSL=false
 if is_wsl; then
     IS_WSL=true
+fi
+
+IS_MAC=false
+if is_macos; then
+    IS_MAC=true
 fi
 
 echo "Bootstrapping dotfiles from $DOTFILES_DIR..."
@@ -52,12 +60,18 @@ maybe_run() {
 }
 
 # 1. Install dependencies
-maybe_run PACKAGES "$DOTFILES_DIR/install/packages.sh"
+if "$IS_MAC"; then
+    maybe_run MACOS "$DOTFILES_DIR/install/macos.sh"
+else
+    maybe_run PACKAGES "$DOTFILES_DIR/install/packages.sh"
+fi
 
 # 2. Setup SSH
 # Skip SSH setup on WSL as it's usually not needed or handled differently
 if "$IS_WSL"; then
     echo "WSL detected. Skipping SSH server setup."
+elif "$IS_MAC"; then
+    echo "macOS detected. Skipping SSH server setup."
 else
     maybe_run SSH "$DOTFILES_DIR/install/ssh.sh"
 fi
@@ -146,10 +160,23 @@ fi
 
 # 14. Set Zsh as default shell
 if ! is_true "${SKIP_SHELL:-0}" && command -v zsh >/dev/null; then
-    if [ "$SHELL" != "$(command -v zsh)" ]; then
+    SHELL_PATH="$(command -v zsh)"
+    if "$IS_MAC" && [ -r /etc/shells ] && ! grep -Fxq "$SHELL_PATH" /etc/shells; then
+        if grep -Fxq "/bin/zsh" /etc/shells; then
+            echo "Detected Homebrew zsh not listed in /etc/shells; using /bin/zsh for chsh."
+            SHELL_PATH="/bin/zsh"
+        else
+            echo "Skipping default shell change: $SHELL_PATH is not listed in /etc/shells."
+            SHELL_PATH=""
+        fi
+    fi
+
+    if [ -z "$SHELL_PATH" ]; then
+        :
+    elif [ "$SHELL" != "$SHELL_PATH" ]; then
         echo "Changing default shell to zsh..."
         # chsh usually requires a password, so we let it run interactively
-        chsh -s "$(command -v zsh)"
+        chsh -s "$SHELL_PATH"
     else
         echo "Zsh is already the default shell."
     fi

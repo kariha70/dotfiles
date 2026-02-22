@@ -9,6 +9,12 @@ if [ -f "$HELPERS" ]; then
     # shellcheck source=/dev/null
     source "$HELPERS"
 fi
+
+if command -v is_macos >/dev/null 2>&1 && is_macos; then
+    echo "macOS detected. Extras are managed via Homebrew (install/Brewfile)."
+    exit 0
+fi
+
 VERSIONS_FILE="${VERSIONS_FILE:-$SCRIPT_DIR/versions.env}"
 if [ -f "$VERSIONS_FILE" ]; then
     # shellcheck source=/dev/null

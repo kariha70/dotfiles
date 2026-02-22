@@ -10,6 +10,16 @@ is_wsl() {
     grep -qEi "(Microsoft|WSL)" /proc/version 2>/dev/null
 }
 
+# Return 0 when running on macOS.
+is_macos() {
+    [ "$(uname -s)" = "Darwin" ]
+}
+
+# Return 0 when running on Linux.
+is_linux() {
+    [ "$(uname -s)" = "Linux" ]
+}
+
 # Clean up deprecated/broken third-party apt sources to prevent update failures.
 remove_deprecated_apt_sources() {
     local charm_list="/etc/apt/sources.list.d/charm.list"
@@ -60,11 +70,26 @@ get_arch() {
     esac
 }
 
+# Print a file's SHA256 digest in a cross-platform way.
+sha256_file() {
+    local file="$1"
+    if command -v sha256sum >/dev/null 2>&1; then
+        sha256sum "$file" | awk '{print $1}'
+        return 0
+    fi
+    if command -v shasum >/dev/null 2>&1; then
+        shasum -a 256 "$file" | awk '{print $1}'
+        return 0
+    fi
+    echo "No SHA256 tool found (need sha256sum or shasum)." >&2
+    return 1
+}
+
 # Verify a file against an expected sha256 checksum.
 verify_sha256() {
     local file="$1" expected="$2" label="${3:-$1}"
     local actual
-    actual=$(sha256sum "$file" | awk '{print $1}')
+    actual=$(sha256_file "$file")
     if [ -z "$expected" ]; then
         echo "Missing checksum for $label. Run scripts/bump-versions.sh to refresh install/versions.env." >&2
         return 1
