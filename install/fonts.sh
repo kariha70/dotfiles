@@ -15,22 +15,6 @@ fi
 
 echo "Installing MesloLGS NF fonts..."
 
-if is_macos; then
-    if ! command -v brew >/dev/null 2>&1; then
-        echo "Homebrew is not available. Install Homebrew, then rerun install/fonts.sh."
-        exit 1
-    fi
-
-    if brew list --cask font-meslo-lg-nerd-font >/dev/null 2>&1; then
-        echo "font-meslo-lg-nerd-font is already installed."
-    else
-        brew install --cask font-meslo-lg-nerd-font
-    fi
-
-    echo "MesloLGS NF fonts installed successfully on macOS."
-    exit 0
-fi
-
 VERSIONS_FILE="${VERSIONS_FILE:-$SCRIPT_DIR/versions.env}"
 if [ -f "$VERSIONS_FILE" ]; then
     # shellcheck source=/dev/null
@@ -40,7 +24,11 @@ else
     exit 1
 fi
 
-FONT_DIR="$HOME/.local/share/fonts"
+if is_macos; then
+    FONT_DIR="$HOME/Library/Fonts"
+else
+    FONT_DIR="$HOME/.local/share/fonts"
+fi
 mkdir -p "$FONT_DIR"
 
 if ! command -v verify_sha256 >/dev/null 2>&1; then
@@ -86,12 +74,16 @@ verify_font "MesloLGS NF Bold.ttf" https://github.com/romkatv/powerlevel10k-medi
 verify_font "MesloLGS NF Italic.ttf" https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20Italic.ttf MESLO_ITALIC_TTF_SHA256
 verify_font "MesloLGS NF Bold Italic.ttf" https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20Bold%20Italic.ttf MESLO_BOLD_ITALIC_TTF_SHA256
 
-# Reset font cache
-if command -v fc-cache >/dev/null 2>&1; then
-    echo "Resetting font cache..."
-    fc-cache -f -v "$FONT_DIR"
+if is_macos; then
+    echo "MesloLGS NF fonts installed successfully in $FONT_DIR."
 else
-    echo "fc-cache not found. Please install fontconfig."
-fi
+    # Reset font cache
+    if command -v fc-cache >/dev/null 2>&1; then
+        echo "Resetting font cache..."
+        fc-cache -f -v "$FONT_DIR"
+    else
+        echo "fc-cache not found. Please install fontconfig."
+    fi
 
-echo "MesloLGS NF fonts installed successfully."
+    echo "MesloLGS NF fonts installed successfully."
+fi

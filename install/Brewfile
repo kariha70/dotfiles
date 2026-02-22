@@ -1,7 +1,3 @@
-tap "homebrew/core"
-tap "homebrew/cask"
-tap "homebrew/cask-fonts"
-
 # Core shell + dotfiles dependencies
 brew "bash"
 brew "bat"
@@ -35,6 +31,3 @@ brew "uv"
 brew "xh"
 brew "yazi"
 brew "zoxide"
-
-# Fonts used by powerlevel10k and terminal prompts.
-cask "font-meslo-lg-nerd-font"
