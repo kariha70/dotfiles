@@ -16,12 +16,22 @@ require_cmd() {
 
 require_cmd curl
 require_cmd jq
-require_cmd sha256sum
+
+sha256_portable() {
+    if command -v sha256sum >/dev/null 2>&1; then
+        sha256sum "$1" | awk '{print $1}'
+    elif command -v shasum >/dev/null 2>&1; then
+        shasum -a 256 "$1" | awk '{print $1}'
+    else
+        echo "Missing required command: sha256sum or shasum" >&2
+        exit 1
+    fi
+}
 
 fetch_sha() {
     local url="$1" dest="$2"
     curl -fLs "$url" -o "$dest"
-    sha256sum "$dest" | awk '{print $1}'
+    sha256_portable "$dest"
 }
 
 latest_tag() {

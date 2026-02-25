@@ -40,12 +40,12 @@ LAZYGIT_ARCH="$(get_arch)"
 EXPECTED_VAR="LAZYGIT_TAR_SHA256_${LAZYGIT_ARCH}"
 EXPECTED_LAZYGIT_SHA="${!EXPECTED_VAR:-}"
 
-TMP_TAR="$(mktemp /tmp/lazygit.XXXXXX.tar.gz)"
-trap 'rm -f "$TMP_TAR"' EXIT
+TMP_DIR="$(mktemp -d)"
+trap 'rm -rf "$TMP_DIR"' EXIT
+TMP_TAR="$TMP_DIR/lazygit.tar.gz"
 curl -fLsS "https://github.com/jesseduffield/lazygit/releases/download/v${LAZYGIT_VERSION}/lazygit_${LAZYGIT_VERSION}_Linux_${LAZYGIT_ARCH}.tar.gz" -o "$TMP_TAR"
 verify_sha256 "$TMP_TAR" "$EXPECTED_LAZYGIT_SHA" "lazygit tarball (${LAZYGIT_ARCH})"
-tar xf "$TMP_TAR" -C /tmp lazygit
-sudo install /tmp/lazygit /usr/local/bin
-rm -f /tmp/lazygit
+tar xf "$TMP_TAR" -C "$TMP_DIR" lazygit
+sudo install "$TMP_DIR/lazygit" /usr/local/bin
 
 echo "lazygit installed successfully."
