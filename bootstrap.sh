@@ -66,7 +66,10 @@ else
     maybe_run PACKAGES "$DOTFILES_DIR/install/packages.sh"
 fi
 
-# 2. Setup SSH
+# 2. Ensure Neovim version compatibility for LazyVim.
+maybe_run NEOVIM "$DOTFILES_DIR/install/neovim.sh"
+
+# 3. Setup SSH
 # Skip SSH setup on WSL as it's usually not needed or handled differently
 if "$IS_WSL"; then
     echo "WSL detected. Skipping SSH server setup."
@@ -76,10 +79,10 @@ else
     maybe_run SSH "$DOTFILES_DIR/install/ssh.sh"
 fi
 
-# 3. Install Oh My Zsh
+# 4. Install Oh My Zsh
 maybe_run OHMYZSH "$DOTFILES_DIR/install/ohmyzsh.sh"
 
-# 4. Install Fonts
+# 5. Install Fonts
 # Skip font installation on WSL as it should be done on the Windows host
 if "$IS_WSL"; then
     echo "WSL detected. Skipping font installation (install on Windows host instead)."
@@ -87,36 +90,36 @@ else
     maybe_run FONTS "$DOTFILES_DIR/install/fonts.sh"
 fi
 
-# 5. Install eza
+# 6. Install eza
 maybe_run EZA "$DOTFILES_DIR/install/eza.sh"
 
-# 6. Install nvm
+# 7. Install nvm
 maybe_run NVM "$DOTFILES_DIR/install/nvm.sh"
 
-# 7. Install zoxide
+# 8. Install zoxide
 maybe_run ZOXIDE "$DOTFILES_DIR/install/zoxide.sh"
 
-# 8. Install lazygit
+# 9. Install lazygit
 maybe_run LAZYGIT "$DOTFILES_DIR/install/lazygit.sh"
 
-# 9. Install uv
+# 10. Install uv
 maybe_run UV "$DOTFILES_DIR/install/uv.sh"
 
-# 10. WSL Specific Configuration
+# 11. WSL Specific Configuration
 if "$IS_WSL"; then
     maybe_run WSL "$DOTFILES_DIR/install/wsl.sh"
 fi
 
-# 11. Install git-delta
+# 12. Install git-delta
 maybe_run DELTA "$DOTFILES_DIR/install/delta.sh"
 
-# 12. Install Extras (Glow, Atuin, Fastfetch, Yazi)
+# 13. Install Extras (Glow, Atuin, Fastfetch, Yazi)
 maybe_run EXTRAS "$DOTFILES_DIR/install/extras.sh"
 
-# 13. Install Operations Extras (GH, direnv, age, kubectl, helm, duf, plus optional EXTRA_TOOLS)
+# 14. Install Operations Extras (GH, direnv, age, kubectl, helm, duf, plus optional EXTRA_TOOLS)
 maybe_run EXTRAS_OPS "$DOTFILES_DIR/install/extras-ops.sh"
 
-# 14. Run Stow
+# 15. Run Stow
 # We want to stow directories that contain config files.
 # We exclude 'install' and '.git' and the script itself.
 STOW_DIRS="bash git vim zsh tmux nvim"
@@ -161,7 +164,7 @@ else
     done
 fi
 
-# 14. Set Zsh as default shell
+# 16. Set Zsh as default shell
 if ! is_true "${SKIP_SHELL:-0}" && command -v zsh >/dev/null; then
     SHELL_PATH="$(command -v zsh)"
     if "$IS_MAC" && [ -r /etc/shells ] && ! grep -Fxq "$SHELL_PATH" /etc/shells; then
