@@ -16,7 +16,13 @@ $optionalPackages = @(
     @{ Id = "Atuinsh.Atuin"; Name = "Atuin" },
     @{ Id = "Fastfetch-cli.Fastfetch"; Name = "Fastfetch" },
     @{ Id = "sxyazi.yazi"; Name = "Yazi" },
-    @{ Id = "Clement.bottom"; Name = "bottom" }
+    @{ Id = "Clement.bottom"; Name = "bottom" },
+    @{ Id = "GitHub.cli"; Name = "GitHub CLI" },
+    @{ Id = "direnv.direnv"; Name = "direnv" },
+    @{ Id = "FiloSottile.age"; Name = "age" },
+    @{ Id = "muesli.duf"; Name = "duf" },
+    @{ Id = "Kubernetes.helm"; Name = "helm" },
+    @{ Id = "Kubernetes.kubectl"; Name = "kubectl" }
 )
 
 foreach ($pkg in $optionalPackages) {

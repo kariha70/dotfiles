@@ -31,6 +31,12 @@ My personal dotfiles, managed with [GNU Stow](https://www.gnu.org/software/stow/
 | [procs](https://github.com/dalance/procs) | Modern `ps` replacement with color and tree views |
 | [bottom](https://github.com/ClementTsang/bottom) | Cross-platform terminal system monitor (`btm`) |
 | [gping](https://github.com/orf/gping) | Ping with live charts for host comparisons |
+| [gh](https://cli.github.com/) | GitHub CLI for repository workflows and CI operations |
+| [direnv](https://direnv.net/) | Automatically loads per-project environment variables |
+| [age](https://github.com/FiloSottile/age) | Modern lightweight file encryption |
+| [duf](https://github.com/muesli/duf) | Friendly `df` replacement |
+| [kubectl](https://kubernetes.io/docs/reference/kubectl/) | Kubernetes command-line interface |
+| [helm](https://helm.sh/) | Package manager for Kubernetes charts |
 | [HTTPie](https://httpie.io/cli) | Human-friendly HTTP client (`http`) |
 | [xh](https://github.com/ducaale/xh) | Friendly HTTP client with curl-like UX |
 | [yazi](https://github.com/sxyazi/yazi) | Blazing fast terminal file manager |
@@ -95,8 +101,9 @@ To set up a new Linux or macOS machine:
 You can control what `bootstrap.sh` does via environment variables:
 
 *   `ONLY_STOW=1` — skip all installers and only run stow (plus shell switch unless `SKIP_SHELL=1`).
-*   `SKIP_<STEP>=1` — skip a specific step, where `<STEP>` is one of: `PACKAGES`, `MACOS`, `SSH`, `OHMYZSH`, `FONTS`, `EZA`, `NVM`, `ZOXIDE`, `LAZYGIT`, `UV`, `WSL`, `DELTA`, `EXTRAS`, `STOW`, `SHELL`.
+*   `SKIP_<STEP>=1` — skip a specific step, where `<STEP>` is one of: `PACKAGES`, `MACOS`, `SSH`, `OHMYZSH`, `FONTS`, `EZA`, `NVM`, `ZOXIDE`, `LAZYGIT`, `UV`, `WSL`, `DELTA`, `EXTRAS`, `EXTRAS_OPS`, `STOW`, `SHELL`.
 *   `EXTRA_CONFLICT_FILES="path1 path2"` — space‑separated additional files/dirs to back up before stow.
+*   `EXTRA_TOOLS="pkg1 pkg2"` — add extra Linux optional apt packages for `install/packages.sh` and `install/extras-ops.sh`.
 *   `BREWFILE_PATH=/path/to/Brewfile` — override the Brewfile used by `install/macos.sh`.
 *   `BREW_CLEANUP=1` — remove Homebrew packages not listed in the Brewfile after install.
 

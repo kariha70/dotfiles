@@ -113,7 +113,10 @@ maybe_run DELTA "$DOTFILES_DIR/install/delta.sh"
 # 12. Install Extras (Glow, Atuin, Fastfetch, Yazi)
 maybe_run EXTRAS "$DOTFILES_DIR/install/extras.sh"
 
-# 13. Run Stow
+# 13. Install Operations Extras (GH, direnv, age, kubectl, helm, duf, plus optional EXTRA_TOOLS)
+maybe_run EXTRAS_OPS "$DOTFILES_DIR/install/extras-ops.sh"
+
+# 14. Run Stow
 # We want to stow directories that contain config files.
 # We exclude 'install' and '.git' and the script itself.
 STOW_DIRS="bash git vim zsh tmux nvim"

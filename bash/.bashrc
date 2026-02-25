@@ -28,6 +28,19 @@ if command -v zoxide &> /dev/null; then
     eval "$(zoxide init bash)"
 fi
 
+# Initialize direnv
+if command -v direnv &> /dev/null; then
+    eval "$(direnv hook bash)"
+fi
+
+# Optional CLI helpers
+if command -v kubectl &> /dev/null; then
+    eval "$(kubectl completion bash)"
+fi
+if command -v gh &> /dev/null; then
+    eval "$(gh completion -s bash)"
+fi
+
 # FZF Configuration
 if command -v fdfind &> /dev/null; then
     export FZF_DEFAULT_COMMAND='fdfind --type f --hidden --follow --exclude .git'

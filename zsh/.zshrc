@@ -70,7 +70,24 @@ if [ -n "$BAT_CMD" ]; then
     export MANPAGER="sh -c 'col -bx | $BAT_CMD -l man -p'"
 fi
 
+# Initialize direnv
+if command -v direnv &> /dev/null; then
+    eval "$(direnv hook zsh)"
+fi
+
+# Optional CLI completion helpers
+if command -v kubectl &> /dev/null; then
+    source <(kubectl completion zsh)
+fi
+if command -v gh &> /dev/null; then
+    source <(gh completion -s zsh)
+fi
+
 # User configuration
+
+if command -v kubectl &> /dev/null; then
+    alias k='kubectl'
+fi
 
 # Aliases
 if [ -f ~/.bash_aliases ]; then

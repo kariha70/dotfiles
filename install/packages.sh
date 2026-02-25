@@ -88,6 +88,21 @@ if command -v apt-get &> /dev/null; then
     add_optional_package "just" "just"
     add_optional_package "xh" "xh"
     add_optional_package "bottom" "bottom"
+    add_optional_package "gh" "GitHub CLI (gh)"
+    add_optional_package "direnv" "direnv"
+    add_optional_package "age" "age"
+    add_optional_package "duf" "duf"
+    add_optional_package "kubectl" "kubectl"
+    add_optional_package "helm" "helm"
+
+    if [ -n "${EXTRA_TOOLS:-}" ]; then
+        IFS=' ' read -r -a EXTRA_TOOL_PACKAGES <<< "${EXTRA_TOOLS}"
+        for extra_pkg in "${EXTRA_TOOL_PACKAGES[@]}"; do
+            if [ -n "${extra_pkg}" ]; then
+                add_optional_package "$extra_pkg" "$extra_pkg"
+            fi
+        done
+    fi
 
     # Add openssh-server if not on WSL
     if ! is_wsl; then

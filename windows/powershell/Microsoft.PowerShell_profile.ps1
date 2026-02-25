@@ -21,6 +21,10 @@ if (Test-Cmd -Name "zoxide") {
     Invoke-Expression (& { zoxide init powershell | Out-String })
 }
 
+if (Test-Cmd -Name "direnv") {
+    Invoke-Expression (& { direnv hook powershell | Out-String })
+}
+
 if (Test-Cmd -Name "atuin") {
     Invoke-Expression (& { atuin init powershell | Out-String })
 }
@@ -80,6 +84,10 @@ if (Test-Cmd -Name "yazi") {
             }
         }
     }
+}
+
+if (Test-Cmd -Name "kubectl") {
+    function k { kubectl @Args }
 }
 
 function .. { Set-Location .. }
