@@ -20,6 +20,42 @@ is_true() {
     esac
 }
 
+KUBECTL_PATH="/usr/local/bin/kubectl"
+KUBECTL_BACKUP=""
+
+backup_docker_kubectl() {
+    local target
+    if [ -L "$KUBECTL_PATH" ]; then
+        target="$(readlink "$KUBECTL_PATH")"
+        case "$target" in
+            *"/Applications/Docker.app/Contents/Resources/bin/kubectl")
+                KUBECTL_BACKUP="$(mktemp "${TMPDIR:-/tmp}/kubectl.docker.XXXXXX")"
+                if mv "$KUBECTL_PATH" "$KUBECTL_BACKUP"; then
+                    echo "Temporarily moved Docker-managed kubectl symlink from $KUBECTL_PATH."
+                else
+                    KUBECTL_BACKUP=""
+                    echo "Could not move existing $KUBECTL_PATH; continuing without automatic kubectl conflict recovery."
+                fi
+                ;;
+        esac
+    fi
+}
+
+restore_docker_kubectl() {
+    if [ -z "$KUBECTL_BACKUP" ]; then
+        return 0
+    fi
+
+    if [ -e "$KUBECTL_PATH" ]; then
+        rm -f "$KUBECTL_BACKUP"
+        echo "Keeping Homebrew kubectl symlink at $KUBECTL_PATH."
+    elif mv "$KUBECTL_BACKUP" "$KUBECTL_PATH"; then
+        echo "Restored existing Docker kubectl symlink at $KUBECTL_PATH."
+    else
+        echo "Could not restore Docker kubectl symlink; backup remains at $KUBECTL_BACKUP."
+    fi
+}
+
 if ! is_macos; then
     echo "Not running on macOS. Skipping macOS package setup."
     exit 0
@@ -103,7 +139,14 @@ echo "Updating Homebrew..."
 brew update
 
 echo "Installing macOS packages from Brewfile..."
-brew bundle --file "$BREWFILE_PATH" --no-upgrade
+backup_docker_kubectl
+if ! brew bundle --file "$BREWFILE_PATH" --no-upgrade; then
+    restore_docker_kubectl
+    echo "Homebrew bundle failed. If this is a kubectl conflict, run:"
+    echo "  brew link --overwrite kubernetes-cli"
+    exit 1
+fi
+restore_docker_kubectl
 
 if is_true "${BREW_CLEANUP:-0}"; then
     echo "Cleaning packages not listed in Brewfile..."
