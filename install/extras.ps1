@@ -21,7 +21,7 @@ $optionalPackages = @(
     @{ Id = "direnv.direnv"; Name = "direnv" },
     @{ Id = "FiloSottile.age"; Name = "age" },
     @{ Id = "muesli.duf"; Name = "duf" },
-    @{ Id = "Kubernetes.helm"; Name = "helm" },
+    @{ Id = "Helm.Helm"; Name = "helm" },
     @{ Id = "Kubernetes.kubectl"; Name = "kubectl" }
 )
 
