@@ -72,15 +72,23 @@ fi
 
 # Initialize direnv
 if command -v direnv &> /dev/null; then
-    eval "$(direnv hook zsh)"
+    eval "$(direnv hook zsh)" || true
 fi
 
-# Optional CLI completion helpers
+# Optional CLI completion helpers (cached for fast startup)
+_cache_completion() {
+    local cmd="$1" flag="$2" cache="$HOME/.cache/shell/${cmd}.zsh"
+    mkdir -p "$HOME/.cache/shell"
+    if [ ! -f "$cache" ] || [ "$(find "$cache" -mmin +1440 2>/dev/null)" ]; then
+        "$cmd" $flag > "$cache" 2>/dev/null || return
+    fi
+    source "$cache"
+}
 if command -v kubectl &> /dev/null; then
-    source <(kubectl completion zsh)
+    _cache_completion kubectl "completion zsh"
 fi
 if command -v gh &> /dev/null; then
-    source <(gh completion -s zsh)
+    _cache_completion gh "completion -s zsh"
 fi
 
 # User configuration
@@ -104,12 +112,12 @@ fi
 
 # Initialize zoxide
 if command -v zoxide &> /dev/null; then
-    eval "$(zoxide init zsh)"
+    eval "$(zoxide init zsh)" || true
 fi
 
 # NVM Lazy Load
 export NVM_DIR="$HOME/.nvm"
-NVM_LAZY_LOAD="${NVM_LAZY_LOAD:-$HOME/.dotfiles/scripts/nvm-lazy-load.sh}"
+NVM_LAZY_LOAD="${NVM_LAZY_LOAD:-$HOME/.config/shell/nvm-lazy-load.sh}"
 if [ -f "$NVM_LAZY_LOAD" ]; then
     . "$NVM_LAZY_LOAD"
 fi
@@ -130,5 +138,5 @@ if [ -f "$HOME/.atuin/bin/env" ]; then
 fi
 
 if command -v atuin &> /dev/null; then
-    eval "$(atuin init zsh)"
+    eval "$(atuin init zsh)" || true
 fi

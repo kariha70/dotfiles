@@ -4,20 +4,9 @@ set -e
 set -o pipefail
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-HELPERS="$SCRIPT_DIR/lib/helpers.sh"
-if [ -f "$HELPERS" ]; then
-    # shellcheck source=/dev/null
-    source "$HELPERS"
-fi
-
-VERSIONS_FILE="${VERSIONS_FILE:-$SCRIPT_DIR/versions.env}"
-if [ -f "$VERSIONS_FILE" ]; then
-    # shellcheck source=/dev/null
-    source "$VERSIONS_FILE"
-else
-    echo "versions.env not found at $VERSIONS_FILE. Run scripts/bump-versions.sh to generate it."
-    exit 1
-fi
+# shellcheck source=lib/helpers.sh
+source "$SCRIPT_DIR/lib/helpers.sh"
+source_versions "$SCRIPT_DIR"
 
 MINIMUM_VERSION="0.11.2"
 
@@ -30,7 +19,7 @@ normalize_version() {
     echo "${1%%-*}"
 }
 
-if command -v is_macos >/dev/null 2>&1 && is_macos; then
+if is_macos; then
     echo "macOS detected. Neovim is managed via Homebrew (install/Brewfile)."
     exit 0
 fi
@@ -80,8 +69,7 @@ trap 'rm -rf "$TMP_DIR"' EXIT
 NEOVIM_ARCHIVE="$TMP_DIR/nvim-${ARCH}.appimage"
 NEOVIM_URL="https://github.com/neovim/neovim/releases/download/${NEOVIM_VERSION}/nvim-linux-${ARCH}.appimage"
 
-curl -fLsS "$NEOVIM_URL" -o "$NEOVIM_ARCHIVE"
-verify_sha256 "$NEOVIM_ARCHIVE" "$EXPECTED_SHA" "Neovim appimage (${ARCH})"
+download_and_verify "$NEOVIM_URL" "$NEOVIM_ARCHIVE" "$EXPECTED_SHA" "Neovim appimage (${ARCH})"
 
 sudo install -m 0755 "$NEOVIM_ARCHIVE" "/usr/local/bin/nvim"
 

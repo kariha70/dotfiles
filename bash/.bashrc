@@ -25,31 +25,37 @@ fi
 
 # Initialize zoxide
 if command -v zoxide &> /dev/null; then
-    eval "$(zoxide init bash)"
+    eval "$(zoxide init bash)" || true
 fi
 
 # Initialize direnv
 if command -v direnv &> /dev/null; then
-    eval "$(direnv hook bash)"
+    eval "$(direnv hook bash)" || true
 fi
 
 # Optional CLI helpers
 if command -v kubectl &> /dev/null; then
-    eval "$(kubectl completion bash)"
+    eval "$(kubectl completion bash)" || true
 fi
 if command -v gh &> /dev/null; then
-    eval "$(gh completion -s bash)"
+    eval "$(gh completion -s bash)" || true
 fi
 
 # FZF Configuration
 if command -v fdfind &> /dev/null; then
-    export FZF_DEFAULT_COMMAND='fdfind --type f --hidden --follow --exclude .git'
+    FD_CMD="fdfind"
+elif command -v fd &> /dev/null; then
+    FD_CMD="fd"
+fi
+
+if [ -n "${FD_CMD:-}" ]; then
+    export FZF_DEFAULT_COMMAND="$FD_CMD --type f --hidden --follow --exclude .git"
     export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
 fi
 
 # NVM Lazy Load
 export NVM_DIR="$HOME/.nvm"
-NVM_LAZY_LOAD="${NVM_LAZY_LOAD:-$HOME/.dotfiles/scripts/nvm-lazy-load.sh}"
+NVM_LAZY_LOAD="${NVM_LAZY_LOAD:-$HOME/.config/shell/nvm-lazy-load.sh}"
 if [ -f "$NVM_LAZY_LOAD" ]; then
     . "$NVM_LAZY_LOAD"
 fi
@@ -60,5 +66,5 @@ if [ -f "$HOME/.atuin/bin/env" ]; then
 fi
 
 if command -v atuin &> /dev/null; then
-    eval "$(atuin init bash)"
+    eval "$(atuin init bash)" || true
 fi
