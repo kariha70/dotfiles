@@ -267,7 +267,7 @@ Most aliases below are defined in Linux shell configs. The Windows PowerShell pr
 
 ```
 dotfiles/
-├── bash/           # Bash configuration (.bashrc, .bash_aliases)
+├── bash/           # Bash configuration (.bashrc, .bash_aliases, .config/shell/)
 ├── git/            # Git configuration (.gitconfig, .gitignore_global)
 ├── windows/        # Windows-specific configs (PowerShell + Starship)
 │   ├── powershell/
@@ -311,7 +311,7 @@ dotfiles/
 ## Customization
 
 ### Git Identity
-The `.gitconfig` includes `~/.gitconfig.local`. Create this file for your personal details:
+The `.gitconfig` includes `~/.gitconfig.local` for machine-specific settings (identity, signing, credential helpers). Bootstrap creates entries in this file automatically; create it yourself for personal details:
 
 ```ini
 [user]
@@ -331,6 +331,12 @@ The `.gitconfig` includes `~/.gitconfig.local`. Create this file for your person
 For repo structure, coding conventions, and testing expectations, see `AGENTS.md`. It covers how to add new config modules, restow safely, and validate changes on Linux, WSL, and macOS.
 
 Additional notes:
-*   Installer helpers live in `install/lib/helpers.sh` (WSL/macOS detection, one-time `apt-get update`, ensuring `~/.local/bin`, checksum helpers). Source them in new installers instead of duplicating logic.
+*   Installer helpers live in `install/lib/helpers.sh`. All installers hard-source this file; it provides:
+    *   **Platform detection**: `is_wsl`, `is_macos`, `is_linux`
+    *   **APT management**: `apt_update_once` (runs `apt-get update` at most once per session)
+    *   **Architecture**: `get_arch` (normalizes to `x86_64` / `arm64`)
+    *   **Security**: `sha256_file`, `verify_sha256`, `download_and_verify` (curl + SHA256 in one call)
+    *   **Version loading**: `source_versions "$SCRIPT_DIR"` (replaces repeated versions.env boilerplate)
+    *   **Utilities**: `ensure_local_bin`, `log_info`, `log_warn`
 *   Windows installer helpers live in `install/lib/helpers.ps1` (winget install wrapper, link/backup helpers, env flag parsing).
 *   Run `shellcheck install/*.sh install/lib/helpers.sh` before committing to keep scripts linted. Bootstrapping installs `shellcheck` automatically.

@@ -3,7 +3,9 @@
 ## Project Structure & Module Organization
 - Core configs live in `bash/`, `git/`, `vim/`, and `zsh/`; each mirrors files symlinked into `$HOME`.
 - `install/` holds modular installers (`packages.sh`, `ohmyzsh.sh`, `fonts.sh`, etc.) invoked by the bootstrap flow; each should be re-runnable.
-- Shared shell helpers live in `install/lib/helpers.sh` (WSL detection, one-time `apt-get update`, ensuring `~/.local/bin`); source this in installers instead of duplicating logic.
+- Shared shell helpers live in `install/lib/helpers.sh`; **always hard-source it** (`source "$SCRIPT_DIR/lib/helpers.sh"`) at the top of every installer — never conditionally fall back to inline definitions. It provides: `is_wsl`, `is_macos`, `is_linux`, `apt_update_once`, `ensure_local_bin`, `get_arch`, `sha256_file`, `verify_sha256`, `source_versions`, `download_and_verify`, `log_info`, `log_warn`.
+- Pinned versions and checksums are centralized in `install/versions.env`; use `source_versions "$SCRIPT_DIR"` instead of inline sourcing boilerplate. For downloads, prefer `download_and_verify <url> <output> <sha> <label>`.
+- Shared shell logic (used by both `.bashrc` and `.zshrc`) lives in `bash/.config/shell/` and is stowed to `~/.config/shell/`.
 - `bootstrap.sh` orchestrates installs, WSL detection, stow runs, and default-shell switching.
 - Adding configs: create a directory (e.g., `tmux/`), add the dotfiles, append it to `STOW_DIRS` in `bootstrap.sh`, then restow.
 
@@ -33,5 +35,5 @@
 ## Security & Configuration Tips
 - Installers call `sudo apt-get` and modify login shells; avoid secrets or machine-specific paths. Prefer env vars to tokens.
 - Respect WSL/host differences: keep font installs gated to non-WSL and leave SSH changes skipped on WSL unless explicitly needed.
-- For any installer that downloads a script or prebuilt archive, require a SHA256 and fail closed if it is missing or mismatched. Existing env vars used by the scripts include: `NVM_INSTALLER_SHA256`, `LAZYGIT_TAR_SHA256_*`, `DELTA_DEB_SHA256_*`, `GLOW_DEB_SHA256_*`, `FASTFETCH_DEB_SHA256_*`, `YAZI_ZIP_SHA256_*`, `ATUIN_TAR_SHA256_*`, `ZOXIDE_INSTALLER_SHA256`, `UV_INSTALLER_SHA256`, `MESLO_*_TTF_SHA256`, `HOMEBREW_INSTALLER_SHA256`, and optional `HOMEBREW_INSTALLER_URL`.
+- For any installer that downloads a script or prebuilt archive, require a SHA256 and fail closed if it is missing or mismatched. Use `download_and_verify` from `helpers.sh` for the download+verify pattern. Existing env vars used by the scripts include: `NVM_INSTALLER_SHA256`, `NEOVIM_APPIMAGE_SHA256_*`, `LAZYGIT_TAR_SHA256_*`, `DELTA_DEB_SHA256_*`, `GLOW_DEB_SHA256_*`, `FASTFETCH_DEB_SHA256_*`, `YAZI_ZIP_SHA256_*`, `ATUIN_TAR_SHA256_*`, `ZOXIDE_INSTALLER_SHA256`, `UV_INSTALLER_SHA256`, `MESLO_*_TTF_SHA256`, `HOMEBREW_INSTALLER_SHA256`, and optional `HOMEBREW_INSTALLER_URL`.
 When updating versions, download the matching release asset (or installer) and compute `sha256sum` before setting the pin.
