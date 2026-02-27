@@ -22,7 +22,14 @@ if (Test-Cmd -Name "zoxide") {
 }
 
 if (Test-Cmd -Name "direnv") {
-    Invoke-Expression (& { direnv hook powershell | Out-String })
+    $direnvHook = $null
+    foreach ($shell in @("pwsh", "powershell")) {
+        $direnvHook = (& direnv hook $shell 2>&1 | Out-String)
+        if ($LASTEXITCODE -eq 0 -and -not [string]::IsNullOrWhiteSpace($direnvHook)) {
+            Invoke-Expression $direnvHook
+            break
+        }
+    }
 }
 
 if (Test-Cmd -Name "atuin") {

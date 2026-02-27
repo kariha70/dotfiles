@@ -106,6 +106,7 @@ You can control what `bootstrap.sh` does via environment variables:
 *   `EXTRA_TOOLS="pkg1 pkg2"` — add extra Linux optional apt packages for `install/packages.sh` and `install/extras-ops.sh`.
 *   `BREWFILE_PATH=/path/to/Brewfile` — override the Brewfile used by `install/macos.sh`.
 *   `BREW_CLEANUP=1` — remove Homebrew packages not listed in the Brewfile after install.
+*   `SKIP_NEOVIM=1` — skip the Neovim compatibility installer.
 
 ### Linux tool fallback behavior
 
@@ -175,6 +176,7 @@ Pinned in `install/versions.env` (per-arch where applicable):
 | `FASTFETCH_DEB_SHA256_linux_amd64` / `_linux_aarch64` | Fastfetch .deb fallback |
 | `YAZI_ZIP_SHA256_x86_64_unknown_linux_gnu` / `_aarch64_unknown_linux_gnu` | Yazi prebuilt zips |
 | `ATUIN_TAR_SHA256_x86_64_unknown_linux_gnu` / `_aarch64_unknown_linux_gnu` | Atuin prebuilt tarballs |
+| `NEOVIM_APPIMAGE_SHA256_x86_64` / `_arm64` | Neovim appimages |
 | `MESLO_*_TTF_SHA256` | MesloLGS NF fonts (Regular/Bold/Italic/Bold Italic) |
 | `HOMEBREW_INSTALLER_SHA256` | Homebrew install script |
 

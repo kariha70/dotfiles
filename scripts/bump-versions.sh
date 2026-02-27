@@ -49,6 +49,15 @@ if [ -z "$nvm_tag" ] || [ "$nvm_tag" = "null" ]; then
 fi
 nvm_sha=$(fetch_sha "https://raw.githubusercontent.com/nvm-sh/nvm/${nvm_tag}/install.sh" "$TMP_DIR/nvm-install.sh")
 
+# neovim
+neovim_tag="${NEOVIM_VERSION_OVERRIDE:-$(latest_tag "neovim/neovim")}"
+if [ -z "$neovim_tag" ] || [ "$neovim_tag" = "null" ]; then
+    echo "Could not determine latest neovim release tag."
+    exit 1
+fi
+neovim_sha_x86=$(fetch_sha "https://github.com/neovim/neovim/releases/download/${neovim_tag}/nvim-linux-x86_64.appimage" "$TMP_DIR/nvim-linux-x86_64.appimage")
+neovim_sha_arm64=$(fetch_sha "https://github.com/neovim/neovim/releases/download/${neovim_tag}/nvim-linux-arm64.appimage" "$TMP_DIR/nvim-linux-arm64.appimage")
+
 # lazygit
 lazygit_tag="${LAZYGIT_VERSION_OVERRIDE:-$(latest_tag "jesseduffield/lazygit")}"
 if [ -z "$lazygit_tag" ] || [ "$lazygit_tag" = "null" ]; then
@@ -128,6 +137,10 @@ cat >"$VERSIONS_FILE" <<EOF
 
 NVM_VERSION=${nvm_tag}
 NVM_INSTALLER_SHA256=${nvm_sha}
+
+NEOVIM_VERSION=${neovim_tag}
+NEOVIM_APPIMAGE_SHA256_x86_64=${neovim_sha_x86}
+NEOVIM_APPIMAGE_SHA256_arm64=${neovim_sha_arm64}
 
 LAZYGIT_VERSION=${lazygit_version}
 LAZYGIT_TAR_SHA256_x86_64=${lazygit_sha_x86}
