@@ -179,6 +179,18 @@ if ! is_true "${SKIP_GIT_SIGNING:-0}"; then
     fi
 fi
 
+# Configure GitHub credential helper for GitHub/Gist when `gh` is available.
+if ! is_true "${SKIP_GIT_SIGNING:-0}"; then
+    if command -v gh >/dev/null 2>&1; then
+        git config --file "$GIT_LOCAL" --unset-all 'credential.https://github.com.helper' || true
+        git config --file "$GIT_LOCAL" 'credential.https://github.com.helper' '!gh auth git-credential'
+        git config --file "$GIT_LOCAL" --unset-all 'credential.https://gist.github.com.helper' || true
+        git config --file "$GIT_LOCAL" 'credential.https://gist.github.com.helper' '!gh auth git-credential'
+    else
+        echo "GitHub CLI (gh) not found; skipping GitHub credential helper config."
+    fi
+fi
+
 # 15. Set Zsh as default shell
 if ! is_true "${SKIP_SHELL:-0}" && command -v zsh >/dev/null; then
     SHELL_PATH="$(command -v zsh)"
