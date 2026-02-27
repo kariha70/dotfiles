@@ -3,7 +3,22 @@ vim.g.mapleader = " "
 vim.g.maplocalleader = " "
 
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
-if not vim.uv.fs_stat(lazypath) then
+local uv = vim.uv or vim.loop
+if not uv or not uv.fs_stat then
+  vim.api.nvim_echo(
+    {
+      {
+        "Neovim does not expose a UV API (vim.uv or vim.loop). Please upgrade to a newer Neovim.",
+        "Error",
+      },
+    },
+    true,
+    {}
+  )
+  return
+end
+
+if not uv.fs_stat(lazypath) then
   vim.fn.system({
     "git",
     "clone",
