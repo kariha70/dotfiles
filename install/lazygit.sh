@@ -4,23 +4,13 @@ set -e
 set -o pipefail
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-HELPERS="$SCRIPT_DIR/lib/helpers.sh"
-if [ -f "$HELPERS" ]; then
-    # shellcheck source=/dev/null
-    source "$HELPERS"
-fi
-VERSIONS_FILE="${VERSIONS_FILE:-$SCRIPT_DIR/versions.env}"
-if [ -f "$VERSIONS_FILE" ]; then
-    # shellcheck source=/dev/null
-    source "$VERSIONS_FILE"
-else
-    echo "versions.env not found at $VERSIONS_FILE. Run scripts/bump-versions.sh to generate it."
-    exit 1
-fi
+# shellcheck source=lib/helpers.sh
+source "$SCRIPT_DIR/lib/helpers.sh"
+source_versions "$SCRIPT_DIR"
 
 echo "Installing lazygit..."
 
-if command -v is_macos >/dev/null 2>&1 && is_macos; then
+if is_macos; then
     echo "macOS detected. lazygit is managed via Homebrew (install/Brewfile)."
     exit 0
 fi
@@ -43,8 +33,7 @@ EXPECTED_LAZYGIT_SHA="${!EXPECTED_VAR:-}"
 TMP_DIR="$(mktemp -d)"
 trap 'rm -rf "$TMP_DIR"' EXIT
 TMP_TAR="$TMP_DIR/lazygit.tar.gz"
-curl -fLsS "https://github.com/jesseduffield/lazygit/releases/download/v${LAZYGIT_VERSION}/lazygit_${LAZYGIT_VERSION}_Linux_${LAZYGIT_ARCH}.tar.gz" -o "$TMP_TAR"
-verify_sha256 "$TMP_TAR" "$EXPECTED_LAZYGIT_SHA" "lazygit tarball (${LAZYGIT_ARCH})"
+download_and_verify "https://github.com/jesseduffield/lazygit/releases/download/v${LAZYGIT_VERSION}/lazygit_${LAZYGIT_VERSION}_Linux_${LAZYGIT_ARCH}.tar.gz" "$TMP_TAR" "$EXPECTED_LAZYGIT_SHA" "lazygit tarball (${LAZYGIT_ARCH})"
 tar xf "$TMP_TAR" -C "$TMP_DIR" lazygit
 sudo install "$TMP_DIR/lazygit" /usr/local/bin
 

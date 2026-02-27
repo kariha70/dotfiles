@@ -4,19 +4,9 @@ set -e
 set -o pipefail
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-HELPERS="$SCRIPT_DIR/lib/helpers.sh"
-if [ -f "$HELPERS" ]; then
-    # shellcheck source=/dev/null
-    source "$HELPERS"
-fi
-VERSIONS_FILE="${VERSIONS_FILE:-$SCRIPT_DIR/versions.env}"
-if [ -f "$VERSIONS_FILE" ]; then
-    # shellcheck source=/dev/null
-    source "$VERSIONS_FILE"
-else
-    echo "versions.env not found at $VERSIONS_FILE. Run scripts/bump-versions.sh to generate it."
-    exit 1
-fi
+# shellcheck source=lib/helpers.sh
+source "$SCRIPT_DIR/lib/helpers.sh"
+source_versions "$SCRIPT_DIR"
 
 echo "Installing uv..."
 
@@ -27,7 +17,6 @@ else
     EXPECTED_SHA="${UV_INSTALLER_SHA256:-}"
     INSTALLER_PATH="$(mktemp /tmp/uv-install.XXXXXX.sh)"
     trap 'rm -f "$INSTALLER_PATH"' EXIT
-    curl -LsSf https://astral.sh/uv/install.sh -o "$INSTALLER_PATH"
-    verify_sha256 "$INSTALLER_PATH" "$EXPECTED_SHA" "uv installer"
+    download_and_verify "https://astral.sh/uv/install.sh" "$INSTALLER_PATH" "$EXPECTED_SHA" "uv installer"
     sh "$INSTALLER_PATH"
 fi

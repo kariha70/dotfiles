@@ -4,14 +4,8 @@ set -e
 set -o pipefail
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-HELPERS="$SCRIPT_DIR/lib/helpers.sh"
-if [ -f "$HELPERS" ]; then
-    # shellcheck source=/dev/null
-    source "$HELPERS"
-fi
-if ! command -v is_macos >/dev/null 2>&1; then
-    is_macos() { [ "$(uname -s)" = "Darwin" ]; }
-fi
+# shellcheck source=lib/helpers.sh
+source "$SCRIPT_DIR/lib/helpers.sh"
 
 if is_macos; then
     echo "macOS detected. Operations extras are managed via Homebrew (install/Brewfile)."
@@ -23,10 +17,6 @@ echo "Installing operations extras (gh, direnv, age, kubectl, helm, duf)..."
 if ! command -v apt-get >/dev/null 2>&1; then
     echo "Package manager not supported for this script; skipping."
     exit 0
-fi
-
-if ! command -v apt_update_once >/dev/null 2>&1; then
-    apt_update_once() { sudo apt-get update; }
 fi
 
 EXTRAS_OPS_PACKAGES=(

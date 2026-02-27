@@ -4,25 +4,12 @@ set -e
 set -o pipefail
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-HELPERS="$SCRIPT_DIR/lib/helpers.sh"
-if [ -f "$HELPERS" ]; then
-    # shellcheck source=/dev/null
-    source "$HELPERS"
-fi
-if ! command -v is_macos >/dev/null 2>&1; then
-    is_macos() { [ "$(uname -s)" = "Darwin" ]; }
-fi
+# shellcheck source=lib/helpers.sh
+source "$SCRIPT_DIR/lib/helpers.sh"
 
 echo "Installing MesloLGS NF fonts..."
 
-VERSIONS_FILE="${VERSIONS_FILE:-$SCRIPT_DIR/versions.env}"
-if [ -f "$VERSIONS_FILE" ]; then
-    # shellcheck source=/dev/null
-    source "$VERSIONS_FILE"
-else
-    echo "versions.env not found at $VERSIONS_FILE. Run scripts/bump-versions.sh to generate it."
-    exit 1
-fi
+source_versions "$SCRIPT_DIR"
 
 if is_macos; then
     FONT_DIR="$HOME/Library/Fonts"
@@ -31,29 +18,13 @@ else
 fi
 mkdir -p "$FONT_DIR"
 
-if ! command -v verify_sha256 >/dev/null 2>&1; then
-    verify_sha256() {
-        local file="$1" expected="$2"
-        local actual
-        if command -v sha256sum >/dev/null 2>&1; then
-            actual=$(sha256sum "$file" | awk '{print $1}')
-        elif command -v shasum >/dev/null 2>&1; then
-            actual=$(shasum -a 256 "$file" | awk '{print $1}')
-        else
-            echo "No SHA256 tool found (need sha256sum or shasum)." >&2
-            return 1
-        fi
-        [ "$actual" = "$expected" ]
-    }
-fi
-
 verify_font() {
     local file="$1" url="$2" env_var="$3" target expected
     target="$FONT_DIR/$file"
     if [ -f "$target" ]; then
         return
     fi
-    curl -fLo "$target" "$url"
+    curl -fLsS "$url" -o "$target"
     expected="${!env_var:-}"
     if [ -z "$expected" ]; then
         echo "Missing checksum for $file. Run scripts/bump-versions.sh to refresh install/versions.env."

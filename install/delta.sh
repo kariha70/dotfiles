@@ -4,23 +4,13 @@ set -e
 set -o pipefail
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-HELPERS="$SCRIPT_DIR/lib/helpers.sh"
-if [ -f "$HELPERS" ]; then
-    # shellcheck source=/dev/null
-    source "$HELPERS"
-fi
-VERSIONS_FILE="${VERSIONS_FILE:-$SCRIPT_DIR/versions.env}"
-if [ -f "$VERSIONS_FILE" ]; then
-    # shellcheck source=/dev/null
-    source "$VERSIONS_FILE"
-else
-    echo "versions.env not found at $VERSIONS_FILE. Run scripts/bump-versions.sh to generate it."
-    exit 1
-fi
+# shellcheck source=lib/helpers.sh
+source "$SCRIPT_DIR/lib/helpers.sh"
+source_versions "$SCRIPT_DIR"
 
 echo "Installing git-delta..."
 
-if command -v is_macos >/dev/null 2>&1 && is_macos; then
+if is_macos; then
     echo "macOS detected. git-delta is managed via Homebrew (install/Brewfile)."
     exit 0
 fi
@@ -64,8 +54,7 @@ URL="https://github.com/dandavison/delta/releases/download/${DELTA_VERSION}/${DE
 echo "Downloading git-delta $DELTA_VERSION from GitHub..."
 TMP_DEB="$(mktemp /tmp/git-delta.XXXXXX.deb)"
 trap 'rm -f "$TMP_DEB"' EXIT
-curl -fLsS "$URL" -o "$TMP_DEB"
-verify_sha256 "$TMP_DEB" "$EXPECTED_DELTA_SHA" "git-delta deb (${DELTA_ARCH})"
+download_and_verify "$URL" "$TMP_DEB" "$EXPECTED_DELTA_SHA" "git-delta deb (${DELTA_ARCH})"
 
 echo "Installing..."
 sudo dpkg -i "$TMP_DEB"

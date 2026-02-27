@@ -4,19 +4,9 @@ set -e
 set -o pipefail
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-HELPERS="$SCRIPT_DIR/lib/helpers.sh"
-if [ -f "$HELPERS" ]; then
-    # shellcheck source=/dev/null
-    source "$HELPERS"
-fi
-VERSIONS_FILE="${VERSIONS_FILE:-$SCRIPT_DIR/versions.env}"
-if [ -f "$VERSIONS_FILE" ]; then
-    # shellcheck source=/dev/null
-    source "$VERSIONS_FILE"
-else
-    echo "versions.env not found at $VERSIONS_FILE. Run scripts/bump-versions.sh to generate it."
-    exit 1
-fi
+# shellcheck source=lib/helpers.sh
+source "$SCRIPT_DIR/lib/helpers.sh"
+source_versions "$SCRIPT_DIR"
 
 export NVM_DIR="$HOME/.nvm"
 NVM_DEFAULT_ALIAS="${NVM_DEFAULT_ALIAS:-lts/*}"
@@ -35,8 +25,7 @@ else
     echo "Installing nvm..."
     INSTALLER_PATH="$(mktemp /tmp/nvm-install.XXXXXX.sh)"
     trap 'rm -f "$INSTALLER_PATH"' EXIT
-    curl -fLsS "https://raw.githubusercontent.com/nvm-sh/nvm/${NVM_VERSION}/install.sh" -o "$INSTALLER_PATH"
-    verify_sha256 "$INSTALLER_PATH" "$EXPECTED_NVM_SHA" "nvm installer"
+    download_and_verify "https://raw.githubusercontent.com/nvm-sh/nvm/${NVM_VERSION}/install.sh" "$INSTALLER_PATH" "$EXPECTED_NVM_SHA" "nvm installer"
     # We use PROFILE=/dev/null to prevent the install script from modifying .bashrc/.zshrc
     # because we manage those files ourselves.
     PROFILE=/dev/null bash "$INSTALLER_PATH"

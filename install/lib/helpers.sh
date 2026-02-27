@@ -2,23 +2,15 @@
 
 # Shared helper functions for installer scripts.
 
+# --- Logging ---------------------------------------------------------------
+
+log_info()  { echo "$*"; }
+log_warn()  { echo "WARNING: $*" >&2; }
+
+# --- APT helpers -----------------------------------------------------------
+
 : "${APT_UPDATE_SENTINEL:=/tmp/dotfiles_apt_updated_$$}"
 export APT_UPDATE_SENTINEL
-
-# Return 0 when running inside WSL.
-is_wsl() {
-    grep -qEi "(Microsoft|WSL)" /proc/version 2>/dev/null
-}
-
-# Return 0 when running on macOS.
-is_macos() {
-    [ "$(uname -s)" = "Darwin" ]
-}
-
-# Return 0 when running on Linux.
-is_linux() {
-    [ "$(uname -s)" = "Linux" ]
-}
 
 # Clean up deprecated/broken third-party apt sources to prevent update failures.
 remove_deprecated_apt_sources() {
@@ -45,6 +37,23 @@ apt_update_once() {
     sudo apt-get update
     export APT_UPDATED=1
     touch "${APT_UPDATE_SENTINEL:-/tmp/dotfiles_apt_updated}"
+}
+
+# --- Platform detection ----------------------------------------------------
+
+# Return 0 when running inside WSL.
+is_wsl() {
+    grep -qEi "(Microsoft|WSL)" /proc/version 2>/dev/null
+}
+
+# Return 0 when running on macOS.
+is_macos() {
+    [ "$(uname -s)" = "Darwin" ]
+}
+
+# Return 0 when running on Linux.
+is_linux() {
+    [ "$(uname -s)" = "Linux" ]
 }
 
 # Ensure ~/.local/bin exists.
@@ -101,4 +110,28 @@ verify_sha256() {
         echo "Run scripts/bump-versions.sh if a new release is available." >&2
         return 1
     fi
+}
+
+# --- Version / download helpers --------------------------------------------
+
+# Source install/versions.env relative to the calling script's directory.
+# Usage: source_versions "$SCRIPT_DIR"
+source_versions() {
+    local script_dir="$1"
+    local versions_file="${VERSIONS_FILE:-$script_dir/versions.env}"
+    if [ -f "$versions_file" ]; then
+        # shellcheck source=/dev/null
+        source "$versions_file"
+    else
+        echo "versions.env not found at $versions_file. Run scripts/bump-versions.sh to generate it." >&2
+        exit 1
+    fi
+}
+
+# Download a file and verify its SHA256 checksum.
+# Usage: download_and_verify <url> <output_path> <expected_sha> <label>
+download_and_verify() {
+    local url="$1" output="$2" expected_sha="$3" label="$4"
+    curl -fLsS "$url" -o "$output"
+    verify_sha256 "$output" "$expected_sha" "$label"
 }

@@ -4,28 +4,15 @@ set -e
 set -o pipefail
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-HELPERS="$SCRIPT_DIR/lib/helpers.sh"
-if [ -f "$HELPERS" ]; then
-    # shellcheck source=/dev/null
-    source "$HELPERS"
-fi
+# shellcheck source=lib/helpers.sh
+source "$SCRIPT_DIR/lib/helpers.sh"
 
-if command -v is_macos >/dev/null 2>&1 && is_macos; then
+if is_macos; then
     echo "macOS detected. Extras are managed via Homebrew (install/Brewfile)."
     exit 0
 fi
 
-VERSIONS_FILE="${VERSIONS_FILE:-$SCRIPT_DIR/versions.env}"
-if [ -f "$VERSIONS_FILE" ]; then
-    # shellcheck source=/dev/null
-    source "$VERSIONS_FILE"
-else
-    echo "versions.env not found at $VERSIONS_FILE. Run scripts/bump-versions.sh to generate it."
-    exit 1
-fi
-if ! command -v apt_update_once >/dev/null 2>&1; then
-    apt_update_once() { sudo apt-get update; }
-fi
+source_versions "$SCRIPT_DIR"
 
 echo "Installing extra modern tools (Glow, Atuin, Fastfetch, Yazi)..."
 
@@ -62,11 +49,7 @@ if command -v apt-get &> /dev/null; then
 fi
 
 # Ensure ~/.local/bin exists
-if command -v ensure_local_bin >/dev/null 2>&1; then
-    ensure_local_bin
-else
-    mkdir -p "$HOME/.local/bin"
-fi
+ensure_local_bin
 
 TMP_DIR="$(mktemp -d)"
 trap 'rm -rf "$TMP_DIR"' EXIT
@@ -83,8 +66,7 @@ if ! command -v glow &> /dev/null; then
     GLOW_EXPECTED_SHA="${!GLOW_SHA_VAR:-}"
     GLOW_URL="https://github.com/charmbracelet/glow/releases/download/${GLOW_VERSION}/glow_${glow_version}_${GLOW_ARCH}.deb"
     GLOW_DEB="$TMP_DIR/glow.deb"
-    curl -fLsS "$GLOW_URL" -o "$GLOW_DEB"
-    verify_sha256 "$GLOW_DEB" "$GLOW_EXPECTED_SHA" "Glow (${GLOW_ARCH})"
+    download_and_verify "$GLOW_URL" "$GLOW_DEB" "$GLOW_EXPECTED_SHA" "Glow (${GLOW_ARCH})"
     apt_update_once
     sudo apt-get install -y "$GLOW_DEB"
 else
@@ -102,8 +84,7 @@ if ! command -v atuin &> /dev/null; then
     ATUIN_EXPECTED="${!ATUIN_SHA_VAR:-}"
     ATUIN_URL="https://github.com/atuinsh/atuin/releases/download/${ATUIN_VERSION}/atuin-${ATUIN_ARCH}.tar.gz"
     ATUIN_TAR="$TMP_DIR/atuin.tar.gz"
-    curl -fLsS "$ATUIN_URL" -o "$ATUIN_TAR"
-    verify_sha256 "$ATUIN_TAR" "$ATUIN_EXPECTED" "Atuin ($ATUIN_ARCH)"
+    download_and_verify "$ATUIN_URL" "$ATUIN_TAR" "$ATUIN_EXPECTED" "Atuin ($ATUIN_ARCH)"
     tar -xf "$ATUIN_TAR" -C "$TMP_DIR"
     ATUIN_BIN=$(find "$TMP_DIR" -maxdepth 3 -type f -name atuin | head -1)
     if [ -z "$ATUIN_BIN" ]; then
@@ -133,8 +114,7 @@ if ! command -v fastfetch &> /dev/null; then
            FF_EXPECTED="${!FF_SHA_VAR:-}"
            FF_URL="https://github.com/fastfetch-cli/fastfetch/releases/download/${FASTFETCH_VERSION}/fastfetch-${FASTFETCH_ARCH}.deb"
            FF_DEB="$TMP_DIR/fastfetch.deb"
-           curl -fLsS "$FF_URL" -o "$FF_DEB"
-           verify_sha256 "$FF_DEB" "$FF_EXPECTED" "Fastfetch ($FASTFETCH_ARCH)"
+           download_and_verify "$FF_URL" "$FF_DEB" "$FF_EXPECTED" "Fastfetch ($FASTFETCH_ARCH)"
            sudo dpkg -i "$FF_DEB"
         fi
 else
@@ -152,8 +132,7 @@ if ! command -v yazi &> /dev/null; then
     YAZI_EXPECTED="${!YAZI_SHA_VAR:-}"
     YAZI_URL="https://github.com/sxyazi/yazi/releases/download/${YAZI_VERSION}/yazi-${YAZI_ARCH}.zip"
     YAZI_ZIP="$TMP_DIR/yazi.zip"
-    curl -fLsS "$YAZI_URL" -o "$YAZI_ZIP"
-    verify_sha256 "$YAZI_ZIP" "$YAZI_EXPECTED" "Yazi ($YAZI_ARCH)"
+    download_and_verify "$YAZI_URL" "$YAZI_ZIP" "$YAZI_EXPECTED" "Yazi ($YAZI_ARCH)"
     unzip -q "$YAZI_ZIP" -d "$TMP_DIR"
     YAZI_DIR=$(find "$TMP_DIR" -maxdepth 1 -type d -name "yazi-*-linux-gnu" | head -1)
     if [ -z "$YAZI_DIR" ]; then

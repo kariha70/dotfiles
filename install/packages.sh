@@ -4,20 +4,8 @@ set -e
 set -o pipefail
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-HELPERS="$SCRIPT_DIR/lib/helpers.sh"
-if [ -f "$HELPERS" ]; then
-    # shellcheck source=/dev/null
-    source "$HELPERS"
-fi
-if ! command -v is_wsl >/dev/null 2>&1; then
-    is_wsl() { grep -qEi "(Microsoft|WSL)" /proc/version 2>/dev/null; }
-fi
-if ! command -v is_macos >/dev/null 2>&1; then
-    is_macos() { [ "$(uname -s)" = "Darwin" ]; }
-fi
-if ! command -v apt_update_once >/dev/null 2>&1; then
-    apt_update_once() { sudo apt-get update; }
-fi
+# shellcheck source=lib/helpers.sh
+source "$SCRIPT_DIR/lib/helpers.sh"
 
 echo "Installing packages..."
 
@@ -138,11 +126,7 @@ if command -v apt-get &> /dev/null; then
         fi
 
         if command -v cargo >/dev/null 2>&1; then
-            if command -v ensure_local_bin >/dev/null 2>&1; then
-                ensure_local_bin
-            else
-                mkdir -p "$HOME/.local/bin"
-            fi
+            ensure_local_bin
 
             if cargo install --locked --root "$HOME/.local" procs; then
                 echo "procs installed via cargo fallback."

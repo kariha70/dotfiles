@@ -4,26 +4,13 @@ set -e
 set -o pipefail
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-HELPERS="$SCRIPT_DIR/lib/helpers.sh"
-if [ -f "$HELPERS" ]; then
-    # shellcheck source=/dev/null
-    source "$HELPERS"
-fi
-VERSIONS_FILE="${VERSIONS_FILE:-$SCRIPT_DIR/versions.env}"
-if [ -f "$VERSIONS_FILE" ]; then
-    # shellcheck source=/dev/null
-    source "$VERSIONS_FILE"
-else
-    echo "versions.env not found at $VERSIONS_FILE. Run scripts/bump-versions.sh to generate it."
-    exit 1
-fi
-if ! command -v apt_update_once >/dev/null 2>&1; then
-    apt_update_once() { sudo apt-get update; }
-fi
+# shellcheck source=lib/helpers.sh
+source "$SCRIPT_DIR/lib/helpers.sh"
+source_versions "$SCRIPT_DIR"
 
 echo "Installing zoxide..."
 
-if command -v is_macos >/dev/null 2>&1 && is_macos; then
+if is_macos; then
     echo "macOS detected. zoxide is managed via Homebrew (install/Brewfile)."
     exit 0
 fi
@@ -46,7 +33,7 @@ fi
 # Fallback: install zoxide to ~/.local/bin with checksum enforcement
 INSTALLER_PATH="$(mktemp /tmp/zoxide-install.XXXXXX.sh)"
 trap 'rm -f "$INSTALLER_PATH"' EXIT
-curl -fsS https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh -o "$INSTALLER_PATH"
+curl -fLsS https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh -o "$INSTALLER_PATH"
 EXPECTED_ZOXIDE_SHA="${ZOXIDE_INSTALLER_SHA256:-}"
 verify_sha256 "$INSTALLER_PATH" "$EXPECTED_ZOXIDE_SHA" "zoxide installer"
 bash "$INSTALLER_PATH"
