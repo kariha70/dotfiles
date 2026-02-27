@@ -180,7 +180,8 @@ if ! is_true "${SKIP_GIT_SIGNING:-0}"; then
 fi
 
 # Configure GitHub credential helper for GitHub/Gist when `gh` is available.
-if ! is_true "${SKIP_GIT_SIGNING:-0}"; then
+if ! is_true "${SKIP_GIT_CREDENTIALS:-0}"; then
+    GIT_LOCAL="$HOME/.gitconfig.local"
     if command -v gh >/dev/null 2>&1; then
         git config --file "$GIT_LOCAL" --unset-all 'credential.https://github.com.helper' || true
         git config --file "$GIT_LOCAL" 'credential.https://github.com.helper' '!gh auth git-credential'

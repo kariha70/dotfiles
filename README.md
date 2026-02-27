@@ -101,7 +101,7 @@ To set up a new Linux or macOS machine:
 You can control what `bootstrap.sh` does via environment variables:
 
 *   `ONLY_STOW=1` — skip all installers and only run stow (plus shell switch unless `SKIP_SHELL=1`).
-*   `SKIP_<STEP>=1` — skip a specific step, where `<STEP>` is one of: `PACKAGES`, `MACOS`, `SSH`, `OHMYZSH`, `FONTS`, `EZA`, `NVM`, `ZOXIDE`, `LAZYGIT`, `UV`, `WSL`, `DELTA`, `EXTRAS`, `EXTRAS_OPS`, `STOW`, `SHELL`.
+*   `SKIP_<STEP>=1` — skip a specific step, where `<STEP>` is one of: `PACKAGES`, `MACOS`, `SSH`, `OHMYZSH`, `FONTS`, `EZA`, `NVM`, `ZOXIDE`, `LAZYGIT`, `UV`, `WSL`, `DELTA`, `EXTRAS`, `EXTRAS_OPS`, `STOW`, `GIT_SIGNING`, `GIT_CREDENTIALS`, `SHELL`.
 *   `EXTRA_CONFLICT_FILES="path1 path2"` — space‑separated additional files/dirs to back up before stow.
 *   `EXTRA_TOOLS="pkg1 pkg2"` — add extra Linux optional apt packages for `install/packages.sh` and `install/extras-ops.sh`.
 *   `BREWFILE_PATH=/path/to/Brewfile` — override the Brewfile used by `install/macos.sh`.
