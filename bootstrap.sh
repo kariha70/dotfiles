@@ -161,7 +161,25 @@ else
     done
 fi
 
-# 14. Set Zsh as default shell
+# 14. Configure Git commit signing (platform-specific)
+if ! is_true "${SKIP_GIT_SIGNING:-0}"; then
+    GIT_LOCAL="$HOME/.gitconfig.local"
+    if "$IS_MAC"; then
+        OP_SSH_SIGN="/Applications/1Password.app/Contents/MacOS/op-ssh-sign"
+    else
+        OP_SSH_SIGN="/opt/1Password/op-ssh-sign"
+    fi
+    if [ -x "$OP_SSH_SIGN" ]; then
+        echo "Configuring Git SSH commit signing via 1Password..."
+        git config --file "$GIT_LOCAL" gpg.format ssh
+        git config --file "$GIT_LOCAL" gpg.ssh.program "$OP_SSH_SIGN"
+        git config --file "$GIT_LOCAL" commit.gpgsign true
+    else
+        echo "1Password SSH signer not found at $OP_SSH_SIGN; skipping Git signing config."
+    fi
+fi
+
+# 15. Set Zsh as default shell
 if ! is_true "${SKIP_SHELL:-0}" && command -v zsh >/dev/null; then
     SHELL_PATH="$(command -v zsh)"
     if "$IS_MAC" && [ -r /etc/shells ] && ! grep -Fxq "$SHELL_PATH" /etc/shells; then
