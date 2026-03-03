@@ -5,10 +5,16 @@
 if (-not $env:XDG_CONFIG_HOME) { $env:XDG_CONFIG_HOME = "$env:USERPROFILE\.config" }
 if (-not $env:XDG_DATA_HOME) { $env:XDG_DATA_HOME = "$env:USERPROFILE\.local\share" }
 if (-not $env:XDG_CACHE_HOME) { $env:XDG_CACHE_HOME = "$env:USERPROFILE\.cache" }
+if (-not $env:XDG_STATE_HOME) { $env:XDG_STATE_HOME = "$env:USERPROFILE\.local\state" }
 
+# --- Command existence cache (avoid repeated Get-Command calls) ---
+$_cmdCache = @{}
 function Test-Cmd {
     param([string]$Name)
-    return $null -ne (Get-Command -Name $Name -ErrorAction SilentlyContinue)
+    if (-not $_cmdCache.ContainsKey($Name)) {
+        $_cmdCache[$Name] = $null -ne (Get-Command -Name $Name -ErrorAction SilentlyContinue)
+    }
+    return $_cmdCache[$Name]
 }
 
 # --- Shell init caching ---
@@ -58,12 +64,20 @@ Set-PSReadLineKeyHandler -Key UpArrow -Function HistorySearchBackward
 Set-PSReadLineKeyHandler -Key DownArrow -Function HistorySearchForward
 Set-PSReadLineKeyHandler -Key Tab -Function MenuComplete
 
-# --- Modules ---
-Import-Module Terminal-Icons -ErrorAction SilentlyContinue
-Import-Module PSFzf -ErrorAction SilentlyContinue
-if (Get-Command -Name Set-PsFzfOption -ErrorAction SilentlyContinue) {
-    Set-PsFzfOption -PSReadlineChordProvider "Ctrl+t" -PSReadlineChordReverseHistory "Ctrl+r"
+# --- Modules (lazy-loaded for faster startup) ---
+$_modulesLoaded = $false
+function _Load-Modules {
+    if ($script:_modulesLoaded) { return }
+    $script:_modulesLoaded = $true
+    Import-Module Terminal-Icons -ErrorAction SilentlyContinue
+    Import-Module PSFzf -ErrorAction SilentlyContinue
+    if (Get-Command -Name Set-PsFzfOption -ErrorAction SilentlyContinue) {
+        Set-PsFzfOption -PSReadlineChordProvider "Ctrl+t" -PSReadlineChordReverseHistory "Ctrl+r"
+    }
 }
+# Defer module loading until first prompt
+$ExecutionContext.SessionState.Module.OnRemove = $null
+Register-EngineEvent -SourceIdentifier PowerShell.OnIdle -MaxTriggerCount 1 -Action { _Load-Modules } | Out-Null
 
 # --- Cached shell inits ---
 if (Test-Cmd -Name "zoxide") {
@@ -71,7 +85,7 @@ if (Test-Cmd -Name "zoxide") {
 }
 
 if (Test-Cmd -Name "direnv") {
-    _Get-CachedInit "direnv" { direnv hook pwsh 2>$null }
+    _Get-CachedInit "direnv" { direnv hook pwsh 2>&1 | Where-Object { $_ -is [string] } }
 }
 
 if (Test-Cmd -Name "atuin") {
