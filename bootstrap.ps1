@@ -63,7 +63,16 @@ if ([string]::IsNullOrWhiteSpace($profilePath)) {
 
 $homePath = [Environment]::GetFolderPath("UserProfile")
 $localAppData = [Environment]::GetFolderPath("LocalApplicationData")
+$xdgConfigHome = [Environment]::GetEnvironmentVariable("XDG_CONFIG_HOME", "Process")
+if ([string]::IsNullOrWhiteSpace($xdgConfigHome)) {
+    $xdgConfigHome = Join-Path -Path $homePath -ChildPath ".config"
+}
 $timestamp = Get-CurrentTimestamp
+
+$nvimTargets = @(
+    (Join-Path -Path $localAppData -ChildPath "nvim"),
+    (Join-Path -Path $xdgConfigHome -ChildPath "nvim")
+) | Select-Object -Unique
 
 $linkMappings = @(
     @{
@@ -79,14 +88,17 @@ $linkMappings = @(
         Target = Join-Path -Path $homePath -ChildPath ".gitignore_global"
     },
     @{
-        Source = Join-Path -Path $DotfilesDir -ChildPath "nvim/.config/nvim"
-        Target = Join-Path -Path $localAppData -ChildPath "nvim"
-    },
-    @{
         Source = Join-Path -Path $DotfilesDir -ChildPath "windows/starship.toml"
         Target = Join-Path -Path $homePath -ChildPath ".config/starship.toml"
     }
 )
+
+foreach ($nvimTarget in $nvimTargets) {
+    $linkMappings += @{
+        Source = Join-Path -Path $DotfilesDir -ChildPath "nvim/.config/nvim"
+        Target = $nvimTarget
+    }
+}
 
 foreach ($mapping in $linkMappings) {
     New-DotfileLink -SourcePath $mapping.Source -TargetPath $mapping.Target -Timestamp $timestamp
