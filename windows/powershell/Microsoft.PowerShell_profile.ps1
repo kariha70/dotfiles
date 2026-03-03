@@ -47,7 +47,15 @@ function _Get-CachedInit {
     }
 
     if (Test-Path $cacheFile) {
-        . $cacheFile
+        try {
+            & {
+                $ErrorActionPreference = "Stop"
+                . $cacheFile
+            }
+        }
+        catch {
+            Write-Warning "Skipping cached init for '$Name': $($_.Exception.Message)"
+        }
     }
 }
 
@@ -57,12 +65,22 @@ function Update-ShellCache {
 }
 
 # --- PSReadLine ---
-Set-PSReadLineOption -PredictionSource HistoryAndPlugin
-Set-PSReadLineOption -PredictionViewStyle ListView
-Set-PSReadLineOption -HistorySearchCursorMovesToEnd
-Set-PSReadLineKeyHandler -Key UpArrow -Function HistorySearchBackward
-Set-PSReadLineKeyHandler -Key DownArrow -Function HistorySearchForward
-Set-PSReadLineKeyHandler -Key Tab -Function MenuComplete
+# Guard against non-interactive hosts (bootstrap/scripts/redirected output).
+$canUsePSReadLine = $Host.Name -eq "ConsoleHost" -and -not [Console]::IsInputRedirected -and -not [Console]::IsOutputRedirected
+if ($canUsePSReadLine -and (Get-Module -ListAvailable -Name PSReadLine)) {
+    Import-Module PSReadLine -ErrorAction SilentlyContinue
+    try {
+        Set-PSReadLineOption -PredictionSource HistoryAndPlugin
+        Set-PSReadLineOption -PredictionViewStyle ListView
+        Set-PSReadLineOption -HistorySearchCursorMovesToEnd
+        Set-PSReadLineKeyHandler -Key UpArrow -Function HistorySearchBackward
+        Set-PSReadLineKeyHandler -Key DownArrow -Function HistorySearchForward
+        Set-PSReadLineKeyHandler -Key Tab -Function MenuComplete
+    }
+    catch {
+        Write-Verbose "Skipping PSReadLine customization: $($_.Exception.Message)"
+    }
+}
 
 # --- Modules (lazy-loaded for faster startup) ---
 $_modulesLoaded = $false
@@ -76,8 +94,9 @@ function _Load-Modules {
     }
 }
 # Defer module loading until first prompt
-$ExecutionContext.SessionState.Module.OnRemove = $null
-Register-EngineEvent -SourceIdentifier PowerShell.OnIdle -MaxTriggerCount 1 -Action { _Load-Modules } | Out-Null
+if ($Host.Name -eq "ConsoleHost") {
+    Register-EngineEvent -SourceIdentifier PowerShell.OnIdle -MaxTriggerCount 1 -Action { _Load-Modules } | Out-Null
+}
 
 # --- Cached shell inits ---
 if (Test-Cmd -Name "zoxide") {
@@ -88,7 +107,7 @@ if (Test-Cmd -Name "direnv") {
     _Get-CachedInit "direnv" { direnv hook pwsh 2>&1 | Where-Object { $_ -is [string] } }
 }
 
-if (Test-Cmd -Name "atuin") {
+if (Test-Cmd -Name "atuin" -and (Get-Module -Name PSReadLine)) {
     _Get-CachedInit "atuin" { atuin init powershell }
 }
 
