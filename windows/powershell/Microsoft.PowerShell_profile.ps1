@@ -6,34 +6,71 @@ function Test-Cmd {
     return $null -ne (Get-Command -Name $Name -ErrorAction SilentlyContinue)
 }
 
-if (Get-Module -ListAvailable -Name Terminal-Icons) {
-    Import-Module Terminal-Icons -ErrorAction SilentlyContinue
-}
+# --- Shell init caching ---
+# Cache subprocess output to files, regenerate weekly or on demand via Update-ShellCache
+$_shellCacheDir = "$env:LOCALAPPDATA\powershell-cache"
+if (-not (Test-Path $_shellCacheDir)) { New-Item -ItemType Directory -Path $_shellCacheDir -Force | Out-Null }
+$_cacheMaxAge = (Get-Date).AddDays(-7)
 
-if (Get-Module -ListAvailable -Name PSFzf) {
-    Import-Module PSFzf -ErrorAction SilentlyContinue
-    if (Get-Command -Name Set-PsFzfOption -ErrorAction SilentlyContinue) {
-        Set-PsFzfOption -PSReadlineChordProvider "Ctrl+t" -PSReadlineChordReverseHistory "Ctrl+r"
+function _Get-CachedInit {
+    param([string]$Name, [scriptblock]$Generator)
+    $cacheFile = "$_shellCacheDir\$Name.ps1"
+    $tmpFile = "$cacheFile.tmp"
+    $needsRefresh = -not (Test-Path $cacheFile) -or (Get-Item $cacheFile).LastWriteTime -lt $$_cacheMaxAge
+
+    if ($needsRefresh) {
+        try {
+            $output = & $Generator 2>&1
+            if ($LASTEXITCODE -eq 0) {
+                $output | Out-File -FilePath $tmpFile -Encoding utf8 -Force
+                Move-Item -LiteralPath $tmpFile -Destination $cacheFile -Force
+            }
+            else {
+                Write-Warning "Skipping cache update for '$Name' (exit $LASTEXITCODE)."
+            }
+        }
+        catch {
+            Remove-Item -LiteralPath $tmpFile -Force -ErrorAction SilentlyContinue
+            Write-Warning "Skipping cache update for '$Name': $($_.Exception.Message)"
+        }
+    }
+
+    if (Test-Path $cacheFile) {
+        . $cacheFile
     }
 }
 
+function Update-ShellCache {
+    Remove-Item "$_shellCacheDir\*.ps1" -Force -ErrorAction SilentlyContinue
+    Write-Host "Shell init cache cleared. Restart your shell to regenerate." -ForegroundColor Yellow
+}
+
+# --- PSReadLine ---
+Set-PSReadLineOption -PredictionSource HistoryAndPlugin
+Set-PSReadLineOption -PredictionViewStyle ListView
+Set-PSReadLineOption -HistorySearchCursorMovesToEnd
+Set-PSReadLineKeyHandler -Key UpArrow -Function HistorySearchBackward
+Set-PSReadLineKeyHandler -Key DownArrow -Function HistorySearchForward
+Set-PSReadLineKeyHandler -Key Tab -Function MenuComplete
+
+# --- Modules ---
+Import-Module Terminal-Icons -ErrorAction SilentlyContinue
+Import-Module PSFzf -ErrorAction SilentlyContinue
+if (Get-Command -Name Set-PsFzfOption -ErrorAction SilentlyContinue) {
+    Set-PsFzfOption -PSReadlineChordProvider "Ctrl+t" -PSReadlineChordReverseHistory "Ctrl+r"
+}
+
+# --- Cached shell inits ---
 if (Test-Cmd -Name "zoxide") {
-    Invoke-Expression (& { zoxide init powershell | Out-String })
+    _Get-CachedInit "zoxide" { zoxide init powershell }
 }
 
 if (Test-Cmd -Name "direnv") {
-    $direnvHook = $null
-    foreach ($shell in @("pwsh", "powershell")) {
-        $direnvHook = (& direnv hook $shell 2>&1 | Out-String)
-        if ($LASTEXITCODE -eq 0 -and -not [string]::IsNullOrWhiteSpace($direnvHook)) {
-            Invoke-Expression $direnvHook
-            break
-        }
-    }
+    _Get-CachedInit "direnv" { direnv hook pwsh 2>$null }
 }
 
 if (Test-Cmd -Name "atuin") {
-    Invoke-Expression (& { atuin init powershell | Out-String })
+    _Get-CachedInit "atuin" { atuin init powershell }
 }
 
 if (Test-Cmd -Name "eza") {
@@ -101,5 +138,5 @@ function .. { Set-Location .. }
 function ... { Set-Location ../.. }
 
 if (Test-Cmd -Name "starship") {
-    Invoke-Expression (& { starship init powershell | Out-String })
+    _Get-CachedInit "starship" { starship init powershell }
 }
