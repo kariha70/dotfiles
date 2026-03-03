@@ -1,6 +1,11 @@
 # Managed by dotfiles bootstrap.ps1
 # Source of truth: windows/powershell/Microsoft.PowerShell_profile.ps1
 
+# --- XDG Base Directory paths (required for direnv and others on Windows) ---
+if (-not $env:XDG_CONFIG_HOME) { $env:XDG_CONFIG_HOME = "$env:USERPROFILE\.config" }
+if (-not $env:XDG_DATA_HOME) { $env:XDG_DATA_HOME = "$env:USERPROFILE\.local\share" }
+if (-not $env:XDG_CACHE_HOME) { $env:XDG_CACHE_HOME = "$env:USERPROFILE\.cache" }
+
 function Test-Cmd {
     param([string]$Name)
     return $null -ne (Get-Command -Name $Name -ErrorAction SilentlyContinue)
