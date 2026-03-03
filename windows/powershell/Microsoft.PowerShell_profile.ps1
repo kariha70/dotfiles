@@ -16,7 +16,7 @@ function _Get-CachedInit {
     param([string]$Name, [scriptblock]$Generator)
     $cacheFile = "$_shellCacheDir\$Name.ps1"
     $tmpFile = "$cacheFile.tmp"
-    $needsRefresh = -not (Test-Path $cacheFile) -or (Get-Item $cacheFile).LastWriteTime -lt $$_cacheMaxAge
+    $needsRefresh = -not (Test-Path $cacheFile) -or (Get-Item $cacheFile).LastWriteTime -lt $_cacheMaxAge
 
     if ($needsRefresh) {
         try {
