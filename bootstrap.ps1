@@ -63,10 +63,24 @@ if ([string]::IsNullOrWhiteSpace($profilePath)) {
 
 $homePath = [Environment]::GetFolderPath("UserProfile")
 $localAppData = [Environment]::GetFolderPath("LocalApplicationData")
-$xdgConfigHome = [Environment]::GetEnvironmentVariable("XDG_CONFIG_HOME", "Process")
-if ([string]::IsNullOrWhiteSpace($xdgConfigHome)) {
-    $xdgConfigHome = Join-Path -Path $homePath -ChildPath ".config"
+$xdgDefaults = @{
+    XDG_CONFIG_HOME = Join-Path -Path $homePath -ChildPath ".config"
+    XDG_DATA_HOME = Join-Path -Path $homePath -ChildPath ".local\share"
+    XDG_CACHE_HOME = Join-Path -Path $homePath -ChildPath ".cache"
+    XDG_STATE_HOME = Join-Path -Path $homePath -ChildPath ".local\state"
 }
+
+foreach ($envName in $xdgDefaults.Keys) {
+    $userValue = [Environment]::GetEnvironmentVariable($envName, "User")
+    if ([string]::IsNullOrWhiteSpace($userValue)) {
+        [Environment]::SetEnvironmentVariable($envName, $xdgDefaults[$envName], "User")
+    }
+    if ([string]::IsNullOrWhiteSpace([Environment]::GetEnvironmentVariable($envName, "Process"))) {
+        [Environment]::SetEnvironmentVariable($envName, $xdgDefaults[$envName], "Process")
+    }
+}
+
+$xdgConfigHome = [Environment]::GetEnvironmentVariable("XDG_CONFIG_HOME", "Process")
 $timestamp = Get-CurrentTimestamp
 
 $nvimTargets = @(

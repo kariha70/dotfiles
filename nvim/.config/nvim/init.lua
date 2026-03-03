@@ -18,9 +18,49 @@ if not uv or not uv.fs_stat then
   return
 end
 
+local function resolve_git()
+  if vim.fn.executable("git") == 1 then
+    return "git"
+  end
+
+  local local_app_data = vim.env.LOCALAPPDATA or ""
+  local candidates = {
+    "C:/Program Files/Git/cmd/git.exe",
+    "C:/Program Files/Git/bin/git.exe",
+  }
+
+  if local_app_data ~= "" then
+    table.insert(candidates, local_app_data .. "/Programs/Git/cmd/git.exe")
+    table.insert(candidates, local_app_data .. "/Programs/Git/bin/git.exe")
+  end
+
+  for _, candidate in ipairs(candidates) do
+    if uv.fs_stat(candidate) then
+      return candidate
+    end
+  end
+
+  return nil
+end
+
 if not uv.fs_stat(lazypath) then
+  local git = resolve_git()
+  if not git then
+    vim.api.nvim_echo(
+      {
+        {
+          "Unable to bootstrap lazy.nvim: git is not available. Install Git or restart your shell to refresh PATH.",
+          "Error",
+        },
+      },
+      true,
+      {}
+    )
+    return
+  end
+
   vim.fn.system({
-    "git",
+    git,
     "clone",
     "--filter=blob:none",
     "--branch=stable",
