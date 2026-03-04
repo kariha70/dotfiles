@@ -70,12 +70,13 @@ $canUsePSReadLine = $Host.Name -eq "ConsoleHost" -and -not [Console]::IsInputRed
 if ($canUsePSReadLine -and (Get-Module -ListAvailable -Name PSReadLine)) {
     Import-Module PSReadLine -ErrorAction SilentlyContinue
     try {
+        # InlineView gives ghost-text suggestions without clashing with Atuin's TUI.
         Set-PSReadLineOption -PredictionSource HistoryAndPlugin
-        Set-PSReadLineOption -PredictionViewStyle ListView
+        Set-PSReadLineOption -PredictionViewStyle InlineView
         Set-PSReadLineOption -HistorySearchCursorMovesToEnd
-        Set-PSReadLineKeyHandler -Key UpArrow -Function HistorySearchBackward
-        Set-PSReadLineKeyHandler -Key DownArrow -Function HistorySearchForward
+        # Atuin owns UpArrow and Ctrl+R for history search — don't compete.
         Set-PSReadLineKeyHandler -Key Tab -Function MenuComplete
+        Set-PSReadLineKeyHandler -Key "Ctrl+f" -Function ForwardWord
     }
     catch {
         Write-Verbose "Skipping PSReadLine customization: $($_.Exception.Message)"
@@ -90,7 +91,13 @@ function _Load-Modules {
     Import-Module Terminal-Icons -ErrorAction SilentlyContinue
     Import-Module PSFzf -ErrorAction SilentlyContinue
     if (Get-Command -Name Set-PsFzfOption -ErrorAction SilentlyContinue) {
-        Set-PsFzfOption -PSReadlineChordProvider "Ctrl+t" -PSReadlineChordReverseHistory "Ctrl+r"
+        # Atuin owns Ctrl+R for history search; PSFzf handles Ctrl+T for file finding only.
+        Set-PsFzfOption -PSReadlineChordProvider "Ctrl+t"
+    }
+
+    # Init Atuin after modules so its keybindings (Ctrl+R, UpArrow) always win.
+    if (Test-Cmd -Name "atuin" -and (Get-Module -Name PSReadLine)) {
+        _Get-CachedInit "atuin" { atuin init powershell }
     }
 }
 # Defer module loading until first prompt
@@ -105,10 +112,6 @@ if (Test-Cmd -Name "zoxide") {
 
 if (Test-Cmd -Name "direnv") {
     _Get-CachedInit "direnv" { direnv hook pwsh 2>&1 | Where-Object { $_ -is [string] } }
-}
-
-if (Test-Cmd -Name "atuin" -and (Get-Module -Name PSReadLine)) {
-    _Get-CachedInit "atuin" { atuin init powershell }
 }
 
 if (Test-Cmd -Name "eza") {
