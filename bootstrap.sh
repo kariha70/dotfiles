@@ -7,20 +7,13 @@ DOTFILES_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 # Shared helpers
 HELPERS="$DOTFILES_DIR/install/lib/helpers.sh"
-if [ -f "$HELPERS" ]; then
-    # shellcheck source=/dev/null
-    source "$HELPERS"
-fi
-if ! command -v is_wsl >/dev/null 2>&1; then
-    is_wsl() { grep -qEi "(Microsoft|WSL)" /proc/version 2>/dev/null; }
-fi
-if ! command -v is_macos >/dev/null 2>&1; then
-    is_macos() { [ "$(uname -s)" = "Darwin" ]; }
-fi
+# shellcheck source=/dev/null
+source "$HELPERS"
 
 # Shared apt update sentinel for this bootstrap run
 export APT_UPDATE_SENTINEL="${APT_UPDATE_SENTINEL:-/tmp/dotfiles_apt_updated_$$}"
 rm -f "$APT_UPDATE_SENTINEL" 2>/dev/null || true
+export DOTFILES_BOOTSTRAP=1
 
 IS_WSL=false
 if is_wsl; then
@@ -114,12 +107,23 @@ maybe_run DELTA "$DOTFILES_DIR/install/delta.sh"
 maybe_run EXTRAS "$DOTFILES_DIR/install/extras.sh"
 
 # 13. Install Operations Extras (GH, direnv, age, kubectl, helm, duf, plus optional EXTRA_TOOLS)
-maybe_run EXTRAS_OPS "$DOTFILES_DIR/install/extras-ops.sh"
+if [ -n "${EXTRA_TOOLS:-}" ]; then
+    maybe_run EXTRAS_OPS "$DOTFILES_DIR/install/extras-ops.sh"
+else
+    echo "No EXTRA_TOOLS requested. Skipping operations extras installer."
+fi
 
 # 14. Run Stow
 # We want to stow directories that contain config files.
 # We exclude 'install' and '.git' and the script itself.
-STOW_DIRS="bash git vim zsh tmux nvim"
+STOW_DIRS=(
+    bash
+    git
+    vim
+    zsh
+    tmux
+    nvim
+)
 
 # Pre-stow backup: Move existing files that are not symlinks to avoid conflicts
 DEFAULT_CONFLICT_FILES=(
@@ -155,10 +159,7 @@ else
     done
 
     echo "Stowing configurations..."
-    for dir in $STOW_DIRS; do
-        echo "  -> Stowing $dir"
-        stow -v -R -t "$HOME" -d "$DOTFILES_DIR" "$dir"
-    done
+    stow -v -R -t "$HOME" -d "$DOTFILES_DIR" "${STOW_DIRS[@]}"
 fi
 
 # 14. Configure Git commit signing (platform-specific)

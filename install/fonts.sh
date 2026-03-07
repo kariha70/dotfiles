@@ -17,6 +17,7 @@ else
     FONT_DIR="$HOME/.local/share/fonts"
 fi
 mkdir -p "$FONT_DIR"
+FONTS_CHANGED=0
 
 verify_font() {
     local file="$1" url="$2" env_var="$3" target expected
@@ -36,6 +37,7 @@ verify_font() {
         rm -f "$target"
         exit 1
     fi
+    FONTS_CHANGED=1
 }
 
 # Download fonts
@@ -49,9 +51,11 @@ if is_macos; then
     echo "MesloLGS NF fonts installed successfully in $FONT_DIR."
 else
     # Reset font cache
-    if command -v fc-cache >/dev/null 2>&1; then
+    if [ "$FONTS_CHANGED" -eq 1 ] && command -v fc-cache >/dev/null 2>&1; then
         echo "Resetting font cache..."
-        fc-cache -f -v "$FONT_DIR"
+        fc-cache -f "$FONT_DIR"
+    elif [ "$FONTS_CHANGED" -eq 0 ]; then
+        echo "Font files already present. Skipping font cache refresh."
     else
         echo "fc-cache not found. Please install fontconfig."
     fi

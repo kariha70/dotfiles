@@ -22,7 +22,9 @@ fi
 
 # Try installing via apt (available in newer Ubuntu/Debian)
 if command -v apt-get &> /dev/null; then
-    if sudo apt-get install -y git-delta 2>/dev/null; then
+    if apt_package_available git-delta; then
+        apt_update_once
+        sudo apt-get install -y --no-install-recommends git-delta
         echo "git-delta installed via apt."
         exit 0
     fi

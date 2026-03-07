@@ -22,12 +22,13 @@ fi
 
 # Prefer apt on Debian/Ubuntu (keeps updates via apt upgrade)
 if command -v apt-get &> /dev/null; then
-    apt_update_once
-    if sudo apt-get install -y zoxide; then
+    if apt_package_available zoxide; then
+        apt_update_once
+        sudo apt-get install -y --no-install-recommends zoxide
         echo "zoxide installed via apt."
         exit 0
     fi
-    echo "apt installation failed, falling back to upstream installer."
+    echo "zoxide not available via apt, falling back to upstream installer."
 fi
 
 # Fallback: install zoxide to ~/.local/bin with checksum enforcement

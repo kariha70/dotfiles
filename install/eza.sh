@@ -65,7 +65,7 @@ if command -v apt-get &> /dev/null; then
     
     # Update and install
     if [ "$REPO_ADDED" = true ]; then
-        apt_update_once --force
+        apt_update_force
     else
         apt_update_once
     fi

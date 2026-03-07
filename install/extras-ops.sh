@@ -19,22 +19,30 @@ if ! command -v apt-get >/dev/null 2>&1; then
     exit 0
 fi
 
-EXTRAS_OPS_PACKAGES=(
-    gh
-    direnv
-    age
-    duf
-    kubectl
-    helm
-)
+EXTRAS_OPS_PACKAGES=()
+if [ "${DOTFILES_BOOTSTRAP:-0}" != "1" ]; then
+    EXTRAS_OPS_PACKAGES=(
+        gh
+        direnv
+        age
+        duf
+        kubectl
+        helm
+    )
+fi
 
 if [ -n "${EXTRA_TOOLS:-}" ]; then
     IFS=' ' read -r -a EXTRA_TOOL_PACKAGES <<< "${EXTRA_TOOLS}"
     for extra_pkg in "${EXTRA_TOOL_PACKAGES[@]}"; do
         if [ -n "${extra_pkg}" ]; then
-            EXTRAS_OPS_PACKAGES+=("$extra_pkg")
+            append_unique EXTRAS_OPS_PACKAGES "$extra_pkg"
         fi
     done
+fi
+
+if [ "${#EXTRAS_OPS_PACKAGES[@]}" -eq 0 ]; then
+    echo "No standalone operations extras requested."
+    exit 0
 fi
 
 apt_update_once
@@ -42,7 +50,7 @@ apt_update_once
 add_optional_package() {
     local label="$1"
     local package="$2"
-    if apt-cache show "$package" >/dev/null 2>&1; then
+    if apt_package_available "$package"; then
         EXTRAS_OPS_INSTALLABLE+=("$package")
         return 0
     fi
@@ -61,12 +69,10 @@ fi
 
 
 EXTRAS_OPS_MISSING=()
-for pkg in "${EXTRAS_OPS_INSTALLABLE[@]}"; do
-    if dpkg -s "$pkg" >/dev/null 2>&1; then
-        continue
-    fi
+while IFS= read -r pkg; do
+    [ -n "$pkg" ] || continue
     EXTRAS_OPS_MISSING+=("$pkg")
-done
+done < <(filter_missing_packages "${EXTRAS_OPS_INSTALLABLE[@]}")
 
 if [ "${#EXTRAS_OPS_MISSING[@]}" -gt 0 ]; then
     sudo apt-get install -y --no-install-recommends "${EXTRAS_OPS_MISSING[@]}"

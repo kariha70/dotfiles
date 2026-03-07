@@ -44,7 +44,7 @@ if command -v apt-get &> /dev/null; then
     command -v unzip >/dev/null 2>&1 || EXTRA_DEPS+=(unzip)
     if [ "${#EXTRA_DEPS[@]}" -gt 0 ]; then
         apt_update_once
-        sudo apt-get install -y "${EXTRA_DEPS[@]}"
+        sudo apt-get install -y --no-install-recommends "${EXTRA_DEPS[@]}"
     fi
 fi
 
@@ -100,23 +100,25 @@ fi
 # 3. Fastfetch
 if ! command -v fastfetch &> /dev/null; then
     echo "Installing Fastfetch..."
-    # Try apt first (available in Ubuntu 24.10+)
-    if sudo apt-get install -y fastfetch 2>/dev/null; then
+    # Try apt first when the package exists on this distro.
+    if command -v apt-get >/dev/null 2>&1 && apt_package_available fastfetch; then
+        apt_update_once
+        sudo apt-get install -y --no-install-recommends fastfetch
         echo "Fastfetch installed via apt."
-        else
-           # Fallback to GitHub release (with checksum enforcement)
-           echo "Fastfetch not in apt, downloading from GitHub..."
-           if [ -z "${FASTFETCH_VERSION:-}" ]; then
-               echo "FASTFETCH_VERSION is missing. Run scripts/bump-versions.sh."
-               exit 1
-           fi
-           FF_SHA_VAR="FASTFETCH_DEB_SHA256_$(var_for_arch "$FASTFETCH_ARCH")"
-           FF_EXPECTED="${!FF_SHA_VAR:-}"
-           FF_URL="https://github.com/fastfetch-cli/fastfetch/releases/download/${FASTFETCH_VERSION}/fastfetch-${FASTFETCH_ARCH}.deb"
-           FF_DEB="$TMP_DIR/fastfetch.deb"
-           download_and_verify "$FF_URL" "$FF_DEB" "$FF_EXPECTED" "Fastfetch ($FASTFETCH_ARCH)"
-           sudo dpkg -i "$FF_DEB"
+    else
+        # Fallback to GitHub release (with checksum enforcement)
+        echo "Fastfetch not in apt, downloading from GitHub..."
+        if [ -z "${FASTFETCH_VERSION:-}" ]; then
+            echo "FASTFETCH_VERSION is missing. Run scripts/bump-versions.sh."
+            exit 1
         fi
+        FF_SHA_VAR="FASTFETCH_DEB_SHA256_$(var_for_arch "$FASTFETCH_ARCH")"
+        FF_EXPECTED="${!FF_SHA_VAR:-}"
+        FF_URL="https://github.com/fastfetch-cli/fastfetch/releases/download/${FASTFETCH_VERSION}/fastfetch-${FASTFETCH_ARCH}.deb"
+        FF_DEB="$TMP_DIR/fastfetch.deb"
+        download_and_verify "$FF_URL" "$FF_DEB" "$FF_EXPECTED" "Fastfetch ($FASTFETCH_ARCH)"
+        sudo dpkg -i "$FF_DEB"
+    fi
 else
     echo "Fastfetch is already installed."
 fi

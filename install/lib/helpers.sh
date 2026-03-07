@@ -22,13 +22,12 @@ remove_deprecated_apt_sources() {
 }
 
 # Run apt-get update only once per script invocation.
-apt_update_once() {
+apt_update_impl() {
+    local force="${1:-0}"
     if ! command -v apt-get >/dev/null; then
         return 1
     fi
-    if [ "${1:-}" = "--force" ]; then
-        shift
-    elif [ -n "${APT_UPDATED:-}" ] || [ -f "${APT_UPDATE_SENTINEL:-/tmp/dotfiles_apt_updated}" ]; then
+    if [ "$force" != "1" ] && { [ -n "${APT_UPDATED:-}" ] || [ -f "${APT_UPDATE_SENTINEL:-/tmp/dotfiles_apt_updated}" ]; }; then
         echo "Skipping apt-get update (already run)."
         return 0
     fi
@@ -39,21 +38,46 @@ apt_update_once() {
     touch "${APT_UPDATE_SENTINEL:-/tmp/dotfiles_apt_updated}"
 }
 
+apt_update_once() {
+    apt_update_impl 0
+}
+
+apt_update_force() {
+    apt_update_impl 1
+}
+
 # --- Platform detection ----------------------------------------------------
+
+# Cache uname once per shell process.
+platform_uname() {
+    if [ -z "${DOTFILES_UNAME_S:-}" ]; then
+        DOTFILES_UNAME_S="$(uname -s)"
+        export DOTFILES_UNAME_S
+    fi
+    printf '%s\n' "$DOTFILES_UNAME_S"
+}
 
 # Return 0 when running inside WSL.
 is_wsl() {
-    grep -qEi "(Microsoft|WSL)" /proc/version 2>/dev/null
+    if [ -z "${DOTFILES_IS_WSL:-}" ]; then
+        if grep -qEi "(Microsoft|WSL)" /proc/version 2>/dev/null; then
+            DOTFILES_IS_WSL=1
+        else
+            DOTFILES_IS_WSL=0
+        fi
+        export DOTFILES_IS_WSL
+    fi
+    [ "$DOTFILES_IS_WSL" = "1" ]
 }
 
 # Return 0 when running on macOS.
 is_macos() {
-    [ "$(uname -s)" = "Darwin" ]
+    [ "$(platform_uname)" = "Darwin" ]
 }
 
 # Return 0 when running on Linux.
 is_linux() {
-    [ "$(uname -s)" = "Linux" ]
+    [ "$(platform_uname)" = "Linux" ]
 }
 
 # Ensure ~/.local/bin exists.
@@ -64,19 +88,86 @@ ensure_local_bin() {
 # Normalize uname arch to stable tokens used by installers.
 get_arch() {
     local arch
+    if [ -n "${DOTFILES_ARCH:-}" ]; then
+        printf '%s\n' "$DOTFILES_ARCH"
+        return 0
+    fi
     arch="$(uname -m)"
     case "$arch" in
         x86_64|amd64)
-            echo "x86_64"
+            DOTFILES_ARCH="x86_64"
             ;;
         aarch64|arm64)
-            echo "arm64"
+            DOTFILES_ARCH="arm64"
             ;;
         *)
             echo "Unsupported architecture: $arch" >&2
             return 1
             ;;
     esac
+    export DOTFILES_ARCH
+    printf '%s\n' "$DOTFILES_ARCH"
+}
+
+# Append a value to an array only once.
+append_unique() {
+    local array_name="$1"
+    # shellcheck disable=SC2034
+    local value="$2"
+    # shellcheck disable=SC2034
+    local current
+    eval "for current in \"\${${array_name}[@]}\"; do
+        if [ \"\$current\" = \"\$value\" ]; then
+            return 0
+        fi
+    done
+    ${array_name}+=(\"\$value\")"
+}
+
+# Cache the installed package set to avoid one dpkg process per package.
+apt_load_installed_cache() {
+    if [ "${APT_INSTALLED_CACHE_LOADED:-0}" = "1" ]; then
+        return 0
+    fi
+    if ! command -v dpkg-query >/dev/null 2>&1; then
+        return 1
+    fi
+    APT_INSTALLED_CACHE="$(dpkg-query -W -f='${binary:Package}\n' 2>/dev/null || true)"
+    APT_INSTALLED_CACHE_LOADED=1
+}
+
+package_is_installed() {
+    local pkg="$1"
+    apt_load_installed_cache || return 1
+    grep -Fxq "$pkg" <<<"$APT_INSTALLED_CACHE"
+}
+
+# Cache the package index names once per shell process.
+apt_load_available_cache() {
+    if [ "${APT_AVAILABLE_CACHE_LOADED:-0}" = "1" ]; then
+        return 0
+    fi
+    if ! command -v apt-cache >/dev/null 2>&1; then
+        return 1
+    fi
+    APT_AVAILABLE_CACHE="$(apt-cache pkgnames 2>/dev/null || true)"
+    APT_AVAILABLE_CACHE_LOADED=1
+}
+
+apt_package_available() {
+    local pkg="$1"
+    apt_load_available_cache || return 1
+    grep -Fxq "$pkg" <<<"$APT_AVAILABLE_CACHE"
+}
+
+filter_missing_packages() {
+    local pkg
+    for pkg in "$@"; do
+        if package_is_installed "$pkg"; then
+            continue
+        fi
+        printf '%s\n' "$pkg"
+    done
 }
 
 # Print a file's SHA256 digest in a cross-platform way.
