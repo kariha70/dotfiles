@@ -80,37 +80,42 @@ else
     maybe_run FONTS "$DOTFILES_DIR/install/fonts.sh"
 fi
 
-# 5. Install eza
-maybe_run EZA "$DOTFILES_DIR/install/eza.sh"
-
 # 6. Install nvm
 maybe_run NVM "$DOTFILES_DIR/install/nvm.sh"
 
-# 7. Install zoxide
-maybe_run ZOXIDE "$DOTFILES_DIR/install/zoxide.sh"
+# 7-13. Package installers
+if "$IS_MAC"; then
+    echo "macOS detected. eza, zoxide, lazygit, uv, git-delta, extras, and operations extras are managed via Homebrew."
+else
+    # 5. Install eza
+    maybe_run EZA "$DOTFILES_DIR/install/eza.sh"
 
-# 8. Install lazygit
-maybe_run LAZYGIT "$DOTFILES_DIR/install/lazygit.sh"
+    # 7. Install zoxide
+    maybe_run ZOXIDE "$DOTFILES_DIR/install/zoxide.sh"
 
-# 9. Install uv
-maybe_run UV "$DOTFILES_DIR/install/uv.sh"
+    # 8. Install lazygit
+    maybe_run LAZYGIT "$DOTFILES_DIR/install/lazygit.sh"
+
+    # 9. Install uv
+    maybe_run UV "$DOTFILES_DIR/install/uv.sh"
+
+    # 11. Install git-delta
+    maybe_run DELTA "$DOTFILES_DIR/install/delta.sh"
+
+    # 12. Install Extras (Glow, Atuin, Fastfetch, Yazi)
+    maybe_run EXTRAS "$DOTFILES_DIR/install/extras.sh"
+
+    # 13. Install Operations Extras (GH, direnv, age, kubectl, helm, duf, plus optional EXTRA_TOOLS)
+    if [ -n "${EXTRA_TOOLS:-}" ]; then
+        maybe_run EXTRAS_OPS "$DOTFILES_DIR/install/extras-ops.sh"
+    else
+        echo "No EXTRA_TOOLS requested. Skipping operations extras installer."
+    fi
+fi
 
 # 10. WSL Specific Configuration
 if "$IS_WSL"; then
     maybe_run WSL "$DOTFILES_DIR/install/wsl.sh"
-fi
-
-# 11. Install git-delta
-maybe_run DELTA "$DOTFILES_DIR/install/delta.sh"
-
-# 12. Install Extras (Glow, Atuin, Fastfetch, Yazi)
-maybe_run EXTRAS "$DOTFILES_DIR/install/extras.sh"
-
-# 13. Install Operations Extras (GH, direnv, age, kubectl, helm, duf, plus optional EXTRA_TOOLS)
-if [ -n "${EXTRA_TOOLS:-}" ]; then
-    maybe_run EXTRAS_OPS "$DOTFILES_DIR/install/extras-ops.sh"
-else
-    echo "No EXTRA_TOOLS requested. Skipping operations extras installer."
 fi
 
 # 14. Run Stow

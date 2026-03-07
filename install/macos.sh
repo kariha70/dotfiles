@@ -56,6 +56,9 @@ if ! is_macos; then
 fi
 
 load_brew_shellenv() {
+    if command -v brew >/dev/null 2>&1; then
+        return 0
+    fi
     if [ -x "/opt/homebrew/bin/brew" ]; then
         eval "$(/opt/homebrew/bin/brew shellenv)"
     elif [ -x "/usr/local/bin/brew" ]; then
@@ -64,20 +67,13 @@ load_brew_shellenv() {
 }
 
 install_homebrew_if_missing() {
-    local versions_file installer_url installer_sha installer_path
+    local installer_url installer_sha installer_path
 
     if command -v brew >/dev/null 2>&1; then
         return 0
     fi
 
-    versions_file="${VERSIONS_FILE:-$SCRIPT_DIR/versions.env}"
-    if [ -f "$versions_file" ]; then
-        # shellcheck source=/dev/null
-        source "$versions_file"
-    elif [ -z "${HOMEBREW_INSTALLER_SHA256:-}" ]; then
-        echo "versions.env not found at $versions_file and HOMEBREW_INSTALLER_SHA256 is unset."
-        exit 1
-    fi
+    source_versions "$SCRIPT_DIR"
 
     installer_url="${HOMEBREW_INSTALLER_URL:-https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh}"
     installer_sha="${HOMEBREW_INSTALLER_SHA256:-}"
@@ -115,7 +111,9 @@ install_homebrew_if_missing() {
 
 load_brew_shellenv
 install_homebrew_if_missing
-load_brew_shellenv
+if ! command -v brew >/dev/null 2>&1; then
+    load_brew_shellenv
+fi
 
 if ! command -v brew >/dev/null 2>&1; then
     echo "Homebrew installation completed but brew is still not available in PATH."
@@ -129,12 +127,46 @@ if [ ! -f "$BREWFILE_PATH" ]; then
     exit 1
 fi
 
+BREW_UPDATE_STAMP_DIR="${HOME}/.cache/dotfiles"
+BREW_UPDATE_STAMP_PATH="${BREW_UPDATE_STAMP_DIR}/homebrew-update.stamp"
+BREW_UPDATE_MAX_AGE_SECONDS="${BREW_UPDATE_MAX_AGE_SECONDS:-86400}"
+
+should_update_brew() {
+    local now last_update age
+
+    if is_true "${BREW_UPDATE:-0}"; then
+        return 0
+    fi
+    if is_true "${BREW_SKIP_UPDATE:-0}"; then
+        return 1
+    fi
+    if [ ! -f "$BREW_UPDATE_STAMP_PATH" ]; then
+        return 0
+    fi
+    if ! last_update="$(stat -f '%m' "$BREW_UPDATE_STAMP_PATH" 2>/dev/null)"; then
+        return 0
+    fi
+    now="$(date +%s)"
+    age=$((now - last_update))
+    [ "$age" -ge "$BREW_UPDATE_MAX_AGE_SECONDS" ]
+}
+
+run_brew() {
+    HOMEBREW_NO_AUTO_UPDATE=1 brew "$@"
+}
+
 echo "Updating Homebrew..."
-brew update
+if should_update_brew; then
+    run_brew update
+    mkdir -p "$BREW_UPDATE_STAMP_DIR"
+    touch "$BREW_UPDATE_STAMP_PATH"
+else
+    echo "Skipping Homebrew update (fresh cache). Set BREW_UPDATE=1 to force."
+fi
 
 echo "Installing macOS packages from Brewfile..."
 backup_docker_kubectl
-if ! brew bundle --file "$BREWFILE_PATH" --no-upgrade; then
+if ! run_brew bundle --file "$BREWFILE_PATH" --no-upgrade; then
     restore_docker_kubectl
     echo "Homebrew bundle failed. If this is a kubectl conflict, run:"
     echo "  brew link --overwrite kubernetes-cli"
@@ -144,7 +176,7 @@ restore_docker_kubectl
 
 if is_true "${BREW_CLEANUP:-0}"; then
     echo "Cleaning packages not listed in Brewfile..."
-    brew bundle cleanup --file "$BREWFILE_PATH" --force
+    run_brew bundle cleanup --file "$BREWFILE_PATH" --force
 fi
 
 echo "macOS package installation complete."

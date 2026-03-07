@@ -7,6 +7,13 @@
 log_info()  { echo "$*"; }
 log_warn()  { echo "WARNING: $*" >&2; }
 
+is_true() {
+    case "${1:-}" in
+        1|true|TRUE|yes|YES|y|Y|on|ON) return 0 ;;
+        *) return 1 ;;
+    esac
+}
+
 # --- APT helpers -----------------------------------------------------------
 
 : "${APT_UPDATE_SENTINEL:=/tmp/dotfiles_apt_updated_$$}"
