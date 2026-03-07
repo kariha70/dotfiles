@@ -37,10 +37,13 @@ function Install-ModuleIfMissing {
 
 Write-Step "Installing PowerShell profile dependencies..."
 
-if (Get-Command -Name Get-PSRepository -ErrorAction SilentlyContinue) {
-    $gallery = Get-PSRepository -Name PSGallery -ErrorAction SilentlyContinue
-    if ($gallery -and $gallery.InstallationPolicy -ne "Trusted") {
-        Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
+# Only touch PSGallery when we may actually need to install a module.
+if ((-not (Get-Module -ListAvailable -Name "Terminal-Icons")) -or (-not (Get-Module -ListAvailable -Name "PSFzf"))) {
+    if (Get-Command -Name Get-PSRepository -ErrorAction SilentlyContinue) {
+        $gallery = Get-PSRepository -Name PSGallery -ErrorAction SilentlyContinue
+        if ($gallery -and $gallery.InstallationPolicy -ne "Trusted") {
+            Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
+        }
     }
 }
 

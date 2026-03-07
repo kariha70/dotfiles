@@ -4,6 +4,8 @@ $PSNativeCommandUseErrorActionPreference = $true
 
 $script:DotfilesVersionsCache = $null
 $script:DotfilesVersionsCachePath = $null
+$script:WingetInstalledPackageIds = $null
+$script:WingetInstalledPackageIdsLoaded = $false
 
 function Write-Step {
     [CmdletBinding()]
@@ -445,12 +447,82 @@ function Invoke-WingetCommand {
     }
 }
 
+function Get-WingetInstalledPackageIds {
+    [CmdletBinding()]
+    param()
+
+    if ($script:WingetInstalledPackageIdsLoaded) {
+        return $script:WingetInstalledPackageIds
+    }
+
+    $script:WingetInstalledPackageIds = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
+    $script:WingetInstalledPackageIdsLoaded = $true
+
+    $result = Invoke-WingetCommand -Arguments @(
+        "list",
+        "--accept-source-agreements"
+    )
+    if ($result.ExitCode -ne 0) {
+        return $script:WingetInstalledPackageIds
+    }
+
+    foreach ($entry in $result.Output) {
+        if ($entry -isnot [string]) {
+            continue
+        }
+
+        $line = $entry.TrimEnd()
+        if ([string]::IsNullOrWhiteSpace($line)) {
+            continue
+        }
+
+        if ($line -match "^\s*Name\s+Id\s+" -or $line -match "^\s*-+\s*$") {
+            continue
+        }
+
+        $columns = $line -split "\s{2,}"
+        if ($columns.Count -lt 2) {
+            continue
+        }
+
+        $candidateId = $columns[1].Trim()
+        if ($candidateId -match "^[A-Za-z0-9][A-Za-z0-9._-]+$") {
+            $script:WingetInstalledPackageIds.Add($candidateId) | Out-Null
+        }
+    }
+
+    return $script:WingetInstalledPackageIds
+}
+
+function Add-WingetInstalledPackageId {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Id
+    )
+
+    if (-not $script:WingetInstalledPackageIdsLoaded) {
+        return
+    }
+
+    if ($null -eq $script:WingetInstalledPackageIds) {
+        $script:WingetInstalledPackageIds = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
+    }
+
+    $script:WingetInstalledPackageIds.Add($Id) | Out-Null
+}
+
 function Test-WingetPackageInstalled {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true)]
         [string]$Id
     )
+
+    $installedPackageIds = Get-WingetInstalledPackageIds
+    if ($installedPackageIds.Contains($Id)) {
+        return $true
+    }
 
     $result = Invoke-WingetCommand -Arguments @(
         "list",
@@ -464,7 +536,12 @@ function Test-WingetPackageInstalled {
         return $false
     }
 
-    return $null -ne ($result.Output | Select-String -SimpleMatch $Id)
+    $isInstalled = $null -ne ($result.Output | Select-String -SimpleMatch $Id)
+    if ($isInstalled) {
+        Add-WingetInstalledPackageId -Id $Id
+    }
+
+    return $isInstalled
 }
 
 function Install-WithWinget {
@@ -502,6 +579,7 @@ function Install-WithWinget {
     $primaryArgs = $baseArgs + @("--scope", $Scope)
     $lastResult = Invoke-WingetCommand -Arguments $primaryArgs
     if ($lastResult.ExitCode -eq 0) {
+        Add-WingetInstalledPackageId -Id $Id
         Write-Step "Installed $displayName."
         return $true
     }
@@ -511,6 +589,7 @@ function Install-WithWinget {
         $machineArgs = $baseArgs + @("--scope", "machine")
         $lastResult = Invoke-WingetCommand -Arguments $machineArgs
         if ($lastResult.ExitCode -eq 0) {
+            Add-WingetInstalledPackageId -Id $Id
             Write-Step "Installed $displayName."
             return $true
         }
@@ -519,6 +598,7 @@ function Install-WithWinget {
     Write-Warning "Retrying $displayName without explicit scope."
     $lastResult = Invoke-WingetCommand -Arguments $baseArgs
     if ($lastResult.ExitCode -eq 0) {
+        Add-WingetInstalledPackageId -Id $Id
         Write-Step "Installed $displayName."
         return $true
     }

@@ -18,35 +18,60 @@ function Test-Cmd {
 }
 
 # --- Shell init caching ---
-# Cache subprocess output to files, regenerate weekly or on demand via Update-ShellCache
+# Cache slower subprocess-generated init scripts to files, regenerate weekly or on demand via Update-ShellCache.
 $_shellCacheDir = "$env:LOCALAPPDATA\powershell-cache"
-if (-not (Test-Path $_shellCacheDir)) { New-Item -ItemType Directory -Path $_shellCacheDir -Force | Out-Null }
+if (-not (Test-Path -LiteralPath $_shellCacheDir)) { New-Item -ItemType Directory -Path $_shellCacheDir -Force | Out-Null }
 $_cacheMaxAge = (Get-Date).AddDays(-7)
+
+function _Get-InitScript {
+    param([string]$Name, [scriptblock]$Generator)
+
+    try {
+        $output = & $Generator 2>&1
+        if ($LASTEXITCODE -ne 0) {
+            Write-Warning "Skipping init for '$Name' (exit $LASTEXITCODE)."
+            return $null
+        }
+
+        $lines = foreach ($entry in $output) {
+            if ($null -ne $entry) {
+                $entry.ToString()
+            }
+        }
+        $scriptText = ($lines -join [Environment]::NewLine).Trim()
+        if ([string]::IsNullOrWhiteSpace($scriptText)) {
+            return $null
+        }
+
+        return $scriptText
+    }
+    catch {
+        Write-Warning "Skipping init for '$Name': $($_.Exception.Message)"
+        return $null
+    }
+}
 
 function _Get-CachedInit {
     param([string]$Name, [scriptblock]$Generator)
-    $cacheFile = "$_shellCacheDir\$Name.ps1"
+    $cacheFile = Join-Path -Path $_shellCacheDir -ChildPath "$Name.ps1"
     $tmpFile = "$cacheFile.tmp"
-    $needsRefresh = -not (Test-Path $cacheFile) -or (Get-Item $cacheFile).LastWriteTime -lt $_cacheMaxAge
+    $needsRefresh = -not (Test-Path -LiteralPath $cacheFile) -or (Get-Item -LiteralPath $cacheFile).LastWriteTime -lt $_cacheMaxAge
 
     if ($needsRefresh) {
-        try {
-            $output = & $Generator 2>&1
-            if ($LASTEXITCODE -eq 0) {
-                $output | Out-File -FilePath $tmpFile -Encoding utf8 -Force
+        $initScript = _Get-InitScript -Name $Name -Generator $Generator
+        if (-not [string]::IsNullOrWhiteSpace($initScript)) {
+            try {
+                Set-Content -LiteralPath $tmpFile -Value $initScript -Encoding utf8NoBOM
                 Move-Item -LiteralPath $tmpFile -Destination $cacheFile -Force
             }
-            else {
-                Write-Warning "Skipping cache update for '$Name' (exit $LASTEXITCODE)."
+            catch {
+                Remove-Item -LiteralPath $tmpFile -Force -ErrorAction SilentlyContinue
+                Write-Warning "Skipping cache update for '$Name': $($_.Exception.Message)"
             }
-        }
-        catch {
-            Remove-Item -LiteralPath $tmpFile -Force -ErrorAction SilentlyContinue
-            Write-Warning "Skipping cache update for '$Name': $($_.Exception.Message)"
         }
     }
 
-    if (Test-Path $cacheFile) {
+    if (Test-Path -LiteralPath $cacheFile) {
         try {
             & {
                 $ErrorActionPreference = "Stop"
@@ -60,8 +85,24 @@ function _Get-CachedInit {
 }
 
 function Update-ShellCache {
-    Remove-Item "$_shellCacheDir\*.ps1" -Force -ErrorAction SilentlyContinue
+    Remove-Item (Join-Path -Path $_shellCacheDir -ChildPath "*.ps1") -Force -ErrorAction SilentlyContinue
     Write-Host "Shell init cache cleared. Restart your shell to regenerate." -ForegroundColor Yellow
+}
+
+function _Invoke-GeneratedInit {
+    param([string]$Name, [scriptblock]$Generator)
+
+    $initScript = _Get-InitScript -Name $Name -Generator $Generator
+    if ([string]::IsNullOrWhiteSpace($initScript)) {
+        return
+    }
+
+    try {
+        . ([scriptblock]::Create($initScript))
+    }
+    catch {
+        Write-Warning "Skipping init for '$Name': $($_.Exception.Message)"
+    }
 }
 
 # --- PSReadLine ---
@@ -97,7 +138,7 @@ function _Load-Modules {
 
     # Init Atuin after modules so its keybindings (Ctrl+R, UpArrow) always win.
     if (Test-Cmd -Name "atuin" -and (Get-Module -Name PSReadLine)) {
-        _Get-CachedInit "atuin" { atuin init powershell }
+        _Invoke-GeneratedInit "atuin" { atuin init powershell }
     }
 }
 # Defer module loading until first prompt
@@ -105,7 +146,7 @@ if ($Host.Name -eq "ConsoleHost") {
     Register-EngineEvent -SourceIdentifier PowerShell.OnIdle -MaxTriggerCount 1 -Action { _Load-Modules } | Out-Null
 }
 
-# --- Cached shell inits ---
+# --- Shell inits ---
 if (Test-Cmd -Name "zoxide") {
     _Get-CachedInit "zoxide" { zoxide init powershell }
 }
@@ -134,50 +175,39 @@ if (Test-Cmd -Name "bat") {
     Set-Alias -Name cat -Value bat -Option AllScope -Force
 }
 
-if (Test-Cmd -Name "nvim") {
-    Set-Alias -Name vim -Value nvim -Option AllScope -Force
-    Set-Alias -Name v -Value nvim -Option AllScope -Force
-}
+function vim { nvim @Args }
+function v { nvim @Args }
 
-if (Test-Cmd -Name "git") {
-    Set-Alias -Name g -Value git -Option AllScope -Force
+function g { git @Args }
+function gs { git status @Args }
+function ga { git add @Args }
+function gc { git commit @Args }
+function gcm { git commit -m @Args }
+function gd { git diff @Args }
+function gco { git checkout @Args }
+function gb { git branch @Args }
+function gl { git log --oneline --graph --decorate @Args }
+function gp { git pull @Args }
 
-    function gs { git status @Args }
-    function ga { git add @Args }
-    function gc { git commit @Args }
-    function gcm { git commit -m @Args }
-    function gd { git diff @Args }
-    function gco { git checkout @Args }
-    function gb { git branch @Args }
-    function gl { git log --oneline --graph --decorate @Args }
-    function gp { git pull @Args }
-}
+function lg { lazygit @Args }
 
-if (Test-Cmd -Name "lazygit") {
-    function lg { lazygit @Args }
-}
-
-if (Test-Cmd -Name "yazi") {
-    function y {
-        $tmp = Join-Path -Path $env:TEMP -ChildPath ("yazi-cwd-" + [System.Guid]::NewGuid().ToString() + ".txt")
-        yazi @Args --cwd-file="$tmp"
-        if (Test-Path -LiteralPath $tmp) {
-            $cwd = (Get-Content -LiteralPath $tmp -Raw).Trim()
-            Remove-Item -LiteralPath $tmp -Force -ErrorAction SilentlyContinue
-            if (-not [string]::IsNullOrWhiteSpace($cwd) -and (Test-Path -LiteralPath $cwd -PathType Container)) {
-                Set-Location -LiteralPath $cwd
-            }
+function y {
+    $tmp = Join-Path -Path $env:TEMP -ChildPath ("yazi-cwd-" + [System.Guid]::NewGuid().ToString() + ".txt")
+    yazi @Args --cwd-file="$tmp"
+    if (Test-Path -LiteralPath $tmp) {
+        $cwd = (Get-Content -LiteralPath $tmp -Raw).Trim()
+        Remove-Item -LiteralPath $tmp -Force -ErrorAction SilentlyContinue
+        if (-not [string]::IsNullOrWhiteSpace($cwd) -and (Test-Path -LiteralPath $cwd -PathType Container)) {
+            Set-Location -LiteralPath $cwd
         }
     }
 }
 
-if (Test-Cmd -Name "kubectl") {
-    function k { kubectl @Args }
-}
+function k { kubectl @Args }
 
 function .. { Set-Location .. }
 function ... { Set-Location ../.. }
 
 if (Test-Cmd -Name "starship") {
-    _Get-CachedInit "starship" { starship init powershell }
+    _Invoke-GeneratedInit "starship" { starship init powershell }
 }

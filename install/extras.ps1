@@ -17,7 +17,6 @@ $optionalPackages = @(
     @{ Id = "Fastfetch-cli.Fastfetch"; Name = "Fastfetch" },
     @{ Id = "sxyazi.yazi"; Name = "Yazi" },
     @{ Id = "Clement.bottom"; Name = "bottom" },
-    @{ Id = "GitHub.cli"; Name = "GitHub CLI" },
     @{ Id = "direnv.direnv"; Name = "direnv" },
     @{ Id = "FiloSottile.age"; Name = "age" },
     @{ Id = "muesli.duf"; Name = "duf" },
