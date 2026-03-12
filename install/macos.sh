@@ -7,6 +7,8 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 # shellcheck source=lib/helpers.sh
 source "$SCRIPT_DIR/lib/helpers.sh"
 
+MINIMUM_NEOVIM_VERSION="0.11.2"
+
 is_true() {
     case "${1:-}" in
         1|true|TRUE|yes|YES|y|Y|on|ON) return 0 ;;
@@ -155,6 +157,32 @@ run_brew() {
     HOMEBREW_NO_AUTO_UPDATE=1 brew "$@"
 }
 
+ensure_neovim_minimum_version() {
+    local current_version installed_version
+
+    if ! command -v nvim >/dev/null 2>&1; then
+        echo "Neovim is not available after brew bundle."
+        exit 1
+    fi
+
+    current_version="$(normalize_version "$(nvim --version | awk '/^NVIM / {print $2}' | sed 's/^v//')")"
+    if version_at_least "$current_version" "$MINIMUM_NEOVIM_VERSION"; then
+        echo "Neovim ${current_version} already satisfies minimum version (${MINIMUM_NEOVIM_VERSION})."
+        return 0
+    fi
+
+    echo "Neovim ${current_version} is below minimum ${MINIMUM_NEOVIM_VERSION}. Upgrading with Homebrew."
+    run_brew upgrade neovim
+
+    installed_version="$(normalize_version "$(nvim --version | awk '/^NVIM / {print $2}' | sed 's/^v//')")"
+    if ! version_at_least "$installed_version" "$MINIMUM_NEOVIM_VERSION"; then
+        echo "Neovim upgrade failed; installed version ${installed_version} is below ${MINIMUM_NEOVIM_VERSION}."
+        exit 1
+    fi
+
+    echo "Neovim upgraded to ${installed_version}."
+}
+
 echo "Updating Homebrew..."
 if should_update_brew; then
     run_brew update
@@ -173,6 +201,7 @@ if ! run_brew bundle --file "$BREWFILE_PATH" --no-upgrade; then
     exit 1
 fi
 restore_docker_kubectl
+ensure_neovim_minimum_version
 
 if is_true "${BREW_CLEANUP:-0}"; then
     echo "Cleaning packages not listed in Brewfile..."

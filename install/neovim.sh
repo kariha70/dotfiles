@@ -10,15 +10,6 @@ source_versions "$SCRIPT_DIR"
 
 MINIMUM_VERSION="0.11.2"
 
-version_at_least() {
-    local have="$1" need="$2"
-    [ "$(printf '%s\n%s\n' "$need" "$have" | sort -V | head -n 1)" = "$need" ]
-}
-
-normalize_version() {
-    echo "${1%%-*}"
-}
-
 if is_macos; then
     echo "macOS detected. Neovim is managed via Homebrew (install/Brewfile)."
     exit 0

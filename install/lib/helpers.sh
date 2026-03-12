@@ -212,6 +212,15 @@ verify_sha256() {
 
 # --- Version / download helpers --------------------------------------------
 
+normalize_version() {
+    printf '%s\n' "${1%%-*}"
+}
+
+version_at_least() {
+    local have="$1" need="$2"
+    [ "$(printf '%s\n%s\n' "$need" "$have" | sort -V | head -n 1)" = "$need" ]
+}
+
 # Source install/versions.env relative to the calling script's directory.
 # Usage: source_versions "$SCRIPT_DIR"
 source_versions() {
