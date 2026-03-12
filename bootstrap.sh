@@ -85,27 +85,30 @@ maybe_run NVM "$DOTFILES_DIR/install/nvm.sh"
 
 # 7-13. Package installers
 if "$IS_MAC"; then
-    echo "macOS detected. eza, zoxide, lazygit, uv, git-delta, extras, and operations extras are managed via Homebrew."
+    echo "macOS detected. Neovim, eza, zoxide, lazygit, uv, git-delta, extras, and operations extras are managed via Homebrew."
 else
-    # 5. Install eza
+    # 7. Install pinned Neovim release
+    maybe_run NEOVIM "$DOTFILES_DIR/install/neovim.sh"
+
+    # 8. Install eza
     maybe_run EZA "$DOTFILES_DIR/install/eza.sh"
 
-    # 7. Install zoxide
+    # 9. Install zoxide
     maybe_run ZOXIDE "$DOTFILES_DIR/install/zoxide.sh"
 
-    # 8. Install lazygit
+    # 10. Install lazygit
     maybe_run LAZYGIT "$DOTFILES_DIR/install/lazygit.sh"
 
-    # 9. Install uv
+    # 11. Install uv
     maybe_run UV "$DOTFILES_DIR/install/uv.sh"
 
-    # 11. Install git-delta
+    # 12. Install git-delta
     maybe_run DELTA "$DOTFILES_DIR/install/delta.sh"
 
-    # 12. Install Extras (Glow, Atuin, Fastfetch, Yazi)
+    # 13. Install Extras (Glow, Atuin, Fastfetch, Yazi)
     maybe_run EXTRAS "$DOTFILES_DIR/install/extras.sh"
 
-    # 13. Install Operations Extras (GH, direnv, age, kubectl, helm, duf, plus optional EXTRA_TOOLS)
+    # 14. Install Operations Extras (GH, direnv, age, kubectl, helm, duf, plus optional EXTRA_TOOLS)
     if [ -n "${EXTRA_TOOLS:-}" ]; then
         maybe_run EXTRAS_OPS "$DOTFILES_DIR/install/extras-ops.sh"
     else

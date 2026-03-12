@@ -37,7 +37,6 @@ if command -v apt-get &> /dev/null; then
         tealdeer   # provides the `tldr` command
         btop
         tmux
-        neovim
         unzip
         shellcheck
         gnupg
