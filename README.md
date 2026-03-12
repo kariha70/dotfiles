@@ -177,6 +177,11 @@ Pinned in `install/versions.env` (per-arch where applicable):
 | `YAZI_ZIP_SHA256_x86_64_unknown_linux_gnu` / `_aarch64_unknown_linux_gnu` | Yazi prebuilt zips |
 | `ATUIN_TAR_SHA256_x86_64_unknown_linux_gnu` / `_aarch64_unknown_linux_gnu` | Atuin prebuilt tarballs |
 | `NEOVIM_APPIMAGE_SHA256_x86_64` / `_arm64` | Neovim appimages |
+| `OHMYZSH_REF` | Oh My Zsh pinned git commit |
+| `ZSH_AUTOSUGGESTIONS_REF` | `zsh-autosuggestions` pinned git commit |
+| `ZSH_SYNTAX_HIGHLIGHTING_REF` | `zsh-syntax-highlighting` pinned git commit |
+| `POWERLEVEL10K_REF` | Powerlevel10k pinned git commit |
+| `POWERLEVEL10K_MEDIA_REF` | `powerlevel10k-media` pinned git commit for Meslo font downloads |
 | `MESLO_*_TTF_SHA256` | MesloLGS NF fonts (Regular/Bold/Italic/Bold Italic) |
 | `HOMEBREW_INSTALLER_SHA256` | Homebrew install script |
 

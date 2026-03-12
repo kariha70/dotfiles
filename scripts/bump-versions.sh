@@ -16,6 +16,7 @@ require_cmd() {
 
 require_cmd curl
 require_cmd jq
+require_cmd git
 
 sha256_portable() {
     if command -v sha256sum >/dev/null 2>&1; then
@@ -39,7 +40,36 @@ latest_tag() {
     curl -s "https://api.github.com/repos/${repo}/releases/latest" | jq -r '.tag_name'
 }
 
+latest_head_ref() {
+    local repo="$1"
+    git ls-remote "https://github.com/${repo}.git" HEAD | awk 'NR == 1 { print $1 }'
+}
+
+resolve_git_ref() {
+    local label="$1" repo="$2" current_ref="${3:-}" resolved_ref
+
+    resolved_ref="$(latest_head_ref "$repo" || true)"
+    if [ -n "$resolved_ref" ]; then
+        printf '%s\n' "$resolved_ref"
+        return 0
+    fi
+
+    if [ -n "$current_ref" ]; then
+        echo "Warning: could not refresh ${label} ref; keeping existing pin ${current_ref}." >&2
+        printf '%s\n' "$current_ref"
+        return 0
+    fi
+
+    echo "Could not determine pinned ref for ${label}." >&2
+    exit 1
+}
+
 echo "Refreshing pinned versions and checksums..."
+
+if [ -f "$VERSIONS_FILE" ]; then
+    # shellcheck source=/dev/null
+    source "$VERSIONS_FILE"
+fi
 
 # nvm
 nvm_tag="${NVM_VERSION_OVERRIDE:-$(latest_tag "nvm-sh/nvm")}"
@@ -124,8 +154,15 @@ uv_sha=$(fetch_sha "https://astral.sh/uv/install.sh" "$TMP_DIR/uv-install.sh")
 # Homebrew installer
 homebrew_installer_sha=$(fetch_sha "https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh" "$TMP_DIR/homebrew-install.sh")
 
+# Pinned git refs
+ohmyzsh_ref="${OHMYZSH_REF_OVERRIDE:-$(resolve_git_ref "Oh My Zsh" "ohmyzsh/ohmyzsh" "${OHMYZSH_REF:-}")}"
+zsh_autosuggestions_ref="${ZSH_AUTOSUGGESTIONS_REF_OVERRIDE:-$(resolve_git_ref "zsh-autosuggestions" "zsh-users/zsh-autosuggestions" "${ZSH_AUTOSUGGESTIONS_REF:-}")}"
+zsh_syntax_highlighting_ref="${ZSH_SYNTAX_HIGHLIGHTING_REF_OVERRIDE:-$(resolve_git_ref "zsh-syntax-highlighting" "zsh-users/zsh-syntax-highlighting" "${ZSH_SYNTAX_HIGHLIGHTING_REF:-}")}"
+powerlevel10k_ref="${POWERLEVEL10K_REF_OVERRIDE:-$(resolve_git_ref "Powerlevel10k" "romkatv/powerlevel10k" "${POWERLEVEL10K_REF:-}")}"
+powerlevel10k_media_ref="${POWERLEVEL10K_MEDIA_REF_OVERRIDE:-$(resolve_git_ref "powerlevel10k-media" "romkatv/powerlevel10k-media" "${POWERLEVEL10K_MEDIA_REF:-}")}"
+
 # MesloLGS fonts
-font_base="https://github.com/romkatv/powerlevel10k-media/raw/master"
+font_base="https://raw.githubusercontent.com/romkatv/powerlevel10k-media/${powerlevel10k_media_ref}"
 meslo_regular_sha=$(fetch_sha "$font_base/MesloLGS%20NF%20Regular.ttf" "$TMP_DIR/MesloLGS NF Regular.ttf")
 meslo_bold_sha=$(fetch_sha "$font_base/MesloLGS%20NF%20Bold.ttf" "$TMP_DIR/MesloLGS NF Bold.ttf")
 meslo_italic_sha=$(fetch_sha "$font_base/MesloLGS%20NF%20Italic.ttf" "$TMP_DIR/MesloLGS NF Italic.ttf")
@@ -171,6 +208,12 @@ ZOXIDE_INSTALLER_SHA256=${zoxide_sha}
 UV_INSTALLER_SHA256=${uv_sha}
 
 HOMEBREW_INSTALLER_SHA256=${homebrew_installer_sha}
+
+OHMYZSH_REF=${ohmyzsh_ref}
+ZSH_AUTOSUGGESTIONS_REF=${zsh_autosuggestions_ref}
+ZSH_SYNTAX_HIGHLIGHTING_REF=${zsh_syntax_highlighting_ref}
+POWERLEVEL10K_REF=${powerlevel10k_ref}
+POWERLEVEL10K_MEDIA_REF=${powerlevel10k_media_ref}
 
 MESLO_REGULAR_TTF_SHA256=${meslo_regular_sha}
 MESLO_BOLD_TTF_SHA256=${meslo_bold_sha}

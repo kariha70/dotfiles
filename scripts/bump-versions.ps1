@@ -45,7 +45,7 @@ foreach ($line in Get-Content -LiteralPath $EnvFile) {
     }
 
     if ($trimmed -notmatch "^([A-Za-z0-9_]+)=(.*)$") {
-        throw "Could not parse line in $EnvFile: $line"
+        throw "Could not parse line in ${EnvFile}: $line"
     }
 
     $key = $Matches[1]
