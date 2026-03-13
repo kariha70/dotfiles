@@ -1,5 +1,6 @@
 # Core shell + dotfiles dependencies
 brew "bash"
+brew "azure-cli"
 brew "bat"
 brew "bottom"
 brew "btop"

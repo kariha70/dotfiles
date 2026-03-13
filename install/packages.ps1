@@ -18,6 +18,7 @@ $requiredPackages = @(
 
 $optionalPackages = @(
     @{ Id = "GitHub.cli"; Name = "GitHub CLI" },
+    @{ Id = "Microsoft.AzureCLI"; Name = "Azure CLI" },
     @{ Id = "7zip.7zip"; Name = "7-Zip" },
     @{ Id = "GnuPG.GnuPG"; Name = "GnuPG" },
     @{ Id = "junegunn.fzf"; Name = "fzf" },

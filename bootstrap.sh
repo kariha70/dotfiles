@@ -85,7 +85,7 @@ maybe_run NVM "$DOTFILES_DIR/install/nvm.sh"
 
 # 7-14. Package installers
 if "$IS_MAC"; then
-    echo "macOS detected. Neovim, eza, zoxide, lazygit, uv, git-delta, extras, operations extras, and rustup are managed via Homebrew."
+    echo "macOS detected. Azure CLI, Neovim, eza, zoxide, lazygit, uv, git-delta, extras, operations extras, and rustup are managed via Homebrew."
 else
     # 7. Install pinned Neovim release
     maybe_run NEOVIM "$DOTFILES_DIR/install/neovim.sh"
@@ -114,12 +114,15 @@ else
     else
         echo "No EXTRA_TOOLS requested. Skipping operations extras installer."
     fi
+
+    # 15. Install Azure CLI
+    maybe_run AZURE_CLI "$DOTFILES_DIR/install/azure-cli.sh"
 fi
 
-# 15. Install Rust
+# 16. Install Rust
 maybe_run RUST "$DOTFILES_DIR/install/rust.sh"
 
-# 16. WSL Specific Configuration
+# 17. WSL Specific Configuration
 if "$IS_WSL"; then
     maybe_run WSL "$DOTFILES_DIR/install/wsl.sh"
 fi

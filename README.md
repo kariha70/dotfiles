@@ -32,6 +32,7 @@ My personal dotfiles, managed with [GNU Stow](https://www.gnu.org/software/stow/
 | [bottom](https://github.com/ClementTsang/bottom) | Cross-platform terminal system monitor (`btm`) |
 | [gping](https://github.com/orf/gping) | Ping with live charts for host comparisons |
 | [gh](https://cli.github.com/) | GitHub CLI for repository workflows and CI operations |
+| [Azure CLI](https://learn.microsoft.com/cli/azure/) | Command-line interface for Azure accounts, resources, and automation |
 | [direnv](https://direnv.net/) | Automatically loads per-project environment variables |
 | [age](https://github.com/FiloSottile/age) | Modern lightweight file encryption |
 | [duf](https://github.com/muesli/duf) | Friendly `df` replacement |
@@ -59,10 +60,12 @@ When running on WSL, the bootstrap script automatically:
 *   Skips SSH server and font installation (handled by Windows host).
 *   Configures Git to use Windows Credential Manager.
 *   Installs `wslu` for Windows integration.
+*   Installs Azure CLI with the dedicated apt-based installer so `az` is available inside WSL.
 
 ### macOS Support
 On macOS, the Bash bootstrap flow:
 *   Uses Homebrew (`install/macos.sh`) and a declarative `install/Brewfile`.
+*   Installs Azure CLI from Homebrew (`brew install azure-cli`).
 *   Installs Homebrew `rustup` and initializes a stable Rust toolchain.
 *   Installs Meslo Nerd Font via Homebrew cask (`font-meslo-lg-nerd-font`).
 *   Reuses the same stow-managed dotfiles as Linux (`bash git vim zsh tmux nvim`).
@@ -71,7 +74,7 @@ On macOS, the Bash bootstrap flow:
 ### Windows / PowerShell Support
 On Windows (PowerShell 7+), the bootstrap flow:
 *   Uses `winget` to install tools with idempotent installer modules in `install/*.ps1`.
-*   Adds a modern core CLI pack (`just`, `xh`, `hyperfine`, `procs`) during package install.
+*   Adds a modern core CLI pack (`Azure CLI`, `just`, `xh`, `hyperfine`, `procs`) during package install.
 *   Installs Rust via `rustup`.
 *   Links dotfiles (PowerShell profile, Starship config, Git config, Neovim config) with backup-on-conflict behavior.
 *   Installs `nvm-windows` for Node.js version management.
@@ -94,6 +97,7 @@ To set up a new Linux or macOS machine:
     ```
     This will:
     *   Install system dependencies (`apt` on Linux, Homebrew on macOS).
+    *   Install Azure CLI (`install/azure-cli.sh` on Linux/WSL, Homebrew on macOS).
     *   Install and configure Zsh, Oh My Zsh, and plugins.
     *   Install fonts, tools, and a stable Rust toolchain.
     *   Symlink configuration files to your home directory.
@@ -104,7 +108,7 @@ To set up a new Linux or macOS machine:
 You can control what `bootstrap.sh` does via environment variables:
 
 *   `ONLY_STOW=1` — skip all installers and only run stow (plus shell switch unless `SKIP_SHELL=1`).
-*   `SKIP_<STEP>=1` — skip a specific step, where `<STEP>` is one of: `PACKAGES`, `MACOS`, `SSH`, `OHMYZSH`, `FONTS`, `EZA`, `NVM`, `ZOXIDE`, `LAZYGIT`, `UV`, `RUST`, `WSL`, `DELTA`, `EXTRAS`, `EXTRAS_OPS`, `STOW`, `GIT_SIGNING`, `GIT_CREDENTIALS`, `SHELL`.
+*   `SKIP_<STEP>=1` — skip a specific step, where `<STEP>` is one of: `PACKAGES`, `MACOS`, `SSH`, `OHMYZSH`, `FONTS`, `EZA`, `NVM`, `ZOXIDE`, `LAZYGIT`, `UV`, `AZURE_CLI`, `RUST`, `WSL`, `DELTA`, `EXTRAS`, `EXTRAS_OPS`, `STOW`, `GIT_SIGNING`, `GIT_CREDENTIALS`, `SHELL`.
 *   `EXTRA_CONFLICT_FILES="path1 path2"` — space‑separated additional files/dirs to back up before stow.
 *   `EXTRA_TOOLS="pkg1 pkg2"` — add extra Linux optional apt packages for `install/packages.sh` and `install/extras-ops.sh`.
 *   `BREWFILE_PATH=/path/to/Brewfile` — override the Brewfile used by `install/macos.sh`.
@@ -135,7 +139,7 @@ On Linux/WSL, if `procs` is not available in apt, `install/packages.sh` now atte
     pwsh -NoLogo -NoProfile -ExecutionPolicy Bypass -File .\bootstrap.ps1
     ```
     This will:
-    *   Install base packages and CLI tools via `winget` (including Starship, `nvm-windows`, `just`, `xh`, `hyperfine`, and `procs`).
+    *   Install base packages and CLI tools via `winget` (including Starship, `nvm-windows`, Azure CLI, `just`, `xh`, `hyperfine`, and `procs`).
     *   Install Rust via `rustup`.
     *   Attempt optional extras (`Glow`, `Atuin`, `Fastfetch`, `Yazi`, `bottom`) without failing bootstrap.
     *   Install optional PowerShell modules (`Terminal-Icons`, `PSFzf`).
@@ -182,6 +186,7 @@ Pinned in `install/versions.env` (per-arch where applicable):
 | `YAZI_ZIP_SHA256_x86_64_unknown_linux_gnu` / `_aarch64_unknown_linux_gnu` | Yazi prebuilt zips |
 | `ATUIN_TAR_SHA256_x86_64_unknown_linux_gnu` / `_aarch64_unknown_linux_gnu` | Atuin prebuilt tarballs |
 | `NEOVIM_APPIMAGE_SHA256_x86_64` / `_arm64` | Neovim appimages |
+| `AZURE_CLI_APT_INSTALLER_SHA256` | Azure CLI apt installer script |
 | `OHMYZSH_REF` | Oh My Zsh pinned git commit |
 | `ZSH_AUTOSUGGESTIONS_REF` | `zsh-autosuggestions` pinned git commit |
 | `ZSH_SYNTAX_HIGHLIGHTING_REF` | `zsh-syntax-highlighting` pinned git commit |
@@ -204,6 +209,7 @@ Pinned in `install/versions.env` (per-arch where applicable):
 Run these after bootstrap to verify the Windows modern CLI pack:
 
 ```powershell
+az version
 just --version
 xh --version
 hyperfine --version

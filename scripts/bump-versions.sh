@@ -157,6 +157,9 @@ uv_sha=$(fetch_sha "https://astral.sh/uv/install.sh" "$TMP_DIR/uv-install.sh")
 # Homebrew installer
 homebrew_installer_sha=$(fetch_sha "https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh" "$TMP_DIR/homebrew-install.sh")
 
+# Azure CLI apt installer
+azure_cli_apt_installer_sha=$(fetch_sha "https://aka.ms/InstallAzureCLIDeb" "$TMP_DIR/install-azure-cli.sh")
+
 # Pinned git refs
 ohmyzsh_ref="${OHMYZSH_REF_OVERRIDE:-$(resolve_git_ref "Oh My Zsh" "ohmyzsh/ohmyzsh" "${OHMYZSH_REF:-}")}"
 zsh_autosuggestions_ref="${ZSH_AUTOSUGGESTIONS_REF_OVERRIDE:-$(resolve_git_ref "zsh-autosuggestions" "zsh-users/zsh-autosuggestions" "${ZSH_AUTOSUGGESTIONS_REF:-}")}"
@@ -213,6 +216,8 @@ RUSTUP_INSTALLER_SHA256=${rustup_sha}
 UV_INSTALLER_SHA256=${uv_sha}
 
 HOMEBREW_INSTALLER_SHA256=${homebrew_installer_sha}
+
+AZURE_CLI_APT_INSTALLER_SHA256=${azure_cli_apt_installer_sha}
 
 OHMYZSH_REF=${ohmyzsh_ref}
 ZSH_AUTOSUGGESTIONS_REF=${zsh_autosuggestions_ref}
