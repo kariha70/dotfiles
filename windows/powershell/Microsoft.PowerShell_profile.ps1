@@ -7,6 +7,14 @@ if (-not $env:XDG_DATA_HOME) { $env:XDG_DATA_HOME = "$env:USERPROFILE\.local\sha
 if (-not $env:XDG_CACHE_HOME) { $env:XDG_CACHE_HOME = "$env:USERPROFILE\.cache" }
 if (-not $env:XDG_STATE_HOME) { $env:XDG_STATE_HOME = "$env:USERPROFILE\.local\state" }
 
+$_cargoBin = Join-Path -Path $env:USERPROFILE -ChildPath ".cargo\bin"
+if (Test-Path -LiteralPath $_cargoBin) {
+    $pathEntries = $env:PATH -split ";"
+    if (-not ($pathEntries | Where-Object { [System.StringComparer]::OrdinalIgnoreCase.Equals($_, $_cargoBin) })) {
+        $env:PATH = "$_cargoBin;$env:PATH"
+    }
+}
+
 # --- Command existence cache (avoid repeated Get-Command calls) ---
 $_cmdCache = @{}
 function Test-Cmd {

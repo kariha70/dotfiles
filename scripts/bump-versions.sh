@@ -148,6 +148,9 @@ atuin_sha_arm64=$(fetch_sha "https://github.com/atuinsh/atuin/releases/download/
 # zoxide installer
 zoxide_sha=$(fetch_sha "https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh" "$TMP_DIR/zoxide-install.sh")
 
+# rustup installer
+rustup_sha=$(fetch_sha "https://sh.rustup.rs" "$TMP_DIR/rustup-install.sh")
+
 # uv installer
 uv_sha=$(fetch_sha "https://astral.sh/uv/install.sh" "$TMP_DIR/uv-install.sh")
 
@@ -204,6 +207,8 @@ ATUIN_TAR_SHA256_x86_64_unknown_linux_gnu=${atuin_sha_x86}
 ATUIN_TAR_SHA256_aarch64_unknown_linux_gnu=${atuin_sha_arm64}
 
 ZOXIDE_INSTALLER_SHA256=${zoxide_sha}
+
+RUSTUP_INSTALLER_SHA256=${rustup_sha}
 
 UV_INSTALLER_SHA256=${uv_sha}
 

@@ -50,6 +50,7 @@ Some tools may be skipped if the distro's apt repo does not ship them yet (e.g.,
 
 ### Development
 *   **Node.js**: Managed via `nvm` on Linux/macOS and `nvm-windows` on Windows.
+*   **Rust**: Managed via `rustup` with the stable toolchain initialized during bootstrap.
 *   **Python**: [uv](https://github.com/astral-sh/uv) - Fast Python package manager.
 *   **SSH**: Automatically installs and enables the OpenSSH server (skipped on WSL).
 
@@ -62,6 +63,7 @@ When running on WSL, the bootstrap script automatically:
 ### macOS Support
 On macOS, the Bash bootstrap flow:
 *   Uses Homebrew (`install/macos.sh`) and a declarative `install/Brewfile`.
+*   Installs Homebrew `rustup` and initializes a stable Rust toolchain.
 *   Installs Meslo Nerd Font via Homebrew cask (`font-meslo-lg-nerd-font`).
 *   Reuses the same stow-managed dotfiles as Linux (`bash git vim zsh tmux nvim`).
 *   Skips Linux-only SSH server setup.
@@ -70,6 +72,7 @@ On macOS, the Bash bootstrap flow:
 On Windows (PowerShell 7+), the bootstrap flow:
 *   Uses `winget` to install tools with idempotent installer modules in `install/*.ps1`.
 *   Adds a modern core CLI pack (`just`, `xh`, `hyperfine`, `procs`) during package install.
+*   Installs Rust via `rustup`.
 *   Links dotfiles (PowerShell profile, Starship config, Git config, Neovim config) with backup-on-conflict behavior.
 *   Installs `nvm-windows` for Node.js version management.
 *   Installs Starship and initializes it from the managed PowerShell profile.
@@ -92,7 +95,7 @@ To set up a new Linux or macOS machine:
     This will:
     *   Install system dependencies (`apt` on Linux, Homebrew on macOS).
     *   Install and configure Zsh, Oh My Zsh, and plugins.
-    *   Install fonts and tools.
+    *   Install fonts, tools, and a stable Rust toolchain.
     *   Symlink configuration files to your home directory.
     *   Set Zsh as your default shell.
 
@@ -101,7 +104,7 @@ To set up a new Linux or macOS machine:
 You can control what `bootstrap.sh` does via environment variables:
 
 *   `ONLY_STOW=1` — skip all installers and only run stow (plus shell switch unless `SKIP_SHELL=1`).
-*   `SKIP_<STEP>=1` — skip a specific step, where `<STEP>` is one of: `PACKAGES`, `MACOS`, `SSH`, `OHMYZSH`, `FONTS`, `EZA`, `NVM`, `ZOXIDE`, `LAZYGIT`, `UV`, `WSL`, `DELTA`, `EXTRAS`, `EXTRAS_OPS`, `STOW`, `GIT_SIGNING`, `GIT_CREDENTIALS`, `SHELL`.
+*   `SKIP_<STEP>=1` — skip a specific step, where `<STEP>` is one of: `PACKAGES`, `MACOS`, `SSH`, `OHMYZSH`, `FONTS`, `EZA`, `NVM`, `ZOXIDE`, `LAZYGIT`, `UV`, `RUST`, `WSL`, `DELTA`, `EXTRAS`, `EXTRAS_OPS`, `STOW`, `GIT_SIGNING`, `GIT_CREDENTIALS`, `SHELL`.
 *   `EXTRA_CONFLICT_FILES="path1 path2"` — space‑separated additional files/dirs to back up before stow.
 *   `EXTRA_TOOLS="pkg1 pkg2"` — add extra Linux optional apt packages for `install/packages.sh` and `install/extras-ops.sh`.
 *   `BREWFILE_PATH=/path/to/Brewfile` — override the Brewfile used by `install/macos.sh`.
@@ -133,6 +136,7 @@ On Linux/WSL, if `procs` is not available in apt, `install/packages.sh` now atte
     ```
     This will:
     *   Install base packages and CLI tools via `winget` (including Starship, `nvm-windows`, `just`, `xh`, `hyperfine`, and `procs`).
+    *   Install Rust via `rustup`.
     *   Attempt optional extras (`Glow`, `Atuin`, `Fastfetch`, `Yazi`, `bottom`) without failing bootstrap.
     *   Install optional PowerShell modules (`Terminal-Icons`, `PSFzf`).
     *   Link PowerShell, Starship, Git, and Neovim config files into your home/profile paths.
@@ -144,7 +148,7 @@ On Linux/WSL, if `procs` is not available in apt, `install/packages.sh` now atte
 You can control what `bootstrap.ps1` does via environment variables:
 
 *   `ONLY_LINK=1` (or `ONLY_STOW=1`) — skip all installers and only run link management.
-*   `SKIP_<STEP>=1` — skip a specific installer step, where `<STEP>` is one of: `PACKAGES`, `GIT_TOOLS`, `NVM`, `FONTS`, `EXTRAS`, `PROFILE`.
+*   `SKIP_<STEP>=1` — skip a specific installer step, where `<STEP>` is one of: `PACKAGES`, `GIT_TOOLS`, `NVM`, `RUST`, `FONTS`, `EXTRAS`, `PROFILE`.
 *   `SKIP_LINK=1` (or `SKIP_STOW=1`) — skip link management entirely.
 
 ### Windows link behavior
@@ -170,6 +174,7 @@ Pinned in `install/versions.env` (per-arch where applicable):
 | `NVM_INSTALLER_SHA256` | nvm installer script |
 | `UV_INSTALLER_SHA256` | uv installer script |
 | `ZOXIDE_INSTALLER_SHA256` | zoxide installer script (fallback when apt unavailable) |
+| `RUSTUP_INSTALLER_SHA256` | rustup installer script |
 | `LAZYGIT_TAR_SHA256_x86_64` / `_arm64` | lazygit release tarballs |
 | `DELTA_DEB_SHA256_amd64` / `_arm64` | git-delta fallback .deb |
 | `GLOW_DEB_SHA256_amd64` / `_arm64` | Glow .deb fallback |
@@ -190,6 +195,7 @@ Pinned in `install/versions.env` (per-arch where applicable):
 *   **Powerlevel10k**: On first run, the configuration wizard should start. If not, run `p10k configure`.
 *   **Windows prompt**: Starship is initialized from `Microsoft.PowerShell_profile.ps1` and configured by `~/.config/starship.toml`.
 *   **Windows Node.js**: After bootstrap, install and activate a Node version with `nvm install lts` then `nvm use lts`.
+*   **Rust**: Restart your shell after bootstrap, then verify with `rustc --version` and `cargo --version`.
 *   **PowerShell reload**: Restart PowerShell after running `bootstrap.ps1` to load the updated profile.
 *   **Remote Access**: If connecting via SSH, install **MesloLGS NF** fonts on your *local* machine and configure your terminal to use them.
 

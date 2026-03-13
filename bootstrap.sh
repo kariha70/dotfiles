@@ -83,9 +83,9 @@ fi
 # 6. Install nvm
 maybe_run NVM "$DOTFILES_DIR/install/nvm.sh"
 
-# 7-13. Package installers
+# 7-14. Package installers
 if "$IS_MAC"; then
-    echo "macOS detected. Neovim, eza, zoxide, lazygit, uv, git-delta, extras, and operations extras are managed via Homebrew."
+    echo "macOS detected. Neovim, eza, zoxide, lazygit, uv, git-delta, extras, operations extras, and rustup are managed via Homebrew."
 else
     # 7. Install pinned Neovim release
     maybe_run NEOVIM "$DOTFILES_DIR/install/neovim.sh"
@@ -116,7 +116,10 @@ else
     fi
 fi
 
-# 10. WSL Specific Configuration
+# 15. Install Rust
+maybe_run RUST "$DOTFILES_DIR/install/rust.sh"
+
+# 16. WSL Specific Configuration
 if "$IS_WSL"; then
     maybe_run WSL "$DOTFILES_DIR/install/wsl.sh"
 fi
