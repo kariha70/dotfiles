@@ -199,6 +199,16 @@ function gp { git pull @Args }
 
 function lg { lazygit @Args }
 
+if (Test-Cmd -Name "code-insiders") {
+    function code-p {
+        code-insiders --user-data-dir (Join-Path -Path $HOME -ChildPath ".code-data\kariha70") @Args
+    }
+
+    function code-w {
+        code-insiders --user-data-dir (Join-Path -Path $HOME -ChildPath ".code-data\michag") @Args
+    }
+}
+
 function y {
     $tmp = Join-Path -Path $env:TEMP -ChildPath ("yazi-cwd-" + [System.Guid]::NewGuid().ToString() + ".txt")
     yazi @Args --cwd-file="$tmp"

@@ -28,7 +28,8 @@ $optionalPackages = @(
     @{ Id = "Casey.Just"; Name = "just" },
     @{ Id = "ducaale.xh"; Name = "xh" },
     @{ Id = "sharkdp.hyperfine"; Name = "hyperfine" },
-    @{ Id = "dalance.procs"; Name = "procs" }
+    @{ Id = "dalance.procs"; Name = "procs" },
+    @{ Id = "Microsoft.VisualStudioCode.Insiders"; Name = "VS Code Insiders" }
 )
 
 foreach ($pkg in $requiredPackages) {

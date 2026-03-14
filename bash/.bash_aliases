@@ -74,6 +74,11 @@ if command -v nvim &> /dev/null; then
     alias v='nvim'
 fi
 
+if command -v code-insiders &> /dev/null; then
+    alias code-p='code-insiders --user-data-dir ~/.code-data/kariha70'
+    alias code-w='code-insiders --user-data-dir ~/.code-data/michag'
+fi
+
 alias ..='cd ..'
 alias ...='cd ../..'
 alias gs='git status'

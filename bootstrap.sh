@@ -122,6 +122,9 @@ fi
 # 16. Install Rust
 maybe_run RUST "$DOTFILES_DIR/install/rust.sh"
 
+# Ensure shared VS Code user data directories exist on Unix systems.
+mkdir -p "$HOME/.code-data/kariha70" "$HOME/.code-data/michag"
+
 # 17. WSL Specific Configuration
 if "$IS_WSL"; then
     maybe_run WSL "$DOTFILES_DIR/install/wsl.sh"

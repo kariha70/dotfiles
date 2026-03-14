@@ -82,7 +82,15 @@ foreach ($envName in $xdgDefaults.Keys) {
 }
 
 $xdgConfigHome = [Environment]::GetEnvironmentVariable("XDG_CONFIG_HOME", "Process")
+$codeDataDirs = @(
+    (Join-Path -Path $homePath -ChildPath ".code-data\kariha70"),
+    (Join-Path -Path $homePath -ChildPath ".code-data\michag")
+)
 $timestamp = Get-CurrentTimestamp
+
+foreach ($codeDataDir in $codeDataDirs) {
+    Ensure-Directory -Path $codeDataDir
+}
 
 $nvimTargets = @(
     (Join-Path -Path $localAppData -ChildPath "nvim"),

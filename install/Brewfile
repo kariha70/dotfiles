@@ -42,3 +42,4 @@ brew "zoxide"
 
 # macOS GUI apps
 cask "iterm2"
+cask "visual-studio-code@insiders"
