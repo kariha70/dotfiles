@@ -6,6 +6,7 @@ set -o pipefail
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 # shellcheck source=lib/helpers.sh
 source "$SCRIPT_DIR/lib/helpers.sh"
+source_versions "$SCRIPT_DIR"
 
 echo "Installing eza..."
 
@@ -37,7 +38,7 @@ if command -v apt-get &> /dev/null; then
     if [ ! -f /etc/apt/sources.list.d/gierens.list ]; then
         # Download and verify GPG key fingerprint before trusting the repo.
         KEY_URL="https://raw.githubusercontent.com/eza-community/eza/main/deb.asc"
-        EXPECTED_FP="${EZA_KEY_FINGERPRINT:-1548BC8A4B4D2688F9B0DAF7EC29E2090CE3FD43}"
+        EXPECTED_FP="${EZA_KEY_FINGERPRINT:?EZA_KEY_FINGERPRINT not set – run scripts/bump-versions.sh}"
         TMP_KEY="$(mktemp /tmp/eza-key.XXXXXX.asc)"
         trap 'rm -f "$TMP_KEY"' EXIT
 

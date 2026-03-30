@@ -191,10 +191,16 @@ if ! is_true "${SKIP_GIT_SIGNING:-0}"; then
         OP_SSH_SIGN="/opt/1Password/op-ssh-sign"
     fi
     if [ -x "$OP_SSH_SIGN" ]; then
-        echo "Configuring Git SSH commit signing via 1Password..."
-        git config --file "$GIT_LOCAL" gpg.format ssh
-        git config --file "$GIT_LOCAL" gpg.ssh.program "$OP_SSH_SIGN"
-        git config --file "$GIT_LOCAL" commit.gpgsign true
+        if [ "$(git config --file "$GIT_LOCAL" --get gpg.format 2>/dev/null)" = "ssh" ] \
+            && [ "$(git config --file "$GIT_LOCAL" --get gpg.ssh.program 2>/dev/null)" = "$OP_SSH_SIGN" ] \
+            && [ "$(git config --file "$GIT_LOCAL" --get commit.gpgsign 2>/dev/null)" = "true" ]; then
+            echo "Git SSH commit signing already configured."
+        else
+            echo "Configuring Git SSH commit signing via 1Password..."
+            git config --file "$GIT_LOCAL" gpg.format ssh
+            git config --file "$GIT_LOCAL" gpg.ssh.program "$OP_SSH_SIGN"
+            git config --file "$GIT_LOCAL" commit.gpgsign true
+        fi
     else
         echo "1Password SSH signer not found at $OP_SSH_SIGN; skipping Git signing config."
     fi
