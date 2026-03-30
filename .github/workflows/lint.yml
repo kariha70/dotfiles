@@ -31,10 +31,11 @@ jobs:
       - name: Run PSScriptAnalyzer
         run: |
           pwsh -Command '
+            $settings = ".github/PSScriptAnalyzerSettings.psd1"
             $results = @()
             $files = Get-ChildItem -Recurse -Include "*.ps1" -Exclude "versions.ps1"
             foreach ($f in $files) {
-              $results += Invoke-ScriptAnalyzer -Path $f.FullName -Severity Error,Warning
+              $results += Invoke-ScriptAnalyzer -Path $f.FullName -Severity Error,Warning -Settings $settings
             }
             if ($results.Count -gt 0) {
               $results | Format-Table -AutoSize
