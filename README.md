@@ -102,7 +102,7 @@ Uses Homebrew and a declarative `install/Brewfile` for all tools. Requires `brew
 
 - All CLI tools come from Homebrew (no manual downloads needed)
 - Meslo Nerd Font via `font-meslo-lg-nerd-font` cask
-- Includes iTerm2 and VS Code Insiders casks
+- Includes Ghostty, Zed, and VS Code Insiders casks
 - Optional system defaults automation:
   ```bash
   APPLY_MACOS_DEFAULTS=1 ./bootstrap.sh

@@ -45,5 +45,6 @@ brew "yazi"
 brew "zoxide"
 
 # macOS GUI apps
-cask "iterm2"
+cask "ghostty"
 cask "visual-studio-code@insiders"
+cask "zed"
