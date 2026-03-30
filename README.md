@@ -51,6 +51,7 @@ Some tools may be skipped if the distro's apt repo does not ship them yet (e.g.,
 
 ### Development
 *   **Node.js**: Managed via `nvm` on Linux/macOS and `nvm-windows` on Windows.
+*   **Bun**: Installed via the official installer on Linux; Homebrew on macOS; winget on Windows.
 *   **Rust**: Managed via `rustup` with the stable toolchain initialized during bootstrap.
 *   **Python**: [uv](https://github.com/astral-sh/uv) - Fast Python package manager.
 *   **SSH**: Automatically installs and enables the OpenSSH server (skipped on WSL).
@@ -108,12 +109,11 @@ To set up a new Linux or macOS machine:
 You can control what `bootstrap.sh` does via environment variables:
 
 *   `ONLY_STOW=1` — skip all installers and only run stow (plus shell switch unless `SKIP_SHELL=1`).
-*   `SKIP_<STEP>=1` — skip a specific step, where `<STEP>` is one of: `PACKAGES`, `MACOS`, `SSH`, `OHMYZSH`, `FONTS`, `EZA`, `NVM`, `ZOXIDE`, `LAZYGIT`, `UV`, `AZURE_CLI`, `RUST`, `WSL`, `DELTA`, `EXTRAS`, `EXTRAS_OPS`, `STOW`, `GIT_SIGNING`, `GIT_CREDENTIALS`, `SHELL`.
+*   `SKIP_<STEP>=1` — skip a specific step, where `<STEP>` is one of: `PACKAGES`, `MACOS`, `SSH`, `OHMYZSH`, `FONTS`, `EZA`, `NVM`, `BUN`, `NEOVIM`, `ZOXIDE`, `LAZYGIT`, `UV`, `AZURE_CLI`, `RUST`, `WSL`, `DELTA`, `EXTRAS`, `EXTRAS_OPS`, `STOW`, `GIT_SIGNING`, `GIT_CREDENTIALS`, `SHELL`.
 *   `EXTRA_CONFLICT_FILES="path1 path2"` — space‑separated additional files/dirs to back up before stow.
 *   `EXTRA_TOOLS="pkg1 pkg2"` — add extra Linux optional apt packages for `install/packages.sh` and `install/extras-ops.sh`.
 *   `BREWFILE_PATH=/path/to/Brewfile` — override the Brewfile used by `install/macos.sh`.
 *   `BREW_CLEANUP=1` — remove Homebrew packages not listed in the Brewfile after install.
-*   `SKIP_NEOVIM=1` — skip the Neovim compatibility installer.
 
 ### Linux tool fallback behavior
 
@@ -268,6 +268,8 @@ Most aliases below are defined in Linux shell configs. The Windows PowerShell pr
 | `ta` | `tmux attach -t` |
 | `tn` | `tmux new -s` |
 | `c` | `clear` |
+| `code-p` | `code-insiders` with kariha70 profile |
+| `code-w` | `code-insiders` with michag profile |
 
 ### Tmux
 *   Prefix is `Ctrl+a` (old `Ctrl+b` unbound).
@@ -296,10 +298,13 @@ dotfiles/
 │   ├── packages.ps1            # Windows base packages (winget)
 │   ├── git-tools.ps1           # Windows git/shell tools
 │   ├── nvm.ps1                 # Windows nvm-windows installer
+│   ├── bun.ps1                 # Windows Bun installer
+│   ├── rust.ps1                # Windows Rust installer
 │   ├── fonts.ps1               # Windows fonts
 │   ├── extras.ps1              # Windows extras
 │   ├── powershell-profile.ps1  # PowerShell module setup
 │   ├── versions.ps1            # PowerShell versions/checksum map
+│   ├── versions.env            # Pinned versions and SHA256 checksums
 │   ├── Brewfile                # Homebrew package manifest for macOS
 │   ├── macos.sh                # macOS Homebrew bootstrap
 │   ├── packages.sh             # Core apt packages
@@ -308,9 +313,14 @@ dotfiles/
 │   ├── eza.sh                  # eza (ls replacement)
 │   ├── zoxide.sh               # zoxide (cd replacement)
 │   ├── nvm.sh                  # Node Version Manager
+│   ├── bun.sh                  # Bun JavaScript runtime
+│   ├── neovim.sh               # Neovim compatibility installer
 │   ├── delta.sh                # git-delta
 │   ├── extras.sh               # Glow, Atuin, Fastfetch, Yazi
+│   ├── extras-ops.sh           # DevOps tools (gh, direnv, kubectl, helm, etc.)
 │   ├── lazygit.sh              # lazygit
+│   ├── rust.sh                 # Rust via rustup
+│   ├── azure-cli.sh            # Azure CLI (Linux/WSL apt installer)
 │   ├── uv.sh                   # Python uv
 │   ├── ssh.sh                  # SSH server setup
 │   ├── wsl.sh                  # WSL-specific config
@@ -320,8 +330,11 @@ dotfiles/
 ├── scripts/
 │   ├── bump-versions.sh        # Linux version/checksum updater
 │   └── bump-versions.ps1       # Sync versions.ps1 from versions.env
+├── .github/
+│   └── copilot-instructions.md  # GitHub Copilot context
 ├── bootstrap.sh    # Linux/macOS entry point
 ├── bootstrap.ps1   # Windows entry point
+├── AGENTS.md       # AI assistant / contributor guidelines
 └── README.md
 ```
 
@@ -345,7 +358,7 @@ The `.gitconfig` includes `~/.gitconfig.local` for machine-specific settings (id
 
 ## Contributor Guide
 
-For repo structure, coding conventions, and testing expectations, see `AGENTS.md`. It covers how to add new config modules, restow safely, and validate changes on Linux, WSL, and macOS.
+For repo structure, coding conventions, and testing expectations, see `AGENTS.md`. For GitHub Copilot context, see `.github/copilot-instructions.md`. These files cover how to add new config modules, restow safely, and validate changes on Linux, WSL, and macOS.
 
 Additional notes:
 *   Installer helpers live in `install/lib/helpers.sh`. All installers hard-source this file; it provides:
