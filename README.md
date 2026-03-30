@@ -9,6 +9,8 @@
 ![Platforms](https://img.shields.io/badge/platforms-Linux%20%7C%20macOS%20%7C%20Windows%20%7C%20WSL-blue)
 ![Shell](https://img.shields.io/badge/shell-Zsh%20%2B%20PowerShell-green)
 
+📖 **[Documentation](https://kariha70.github.io/dotfiles/)**
+
 </div>
 
 ---
