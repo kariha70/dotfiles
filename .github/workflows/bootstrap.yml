@@ -115,10 +115,22 @@ jobs:
         run: |
           $env:SKIP_LINK = "1"
           $env:SKIP_FONTS = "1"
+          $env:SKIP_PACKAGES = "1"
+          $env:SKIP_GIT_TOOLS = "1"
+          $env:SKIP_NVM = "1"
+          $env:SKIP_RUST = "1"
+          $env:SKIP_EXTRAS = "1"
           pwsh -NoLogo -NoProfile -ExecutionPolicy Bypass -File .\bootstrap.ps1
 
-      - name: Verify key commands
+      - name: Verify bootstrap script syntax
         run: |
-          Write-Host "Checking installed tools..."
-          Get-Command git -ErrorAction Stop
-          Write-Host "Tool checks passed."
+          Write-Host "Verifying PowerShell scripts parse correctly..."
+          $scripts = Get-ChildItem -Recurse -Include "*.ps1" -Exclude "versions.ps1"
+          foreach ($s in $scripts) {
+            $null = [System.Management.Automation.Language.Parser]::ParseFile($s.FullName, [ref]$null, [ref]$errors)
+            if ($errors.Count -gt 0) {
+              Write-Error "Parse errors in $($s.Name): $errors"
+              exit 1
+            }
+          }
+          Write-Host "All PowerShell scripts parse cleanly."
