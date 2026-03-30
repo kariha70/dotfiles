@@ -51,7 +51,7 @@ Bash and Zsh both source `~/.bash_aliases` and `~/.config/shell/nvm-lazy-load.sh
 
 ### Installer Orchestration
 
-`bootstrap.sh` calls installers via `maybe_run STEP_NAME path/to/script.sh`, which checks `SKIP_<STEP>` env vars automatically. Individual installers can be run standalone.
+`bootstrap.sh` calls installers via `maybe_run STEP_NAME path/to/script.sh`, which checks `SKIP_<STEP>` env vars automatically. Individual installers can be run standalone. macOS system defaults (`install/macos-defaults.sh`) are opt-in — require `APPLY_MACOS_DEFAULTS=1`.
 
 ### Git Config Hierarchy
 

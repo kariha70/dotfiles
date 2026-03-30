@@ -6,7 +6,7 @@
 - Shared shell helpers live in `install/lib/helpers.sh`; **always hard-source it** (`source "$SCRIPT_DIR/lib/helpers.sh"`) at the top of every installer — never conditionally fall back to inline definitions. It provides: `is_wsl`, `is_macos`, `is_linux`, `apt_update_once`, `ensure_local_bin`, `get_arch`, `sha256_file`, `verify_sha256`, `source_versions`, `download_and_verify`, `log_info`, `log_warn`.
 - Pinned versions and checksums are centralized in `install/versions.env`; use `source_versions "$SCRIPT_DIR"` instead of inline sourcing boilerplate. For downloads, prefer `download_and_verify <url> <output> <sha> <label>`.
 - Shared shell logic (used by both `.bashrc` and `.zshrc`) lives in `bash/.config/shell/` and is stowed to `~/.config/shell/`.
-- `bootstrap.sh` orchestrates installs, WSL detection, stow runs, and default-shell switching.
+- `bootstrap.sh` orchestrates installs, WSL detection, stow runs, and default-shell switching. macOS system defaults are opt-in via `APPLY_MACOS_DEFAULTS=1`.
 - Adding configs: create a directory (e.g., `tmux/`), add the dotfiles, append it to `STOW_DIRS` in `bootstrap.sh`, then restow.
 
 ## Build, Test, and Development Commands
