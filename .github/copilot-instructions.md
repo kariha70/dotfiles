@@ -73,6 +73,7 @@ set -e
 set -o pipefail
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+# shellcheck source=lib/helpers.sh
 source "$SCRIPT_DIR/lib/helpers.sh"        # always hard-source, never conditional
 source_versions "$SCRIPT_DIR"              # loads install/versions.env
 
@@ -96,16 +97,22 @@ download_and_verify "$URL" "$TMP_DIR/file" "$EXPECTED_SHA" "tool-name"
 | Function | Purpose |
 |----------|---------|
 | `is_wsl`, `is_macos`, `is_linux` | Platform detection |
+| `is_true` | Parse boolean env var values |
 | `get_arch` | Normalize arch to `x86_64` / `arm64` |
-| `apt_update_once` | Run apt-get update at most once per session |
+| `apt_update_once`, `apt_update_force` | Run apt-get update (once per session, or forced) |
+| `package_is_installed`, `apt_package_available` | Check dpkg/apt-cache for packages |
+| `filter_missing_packages` | Return only packages not yet installed |
 | `download_and_verify <url> <output> <sha> <label>` | Download + SHA256 verify (fail-closed) |
+| `verify_sha256`, `sha256_file` | Checksum verification primitives |
 | `source_versions "$SCRIPT_DIR"` | Load `versions.env` (replaces inline sourcing) |
+| `normalize_version`, `version_at_least` | Parse and compare semver strings |
 | `ensure_local_bin` | Create `~/.local/bin` if missing |
+| `append_unique` | Add to array without duplicates |
 | `log_info`, `log_warn` | Structured logging |
 
 ### Version Pinning
 
-All versions and SHA256 checksums live in `install/versions.env` (Linux) and `install/versions.ps1` (Windows). Use arch-suffixed variable names: `TOOL_SHA256_x86_64`, `TOOL_SHA256_arm64`. Git-pinned repos use `_REF` suffix (commit hashes). Run `scripts/bump-versions.sh` to auto-fetch latest releases and compute checksums.
+All versions and SHA256 checksums live in `install/versions.env` (Linux) and `install/versions.ps1` (Windows). Arch suffixes in variable names vary by tool — some use `x86_64`/`arm64`, others use `amd64`/`arm64`, and some use full target triples (e.g., `x86_64_unknown_linux_gnu`). Match the convention already used in `versions.env` for the tool. Git-pinned repos use `_REF` suffix (commit hashes). Run `scripts/bump-versions.sh` to auto-fetch latest releases and compute checksums.
 
 ### Adding a New Installer
 
@@ -126,6 +133,6 @@ All versions and SHA256 checksums live in `install/versions.env` (Linux) and `in
 - `command -v` for tool existence checks (not `which`)
 - WSL detection via `is_wsl` helper (checks `/proc/version` for Microsoft/WSL)
 - Filenames: lowercase with hyphens
-- Commits: `feat:`, `fix:`, `chore:` prefixes with imperative subjects
+- Commits: `feat:`, `fix:`, `chore:`, `perf:`, `refactor:`, `docs:` prefixes with imperative subjects
 - Installers must be idempotent — safe to rerun without side effects
 - All downloads require SHA256 verification; fail closed on mismatch

@@ -13,13 +13,13 @@
 - Run from the repository root.
 - Bootstrap a machine: `./bootstrap.sh` (installs, stows configs, sets the login shell).
 - Iterate on one tool: `bash install/<script>.sh` (e.g., `bash install/eza.sh`) instead of the whole bootstrap.
-- Restow after config edits: `stow -v -R -t "$HOME" -d "$(pwd)" bash git vim zsh`.
+- Restow after config edits: `stow -v -R -t "$HOME" -d "$(pwd)" bash git vim zsh tmux nvim`.
 - Spot-check shell scripts: `shellcheck install/*.sh install/lib/helpers.sh` to catch quoting and portability issues (bootstrap installs shellcheck).
 
 ## Coding Style & Naming Conventions
 - Shell scripts use Bash with `set -e`; keep commands strictly quoted, favor `command -v` checks, and gate OS-specific logic with the existing WSL detection pattern (`grep -qEi "(Microsoft|WSL)" /proc/version`).
 - Keep installers idempotent; prefer appending to arrays over rewriting and guard `sudo` calls with clear messaging.
-- Filenames are lowercase with hyphens; commit subjects follow the existing `feat:`, `fix:`, `chore:` style in `git log`.
+- Filenames are lowercase with hyphens; commit subjects follow the existing `feat:`, `fix:`, `chore:`, `perf:`, `refactor:`, `docs:` style in `git log`.
 
 ## Testing Guidelines
 - No automated tests; run the touched installer(s) and, when possible, the full `./bootstrap.sh` on native Linux and WSL.
