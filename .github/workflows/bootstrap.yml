@@ -126,11 +126,16 @@ jobs:
         run: |
           Write-Host "Verifying PowerShell scripts parse correctly..."
           $scripts = Get-ChildItem -Recurse -Include "*.ps1" -Exclude "versions.ps1"
+          $failed = $false
           foreach ($s in $scripts) {
-            $null = [System.Management.Automation.Language.Parser]::ParseFile($s.FullName, [ref]$null, [ref]$errors)
-            if ($errors.Count -gt 0) {
-              Write-Error "Parse errors in $($s.Name): $errors"
-              exit 1
+            $tokens = $null
+            $parseErrors = $null
+            $null = [System.Management.Automation.Language.Parser]::ParseFile($s.FullName, [ref]$tokens, [ref]$parseErrors)
+            if ($parseErrors -and $parseErrors.Count -gt 0) {
+              Write-Host "ERROR: Parse errors in $($s.Name):"
+              $parseErrors | ForEach-Object { Write-Host "  $_" }
+              $failed = $true
             }
           }
-          Write-Host "All PowerShell scripts parse cleanly."
+          if ($failed) { exit 1 }
+          Write-Host "All $($scripts.Count) PowerShell scripts parse cleanly."
