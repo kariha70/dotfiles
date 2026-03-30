@@ -116,6 +116,12 @@ elif [ -d "$HOME/.cargo/bin" ]; then
     export PATH="$HOME/.cargo/bin:$PATH"
 fi
 
+# bun
+if [ -d "$HOME/.bun/bin" ]; then
+    export BUN_INSTALL="$HOME/.bun"
+    export PATH="$BUN_INSTALL/bin:$PATH"
+fi
+
 # Initialize zoxide
 if command -v zoxide &> /dev/null; then
     eval "$(zoxide init zsh)" || true

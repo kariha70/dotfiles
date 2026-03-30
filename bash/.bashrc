@@ -23,6 +23,12 @@ if [ -d "$HOME/.local/bin" ]; then
     PATH="$HOME/.local/bin:$PATH"
 fi
 
+# bun
+if [ -d "$HOME/.bun/bin" ]; then
+    export BUN_INSTALL="$HOME/.bun"
+    export PATH="$BUN_INSTALL/bin:$PATH"
+fi
+
 # Initialize zoxide
 if command -v zoxide &> /dev/null; then
     eval "$(zoxide init bash)" || true

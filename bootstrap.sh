@@ -83,6 +83,9 @@ fi
 # 6. Install nvm
 maybe_run NVM "$DOTFILES_DIR/install/nvm.sh"
 
+# 6b. Install bun
+maybe_run BUN "$DOTFILES_DIR/install/bun.sh"
+
 # 7-14. Package installers
 if "$IS_MAC"; then
     echo "macOS detected. Azure CLI, Neovim, eza, zoxide, lazygit, uv, git-delta, extras, operations extras, and rustup are managed via Homebrew."
