@@ -71,6 +71,7 @@ On macOS, the Bash bootstrap flow:
 *   Installs Meslo Nerd Font via Homebrew cask (`font-meslo-lg-nerd-font`).
 *   Reuses the same stow-managed dotfiles as Linux (`bash git vim zsh tmux nvim`).
 *   Skips Linux-only SSH server setup.
+*   Optionally applies macOS system defaults (`APPLY_MACOS_DEFAULTS=1`) — configures Finder, Dock, keyboard, screenshots, and other preferences programmatically.
 
 ### Windows / PowerShell Support
 On Windows (PowerShell 7+), the bootstrap flow:
@@ -109,7 +110,8 @@ To set up a new Linux or macOS machine:
 You can control what `bootstrap.sh` does via environment variables:
 
 *   `ONLY_STOW=1` — skip all installers and only run stow (plus shell switch unless `SKIP_SHELL=1`).
-*   `SKIP_<STEP>=1` — skip a specific step, where `<STEP>` is one of: `PACKAGES`, `MACOS`, `SSH`, `OHMYZSH`, `FONTS`, `EZA`, `NVM`, `BUN`, `NEOVIM`, `ZOXIDE`, `LAZYGIT`, `UV`, `AZURE_CLI`, `RUST`, `WSL`, `DELTA`, `EXTRAS`, `EXTRAS_OPS`, `STOW`, `GIT_SIGNING`, `GIT_CREDENTIALS`, `SHELL`.
+*   `SKIP_<STEP>=1` — skip a specific step, where `<STEP>` is one of: `PACKAGES`, `MACOS`, `SSH`, `OHMYZSH`, `FONTS`, `EZA`, `NVM`, `BUN`, `NEOVIM`, `ZOXIDE`, `LAZYGIT`, `UV`, `AZURE_CLI`, `RUST`, `WSL`, `DELTA`, `EXTRAS`, `EXTRAS_OPS`, `MACOS_DEFAULTS`, `STOW`, `GIT_SIGNING`, `GIT_CREDENTIALS`, `SHELL`.
+*   `APPLY_MACOS_DEFAULTS=1` — opt-in to apply macOS system defaults (Finder, Dock, keyboard, screenshots, etc.).
 *   `EXTRA_CONFLICT_FILES="path1 path2"` — space‑separated additional files/dirs to back up before stow.
 *   `EXTRA_TOOLS="pkg1 pkg2"` — add extra Linux optional apt packages for `install/packages.sh` and `install/extras-ops.sh`.
 *   `BREWFILE_PATH=/path/to/Brewfile` — override the Brewfile used by `install/macos.sh`.
@@ -307,6 +309,7 @@ dotfiles/
 │   ├── versions.env            # Pinned versions and SHA256 checksums
 │   ├── Brewfile                # Homebrew package manifest for macOS
 │   ├── macos.sh                # macOS Homebrew bootstrap
+│   ├── macos-defaults.sh       # macOS system defaults (opt-in)
 │   ├── packages.sh             # Core apt packages
 │   ├── ohmyzsh.sh              # Oh My Zsh + plugins + P10k
 │   ├── fonts.sh                # MesloLGS NF fonts

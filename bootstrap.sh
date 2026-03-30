@@ -133,6 +133,11 @@ if "$IS_WSL"; then
     maybe_run WSL "$DOTFILES_DIR/install/wsl.sh"
 fi
 
+# 18. macOS system defaults (optional — skipped by default)
+if "$IS_MAC" && is_true "${APPLY_MACOS_DEFAULTS:-0}"; then
+    maybe_run MACOS_DEFAULTS "$DOTFILES_DIR/install/macos-defaults.sh"
+fi
+
 # 14. Run Stow
 # We want to stow directories that contain config files.
 # We exclude 'install' and '.git' and the script itself.
