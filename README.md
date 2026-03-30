@@ -198,6 +198,8 @@ Pinned in `install/versions.env` (per-arch where applicable):
 | `POWERLEVEL10K_REF` | Powerlevel10k pinned git commit |
 | `POWERLEVEL10K_MEDIA_REF` | `powerlevel10k-media` pinned git commit for Meslo font downloads |
 | `MESLO_*_TTF_SHA256` | MesloLGS NF fonts (Regular/Bold/Italic/Bold Italic) |
+| `BUN_INSTALLER_SHA256` | Bun installer script |
+| `EZA_KEY_FINGERPRINT` | eza apt repo GPG key fingerprint |
 | `HOMEBREW_INSTALLER_SHA256` | Homebrew install script |
 
 ## Post-Installation
@@ -337,7 +339,11 @@ dotfiles/
 │   ├── bump-versions.sh        # Linux version/checksum updater
 │   └── bump-versions.ps1       # Sync versions.ps1 from versions.env
 ├── .github/
-│   └── copilot-instructions.md  # GitHub Copilot context
+│   ├── copilot-instructions.md  # GitHub Copilot context
+│   └── workflows/
+│       ├── lint.yml             # Shellcheck + PSScriptAnalyzer
+│       └── bootstrap.yml        # Cross-platform smoke tests
+├── .shellcheckrc   # Shellcheck config (suppresses SC1091)
 ├── bootstrap.sh    # Linux/macOS entry point
 ├── bootstrap.ps1   # Windows entry point
 ├── AGENTS.md       # AI assistant / contributor guidelines
