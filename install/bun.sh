@@ -29,4 +29,11 @@ download_and_verify "https://bun.sh/install" "$INSTALLER_PATH" "$EXPECTED_SHA" "
 # (we manage .bashrc/.zshrc via stow).
 SHELL=/bin/sh bash "$INSTALLER_PATH"
 
+# The official installer does not create a bunx symlink; bun acts as bunx
+# when invoked under that name.
+BUN_BIN="${BUN_INSTALL:-$HOME/.bun}/bin"
+if [ -x "$BUN_BIN/bun" ] && [ ! -e "$BUN_BIN/bunx" ]; then
+    ln -s bun "$BUN_BIN/bunx"
+fi
+
 echo "bun installed successfully."
