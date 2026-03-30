@@ -34,7 +34,6 @@ if command -v apt-get &> /dev/null; then
         bat
         ripgrep
         fd-find
-        tealdeer   # provides the `tldr` command
         btop
         tmux
         unzip
@@ -75,6 +74,7 @@ if command -v apt-get &> /dev/null; then
     add_optional_package just just
     add_optional_package xh xh
     add_optional_package bottom bottom
+    add_optional_package tealdeer "tealdeer (tldr)"
     add_optional_package gh "GitHub CLI (gh)"
     add_optional_package direnv direnv
     add_optional_package age age
