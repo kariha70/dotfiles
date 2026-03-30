@@ -64,7 +64,7 @@ function Test-EnvFlag {
     return (Test-True (Get-EnvValue -Name $Name))
 }
 
-function Test-CommandExists {
+function Test-CommandExist {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true)]
@@ -418,7 +418,7 @@ function Assert-WingetAvailable {
     [CmdletBinding()]
     param()
 
-    if (-not (Test-CommandExists -Name "winget")) {
+    if (-not (Test-CommandExist -Name "winget")) {
         throw "winget is required. Install App Installer from Microsoft Store and rerun bootstrap."
     }
 }
@@ -447,7 +447,7 @@ function Invoke-WingetCommand {
     }
 }
 
-function Get-WingetInstalledPackageIds {
+function Get-WingetInstalledPackageId {
     [CmdletBinding()]
     param()
 
@@ -519,7 +519,7 @@ function Test-WingetPackageInstalled {
         [string]$Id
     )
 
-    $installedPackageIds = Get-WingetInstalledPackageIds
+    $installedPackageIds = Get-WingetInstalledPackageId
     if ($installedPackageIds.Contains($Id)) {
         return $true
     }

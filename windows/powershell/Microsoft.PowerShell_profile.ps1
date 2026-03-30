@@ -123,7 +123,7 @@ if ($canUsePSReadLine -and (Get-Module -ListAvailable -Name PSReadLine)) {
         Set-PSReadLineOption -PredictionSource HistoryAndPlugin
         Set-PSReadLineOption -PredictionViewStyle InlineView
         Set-PSReadLineOption -HistorySearchCursorMovesToEnd
-        # Atuin owns UpArrow and Ctrl+R for history search — don't compete.
+        # Atuin owns UpArrow and Ctrl+R for history search -- don't compete.
         Set-PSReadLineKeyHandler -Key Tab -Function MenuComplete
         Set-PSReadLineKeyHandler -Key "Ctrl+f" -Function ForwardWord
     }
@@ -134,7 +134,7 @@ if ($canUsePSReadLine -and (Get-Module -ListAvailable -Name PSReadLine)) {
 
 # --- Modules (lazy-loaded for faster startup) ---
 $_modulesLoaded = $false
-function _Load-Modules {
+function _Load-Module {
     if ($script:_modulesLoaded) { return }
     $script:_modulesLoaded = $true
     Import-Module Terminal-Icons -ErrorAction SilentlyContinue
@@ -151,7 +151,7 @@ function _Load-Modules {
 }
 # Defer module loading until first prompt
 if ($Host.Name -eq "ConsoleHost") {
-    Register-EngineEvent -SourceIdentifier PowerShell.OnIdle -MaxTriggerCount 1 -Action { _Load-Modules } | Out-Null
+    Register-EngineEvent -SourceIdentifier PowerShell.OnIdle -MaxTriggerCount 1 -Action { _Load-Module } | Out-Null
 }
 
 # --- Shell inits ---
