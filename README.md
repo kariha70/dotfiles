@@ -56,7 +56,7 @@ Restart your shell and you're done. ✨
 | **Node.js** | [nvm](https://github.com/nvm-sh/nvm) with lazy-loading | [nvm-windows](https://github.com/coreybutler/nvm-windows) via winget |
 | **Bun** | Official installer / Homebrew | winget |
 | **Rust** | [rustup](https://rustup.rs/) + stable toolchain | rustup via winget |
-| **Python** | [uv](https://github.com/astral-sh/uv) | — |
+| **Python** | [uv](https://github.com/astral-sh/uv) | winget |
 
 ### Shell Experience
 
