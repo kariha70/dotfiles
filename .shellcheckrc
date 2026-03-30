@@ -1,0 +1,3 @@
+# Don't warn about not following sourced files (SC1091)
+# Installers source helpers.sh which shellcheck can't resolve without -x
+disable=SC1091

@@ -1,0 +1,124 @@
+name: Bootstrap
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  linux:
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, ubuntu-24.04]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run bootstrap
+        run: |
+          export SKIP_SHELL=1 SKIP_SSH=1 SKIP_GIT_SIGNING=1 SKIP_GIT_CREDENTIALS=1
+          ./bootstrap.sh
+
+      - name: Verify tools installed
+        run: |
+          echo "Checking installed tools..."
+          command -v zsh
+          command -v eza
+          command -v bat || command -v batcat
+          command -v fzf
+          command -v rg
+          command -v fd || command -v fdfind
+          command -v zoxide
+          command -v nvim
+          command -v lazygit
+          command -v delta
+          command -v tmux
+          command -v stow
+          echo "All tool checks passed."
+
+      - name: Verify stow symlinks
+        run: |
+          echo "Checking stow symlinks..."
+          test -L "$HOME/.bashrc"
+          test -L "$HOME/.bash_aliases"
+          test -L "$HOME/.zshrc"
+          test -L "$HOME/.gitconfig"
+          test -L "$HOME/.tmux.conf"
+          test -d "$HOME/.config/nvim"
+          echo "All symlink checks passed."
+
+      - name: Idempotency test
+        run: |
+          echo "Running bootstrap again for idempotency check..."
+          export SKIP_SHELL=1 SKIP_SSH=1 SKIP_GIT_SIGNING=1 SKIP_GIT_CREDENTIALS=1
+          ./bootstrap.sh
+          echo "Idempotency check passed."
+
+  macos:
+    runs-on: macos-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run bootstrap
+        run: |
+          export SKIP_SHELL=1 SKIP_GIT_SIGNING=1 SKIP_GIT_CREDENTIALS=1
+          ./bootstrap.sh
+
+      - name: Verify Homebrew packages
+        run: |
+          echo "Checking installed tools..."
+          command -v zsh
+          command -v eza
+          command -v bat
+          command -v fzf
+          command -v rg
+          command -v fd
+          command -v zoxide
+          command -v nvim
+          command -v lazygit
+          command -v delta
+          command -v tmux
+          command -v stow
+          echo "All tool checks passed."
+
+      - name: Verify stow symlinks
+        run: |
+          echo "Checking stow symlinks..."
+          test -L "$HOME/.bashrc"
+          test -L "$HOME/.zshrc"
+          test -L "$HOME/.gitconfig"
+          test -L "$HOME/.tmux.conf"
+          test -d "$HOME/.config/nvim"
+          echo "All symlink checks passed."
+
+  windows:
+    runs-on: windows-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run bootstrap
+        run: |
+          $env:SKIP_LINK = "1"
+          $env:SKIP_FONTS = "1"
+          pwsh -NoLogo -NoProfile -ExecutionPolicy Bypass -File .\bootstrap.ps1
+
+      - name: Verify key commands
+        run: |
+          Write-Host "Checking installed tools..."
+          Get-Command git -ErrorAction Stop
+          Write-Host "Tool checks passed."

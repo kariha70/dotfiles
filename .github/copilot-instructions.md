@@ -27,7 +27,7 @@ pwsh -File scripts/bump-versions.ps1  # syncs install/versions.ps1
 pwsh -NoLogo -NoProfile -ExecutionPolicy Bypass -File .\bootstrap.ps1
 ```
 
-No automated test suite exists. Verify changes by running the touched installer(s) and confirming idempotency on a second run.
+No automated test suite exists. CI runs shellcheck, PSScriptAnalyzer, and cross-platform bootstrap smoke tests on push/PR to `main`.
 
 ## Architecture
 

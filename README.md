@@ -1,5 +1,8 @@
 # Dotfiles
 
+[![Lint](https://github.com/kariha70/dotfiles/actions/workflows/lint.yml/badge.svg)](https://github.com/kariha70/dotfiles/actions/workflows/lint.yml)
+[![Bootstrap](https://github.com/kariha70/dotfiles/actions/workflows/bootstrap.yml/badge.svg)](https://github.com/kariha70/dotfiles/actions/workflows/bootstrap.yml)
+
 My personal dotfiles, managed with [GNU Stow](https://www.gnu.org/software/stow/) on Linux/macOS and PowerShell scripts on Windows. This repository bootstraps fresh Linux, macOS, or Windows installations with a robust, modern development environment.
 
 ## Features

@@ -15,6 +15,7 @@
 - Iterate on one tool: `bash install/<script>.sh` (e.g., `bash install/eza.sh`) instead of the whole bootstrap.
 - Restow after config edits: `stow -v -R -t "$HOME" -d "$(pwd)" bash git vim zsh tmux nvim`.
 - Spot-check shell scripts: `shellcheck install/*.sh install/lib/helpers.sh` to catch quoting and portability issues (bootstrap installs shellcheck).
+- CI runs automatically on push/PR to `main`: shellcheck + PSScriptAnalyzer linting, and cross-platform bootstrap smoke tests on Ubuntu, macOS, and Windows.
 
 ## Coding Style & Naming Conventions
 - Shell scripts use Bash with `set -e`; keep commands strictly quoted, favor `command -v` checks, and gate OS-specific logic with the existing WSL detection pattern (`grep -qEi "(Microsoft|WSL)" /proc/version`).
