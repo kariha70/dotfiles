@@ -31,19 +31,24 @@ if command -v apt-get &> /dev/null; then
         sudo apt-get install -y gnupg
     fi
 
-    # Create keyrings directory if it doesn't exist
-    sudo mkdir -p /etc/apt/keyrings
+    KEYRING="/etc/apt/keyrings/gierens.gpg"
+    SOURCE_FILE="/etc/apt/sources.list.d/gierens.list"
+    APT_SOURCE="deb [signed-by=$KEYRING] https://deb.gierens.de stable main"
+    EXPECTED_FP="${EZA_KEY_FINGERPRINT:?EZA_KEY_FINGERPRINT not set - run scripts/bump-versions.sh}"
+    INSTALLED_FP=""
+    if [ -f "$KEYRING" ]; then
+        INSTALLED_FP="$(gpg --batch --with-colons --show-keys "$KEYRING" 2>/dev/null | awk -F: '/^fpr:/ { print $10; exit }')"
+    fi
 
     REPO_ADDED=false
-    if [ ! -f /etc/apt/sources.list.d/gierens.list ]; then
-        # Download and verify GPG key fingerprint before trusting the repo.
+    if [ "$INSTALLED_FP" != "$EXPECTED_FP" ] || [ ! -f "$SOURCE_FILE" ] || [ "$(cat "$SOURCE_FILE")" != "$APT_SOURCE" ]; then
         KEY_URL="https://raw.githubusercontent.com/eza-community/eza/main/deb.asc"
-        EXPECTED_FP="${EZA_KEY_FINGERPRINT:?EZA_KEY_FINGERPRINT not set – run scripts/bump-versions.sh}"
         TMP_KEY="$(mktemp /tmp/eza-key.XXXXXX.asc)"
-        trap 'rm -f "$TMP_KEY"' EXIT
+        TMP_KEYRING="$(mktemp /tmp/eza-keyring.XXXXXX.gpg)"
+        trap 'rm -f "$TMP_KEY" "$TMP_KEYRING"' EXIT
 
         curl -fLsS "$KEY_URL" -o "$TMP_KEY"
-        ACTUAL_FP="$(gpg --with-colons --import-options show-only --import "$TMP_KEY" 2>/dev/null | awk -F: '/^fpr:/ {print $10; exit}')"
+        ACTUAL_FP="$(gpg --batch --with-colons --import-options show-only --import "$TMP_KEY" 2>/dev/null | awk -F: '/^fpr:/ { print $10; exit }')"
         if [ -z "$ACTUAL_FP" ] || [ "$ACTUAL_FP" != "$EXPECTED_FP" ]; then
             echo "Fingerprint mismatch for eza apt repo key."
             echo "Expected: $EXPECTED_FP"
@@ -52,15 +57,14 @@ if command -v apt-get &> /dev/null; then
             exit 1
         fi
 
-        sudo gpg --dearmor -o /etc/apt/keyrings/gierens.gpg "$TMP_KEY"
-        rm -f "$TMP_KEY"
-        trap - EXIT
+        gpg --batch --yes --dearmor -o "$TMP_KEYRING" "$TMP_KEY"
+        sudo install -d -m 755 /etc/apt/keyrings
+        sudo install -m 644 "$TMP_KEYRING" "$KEYRING"
+        printf '%s\n' "$APT_SOURCE" | sudo tee "$SOURCE_FILE" >/dev/null
+        sudo chmod 644 "$SOURCE_FILE"
 
-        # Add repository (use HTTPS to avoid MITM)
-        echo "deb [signed-by=/etc/apt/keyrings/gierens.gpg] https://deb.gierens.de stable main" | sudo tee /etc/apt/sources.list.d/gierens.list
-        
-        # Set permissions
-        sudo chmod 644 /etc/apt/keyrings/gierens.gpg /etc/apt/sources.list.d/gierens.list
+        rm -f "$TMP_KEY" "$TMP_KEYRING"
+        trap - EXIT
         REPO_ADDED=true
     fi
     

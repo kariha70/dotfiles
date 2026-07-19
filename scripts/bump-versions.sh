@@ -17,6 +17,7 @@ require_cmd() {
 require_cmd curl
 require_cmd jq
 require_cmd git
+require_cmd gpg
 
 sha256_portable() {
     if command -v sha256sum >/dev/null 2>&1; then
@@ -33,6 +34,16 @@ fetch_sha() {
     local url="$1" dest="$2"
     curl -fLs "$url" -o "$dest"
     sha256_portable "$dest"
+}
+
+gpg_fingerprint() {
+    local key_file="$1" fingerprint
+    fingerprint="$(gpg --batch --with-colons --import-options show-only --import "$key_file" 2>/dev/null | awk -F: '/^fpr:/ { print $10; exit }')"
+    if [[ ! "$fingerprint" =~ ^[A-F0-9]{40}$ ]]; then
+        echo "Could not determine GPG fingerprint for $key_file." >&2
+        exit 1
+    fi
+    printf '%s\n' "$fingerprint"
 }
 
 latest_tag() {
@@ -154,11 +165,18 @@ rustup_sha=$(fetch_sha "https://sh.rustup.rs" "$TMP_DIR/rustup-install.sh")
 # uv installer
 uv_sha=$(fetch_sha "https://astral.sh/uv/install.sh" "$TMP_DIR/uv-install.sh")
 
+# Bun installer
+bun_sha=$(fetch_sha "https://bun.sh/install" "$TMP_DIR/bun-install.sh")
+
 # Homebrew installer
 homebrew_installer_sha=$(fetch_sha "https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh" "$TMP_DIR/homebrew-install.sh")
 
 # Azure CLI apt installer
 azure_cli_apt_installer_sha=$(fetch_sha "https://aka.ms/InstallAzureCLIDeb" "$TMP_DIR/install-azure-cli.sh")
+
+# eza apt repository signing key
+curl -fLsS "https://raw.githubusercontent.com/eza-community/eza/main/deb.asc" -o "$TMP_DIR/eza.asc"
+eza_key_fingerprint=$(gpg_fingerprint "$TMP_DIR/eza.asc")
 
 # Pinned git refs
 ohmyzsh_ref="${OHMYZSH_REF_OVERRIDE:-$(resolve_git_ref "Oh My Zsh" "ohmyzsh/ohmyzsh" "${OHMYZSH_REF:-}")}"
@@ -215,9 +233,13 @@ RUSTUP_INSTALLER_SHA256=${rustup_sha}
 
 UV_INSTALLER_SHA256=${uv_sha}
 
+BUN_INSTALLER_SHA256=${bun_sha}
+
 HOMEBREW_INSTALLER_SHA256=${homebrew_installer_sha}
 
 AZURE_CLI_APT_INSTALLER_SHA256=${azure_cli_apt_installer_sha}
+
+EZA_KEY_FINGERPRINT=${eza_key_fingerprint}
 
 OHMYZSH_REF=${ohmyzsh_ref}
 ZSH_AUTOSUGGESTIONS_REF=${zsh_autosuggestions_ref}
