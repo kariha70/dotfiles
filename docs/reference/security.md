@@ -82,7 +82,7 @@ Every push and pull request runs two GitHub Actions workflows:
 
 | Workflow | What it checks |
 |----------|---------------|
-| **[Lint](https://github.com/kariha70/dotfiles/actions/workflows/lint.yml)** | [ShellCheck](https://www.shellcheck.net/) on all `.sh` files · [PSScriptAnalyzer](https://github.com/PowerShell/PSScriptAnalyzer) on all `.ps1` files |
+| **[Lint](https://github.com/kariha70/dotfiles/actions/workflows/lint.yml)** | [ShellCheck](https://www.shellcheck.net/) · [PSScriptAnalyzer](https://github.com/PowerShell/PSScriptAnalyzer) · version-pin validation · cross-platform CLI parity |
 | **[Bootstrap](https://github.com/kariha70/dotfiles/actions/workflows/bootstrap.yml)** | Full bootstrap on Ubuntu 22.04, Ubuntu 24.04, macOS, and Windows · Tool verification · Symlink checks · **Idempotency** (runs bootstrap twice to confirm clean re-runs) |
 
 ::: info

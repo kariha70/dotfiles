@@ -44,6 +44,7 @@ Restart your shell and you're done. ✨
 |----------|-------|
 | **Files & Navigation** | [eza](https://github.com/eza-community/eza) · [zoxide](https://github.com/ajeetdsouza/zoxide) · [fd](https://github.com/sharkdp/fd) · [yazi](https://github.com/sxyazi/yazi) · [fzf](https://github.com/junegunn/fzf) |
 | **Search & View** | [ripgrep](https://github.com/BurntSushi/ripgrep) · [bat](https://github.com/sharkdp/bat) · [glow](https://github.com/charmbracelet/glow) · [tldr](https://tldr.sh/) |
+| **Data & Text** | [jq](https://jqlang.org/) · [Miller (`mlr`)](https://miller.readthedocs.io/) |
 | **Git** | [delta](https://github.com/dandavison/delta) · [lazygit](https://github.com/jesseduffield/lazygit) · [gh](https://cli.github.com/) |
 | **System & Monitoring** | [btop](https://github.com/aristocratos/btop) · [bottom](https://github.com/ClementTsang/bottom) · [procs](https://github.com/dalance/procs) · [dust](https://github.com/bootandy/dust) · [duf](https://github.com/muesli/duf) · [fastfetch](https://github.com/fastfetch-cli/fastfetch) |
 | **Networking** | [HTTPie](https://httpie.io/cli) · [xh](https://github.com/ducaale/xh) · [gping](https://github.com/orf/gping) |
@@ -246,6 +247,7 @@ Pinned versions and checksums live in `install/versions.env` (Bash) and `install
 ```bash
 bash scripts/bump-versions.sh         # Download new releases, compute SHA256
 pwsh -File scripts/bump-versions.ps1  # Sync PowerShell pins from versions.env
+bash scripts/check-version-pins.sh    # Validate required pins and file parity
 ```
 
 <details>
@@ -279,7 +281,7 @@ Every push and PR is validated automatically:
 
 | Workflow | What it checks |
 |----------|---------------|
-| **[Lint](https://github.com/kariha70/dotfiles/actions/workflows/lint.yml)** | ShellCheck on all `.sh` files · PSScriptAnalyzer on all `.ps1` files |
+| **[Lint](https://github.com/kariha70/dotfiles/actions/workflows/lint.yml)** | ShellCheck · PSScriptAnalyzer · version-pin validation · cross-platform CLI parity |
 | **[Bootstrap](https://github.com/kariha70/dotfiles/actions/workflows/bootstrap.yml)** | Full bootstrap on Ubuntu 22.04, Ubuntu 24.04, macOS, and Windows · Tool verification · Symlink checks · Idempotency (runs twice) |
 
 ## 📁 Project Structure
