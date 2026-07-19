@@ -72,6 +72,7 @@ if command -v apt-get &> /dev/null; then
     add_optional_package hyperfine hyperfine
     add_optional_package httpie "HTTPie"
     add_optional_package just just
+    add_optional_package miller "Miller (mlr)"
     add_optional_package xh xh
     add_optional_package bottom bottom
     add_optional_package tealdeer "tealdeer (tldr)"

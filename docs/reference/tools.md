@@ -11,6 +11,7 @@ fully configured shell experience on every platform.
 |----------|-------|
 | **Files & Navigation** | [eza](https://github.com/eza-community/eza) · [zoxide](https://github.com/ajeetdsouza/zoxide) · [fd](https://github.com/sharkdp/fd) · [yazi](https://github.com/sxyazi/yazi) · [fzf](https://github.com/junegunn/fzf) |
 | **Search & View** | [ripgrep](https://github.com/BurntSushi/ripgrep) · [bat](https://github.com/sharkdp/bat) · [glow](https://github.com/charmbracelet/glow) · [tldr](https://tldr.sh/) |
+| **Data & Text** | [jq](https://jqlang.org/) · [Miller (`mlr`)](https://miller.readthedocs.io/) |
 | **Git** | [delta](https://github.com/dandavison/delta) · [lazygit](https://github.com/jesseduffield/lazygit) · [gh](https://cli.github.com/) |
 | **System & Monitoring** | [btop](https://github.com/aristocratos/btop) · [bottom](https://github.com/ClementTsang/bottom) · [procs](https://github.com/dalance/procs) · [dust](https://github.com/bootandy/dust) · [duf](https://github.com/muesli/duf) · [fastfetch](https://github.com/fastfetch-cli/fastfetch) |
 | **Networking** | [HTTPie](https://httpie.io/cli) · [xh](https://github.com/ducaale/xh) · [gping](https://github.com/orf/gping) |

@@ -19,6 +19,12 @@ jobs:
       - name: Run shellcheck
         run: shellcheck bootstrap.sh install/*.sh install/lib/helpers.sh scripts/*.sh
 
+      - name: Validate version pins
+        run: bash scripts/check-version-pins.sh
+
+      - name: Validate cross-platform tool parity
+        run: bash scripts/check-tool-parity.sh
+
   powershell-lint:
     runs-on: ubuntu-latest
     steps:

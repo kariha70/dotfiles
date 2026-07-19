@@ -21,6 +21,7 @@ $optionalPackages = @(
     @{ Id = "Microsoft.AzureCLI"; Name = "Azure CLI" },
     @{ Id = "7zip.7zip"; Name = "7-Zip" },
     @{ Id = "GnuPG.GnuPG"; Name = "GnuPG" },
+    @{ Id = "jqlang.jq"; Name = "jq" },
     @{ Id = "junegunn.fzf"; Name = "fzf" },
     @{ Id = "BurntSushi.ripgrep.MSVC"; Name = "ripgrep" },
     @{ Id = "sharkdp.fd"; Name = "fd" },
@@ -29,6 +30,8 @@ $optionalPackages = @(
     @{ Id = "ducaale.xh"; Name = "xh" },
     @{ Id = "sharkdp.hyperfine"; Name = "hyperfine" },
     @{ Id = "dalance.procs"; Name = "procs" },
+    @{ Id = "koalaman.shellcheck"; Name = "ShellCheck" },
+    @{ Id = "Miller.Miller"; Name = "Miller (mlr)" },
     @{ Id = "Microsoft.VisualStudioCode.Insiders"; Name = "VS Code Insiders" }
 )
 
