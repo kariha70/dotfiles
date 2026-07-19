@@ -1,12 +1,10 @@
-tap "oven-sh/bun"
-
 # Core shell + dotfiles dependencies
 brew "atuin"
 brew "bash"
 brew "azure-cli"
 brew "bat"
 brew "bottom"
-brew "oven-sh/bun/bun"
+brew "bun"
 brew "btop"
 brew "coreutils"
 brew "curl"
