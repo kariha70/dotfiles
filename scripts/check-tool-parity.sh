@@ -18,7 +18,7 @@ contains() {
     grep -Fq -- "$needle" "$@"
 }
 
-# command|Linux declaration|Homebrew declaration|WinGet package ID
+# command|Linux declaration|Homebrew declaration|Windows declaration
 tool_declarations=(
     'age|add_optional_package age age|brew "age"|FiloSottile.age'
     'atuin|ATUIN_VERSION|brew "atuin"|Atuinsh.Atuin'
