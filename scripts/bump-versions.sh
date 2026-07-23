@@ -156,6 +156,34 @@ fi
 atuin_sha_x86=$(fetch_sha "https://github.com/atuinsh/atuin/releases/download/${atuin_tag}/atuin-x86_64-unknown-linux-gnu.tar.gz" "$TMP_DIR/atuin-x86_64-unknown-linux-gnu.tar.gz")
 atuin_sha_arm64=$(fetch_sha "https://github.com/atuinsh/atuin/releases/download/${atuin_tag}/atuin-aarch64-unknown-linux-gnu.tar.gz" "$TMP_DIR/atuin-aarch64-unknown-linux-gnu.tar.gz")
 
+# herdr
+herdr_tag="${HERDR_VERSION_OVERRIDE:-$(latest_tag "ogulcancelik/herdr")}"
+if [ -z "$herdr_tag" ] || [ "$herdr_tag" = "null" ]; then
+    echo "Could not determine latest Herdr release tag."
+    exit 1
+fi
+herdr_version="${herdr_tag#v}"
+herdr_sha_x86=$(fetch_sha "https://github.com/ogulcancelik/herdr/releases/download/${herdr_tag}/herdr-linux-x86_64" "$TMP_DIR/herdr-linux-x86_64")
+herdr_sha_arm64=$(fetch_sha "https://github.com/ogulcancelik/herdr/releases/download/${herdr_tag}/herdr-linux-aarch64" "$TMP_DIR/herdr-linux-aarch64")
+
+herdr_preview_manifest="$TMP_DIR/herdr-preview.json"
+curl -fLsS "https://herdr.dev/preview.json" -o "$herdr_preview_manifest"
+herdr_windows_url=$(jq -er '.assets["windows-x86_64"].url' "$herdr_preview_manifest")
+herdr_windows_declared_sha=$(jq -er '.assets["windows-x86_64"].sha256' "$herdr_preview_manifest")
+herdr_windows_preview_tag=$(basename "$(dirname "$herdr_windows_url")")
+case "$herdr_windows_url" in
+    "https://github.com/ogulcancelik/herdr/releases/download/${herdr_windows_preview_tag}/herdr-windows-x86_64.exe") ;;
+    *)
+        echo "Herdr Windows preview manifest contains an unexpected asset URL."
+        exit 1
+        ;;
+esac
+herdr_windows_sha=$(fetch_sha "$herdr_windows_url" "$TMP_DIR/herdr-windows-x86_64.exe")
+if [ "$herdr_windows_sha" != "$herdr_windows_declared_sha" ]; then
+    echo "Herdr Windows preview manifest checksum mismatch."
+    exit 1
+fi
+
 # zoxide installer
 zoxide_sha=$(fetch_sha "https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh" "$TMP_DIR/zoxide-install.sh")
 
@@ -226,6 +254,12 @@ YAZI_ZIP_SHA256_aarch64_unknown_linux_gnu=${yazi_sha_arm64}
 ATUIN_VERSION=${atuin_tag}
 ATUIN_TAR_SHA256_x86_64_unknown_linux_gnu=${atuin_sha_x86}
 ATUIN_TAR_SHA256_aarch64_unknown_linux_gnu=${atuin_sha_arm64}
+
+HERDR_VERSION=${herdr_version}
+HERDR_BINARY_SHA256_x86_64=${herdr_sha_x86}
+HERDR_BINARY_SHA256_arm64=${herdr_sha_arm64}
+HERDR_WINDOWS_PREVIEW_TAG=${herdr_windows_preview_tag}
+HERDR_WINDOWS_BINARY_SHA256_x86_64=${herdr_windows_sha}
 
 ZOXIDE_INSTALLER_SHA256=${zoxide_sha}
 

@@ -50,6 +50,7 @@ Restart your shell and you're done. ✨
 | **Networking** | [HTTPie](https://httpie.io/cli) · [xh](https://github.com/ducaale/xh) · [gping](https://github.com/orf/gping) |
 | **Dev & Ops** | [just](https://github.com/casey/just) · [hyperfine](https://github.com/sharkdp/hyperfine) · [direnv](https://direnv.net/) · [age](https://github.com/FiloSottile/age) |
 | **Cloud & K8s** | [Azure CLI](https://learn.microsoft.com/cli/azure/) · [kubectl](https://kubernetes.io/docs/reference/kubectl/) · [helm](https://helm.sh/) |
+| **AI Coding** | [Herdr](https://herdr.dev/) · [Codex CLI](https://developers.openai.com/codex/cli/) · [Claude Code](https://docs.anthropic.com/en/docs/claude-code/) · [GitHub Copilot CLI](https://docs.github.com/en/copilot/how-tos/copilot-cli/) |
 | **Shell & Editor** | [Neovim](https://neovim.io/) (LazyVim) · [tmux](https://github.com/tmux/tmux) · [atuin](https://github.com/atuinsh/atuin) · [starship](https://starship.rs/) |
 
 ### Development Runtimes
@@ -144,10 +145,10 @@ Parallel bootstrap flow using `winget` and PowerShell modules:
 <summary><strong>All SKIP flags</strong></summary>
 
 **Linux/macOS** (`SKIP_<STEP>=1`):
-`PACKAGES` · `MACOS` · `SSH` · `OHMYZSH` · `FONTS` · `EZA` · `NVM` · `BUN` · `NEOVIM` · `ZOXIDE` · `LAZYGIT` · `UV` · `AZURE_CLI` · `RUST` · `WSL` · `DELTA` · `EXTRAS` · `EXTRAS_OPS` · `MACOS_DEFAULTS` · `STOW` · `GIT_SIGNING` · `GIT_CREDENTIALS` · `SHELL`
+`PACKAGES` · `MACOS` · `SSH` · `OHMYZSH` · `FONTS` · `EZA` · `NVM` · `BUN` · `NEOVIM` · `ZOXIDE` · `LAZYGIT` · `UV` · `AZURE_CLI` · `AI_TOOLS` · `RUST` · `WSL` · `DELTA` · `EXTRAS` · `EXTRAS_OPS` · `MACOS_DEFAULTS` · `STOW` · `GIT_SIGNING` · `GIT_CREDENTIALS` · `SHELL`
 
 **Windows** (`SKIP_<STEP>=1`):
-`PACKAGES` · `GIT_TOOLS` · `NVM` · `RUST` · `FONTS` · `EXTRAS` · `PROFILE` · `LINK` (or `STOW`)
+`PACKAGES` · `GIT_TOOLS` · `NVM` · `AI_TOOLS` · `RUST` · `FONTS` · `EXTRAS` · `PROFILE` · `LINK` (or `STOW`)
 
 </details>
 

@@ -30,6 +30,8 @@ jobs:
       - name: Verify tools installed
         run: |
           echo "Checking installed tools..."
+          export NVM_DIR="$HOME/.nvm"
+          source "$HOME/.config/shell/nvm-lazy-load.sh"
           command -v zsh
           command -v eza
           command -v bat || command -v batcat
@@ -40,6 +42,10 @@ jobs:
           command -v nvim
           command -v lazygit
           command -v delta
+          command -v herdr
+          command -v codex
+          command -v claude
+          command -v copilot
           command -v tmux
           command -v stow
           echo "All tool checks passed."
@@ -87,6 +93,10 @@ jobs:
           command -v nvim
           command -v lazygit
           command -v delta
+          command -v herdr
+          command -v codex
+          command -v claude
+          command -v copilot
           command -v tmux
           command -v stow
           echo "All tool checks passed."
@@ -118,6 +128,7 @@ jobs:
           $env:SKIP_PACKAGES = "1"
           $env:SKIP_GIT_TOOLS = "1"
           $env:SKIP_NVM = "1"
+          $env:SKIP_AI_TOOLS = "1"
           $env:SKIP_RUST = "1"
           $env:SKIP_EXTRAS = "1"
           pwsh -NoLogo -NoProfile -ExecutionPolicy Bypass -File .\bootstrap.ps1
