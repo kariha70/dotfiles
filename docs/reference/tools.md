@@ -17,7 +17,17 @@ fully configured shell experience on every platform.
 | **Networking** | [HTTPie](https://httpie.io/cli) · [xh](https://github.com/ducaale/xh) · [gping](https://github.com/orf/gping) |
 | **Dev & Ops** | [just](https://github.com/casey/just) · [hyperfine](https://github.com/sharkdp/hyperfine) · [direnv](https://direnv.net/) · [age](https://github.com/FiloSottile/age) |
 | **Cloud & K8s** | [Azure CLI](https://learn.microsoft.com/cli/azure/) · [kubectl](https://kubernetes.io/docs/reference/kubectl/) · [helm](https://helm.sh/) |
+| **AI Coding** | [Herdr](https://herdr.dev/) · [Codex CLI](https://developers.openai.com/codex/cli/) · [Claude Code](https://docs.anthropic.com/en/docs/claude-code/) · [GitHub Copilot CLI](https://docs.github.com/en/copilot/how-tos/copilot-cli/) |
 | **Shell & Editor** | [Neovim](https://neovim.io/) (LazyVim) · [tmux](https://github.com/tmux/tmux) · [atuin](https://github.com/atuinsh/atuin) · [starship](https://starship.rs/) |
+
+Herdr detects all three installed coding agents automatically. To enable richer
+session restoration and lifecycle reporting, install its optional integrations:
+
+```bash
+herdr integration install codex
+herdr integration install claude
+herdr integration install copilot
+```
 
 ::: info Linux tool fallback behaviour
 On Linux, most tools are installed from `.deb` packages or prebuilt archives.

@@ -122,18 +122,21 @@ else
     maybe_run AZURE_CLI "$DOTFILES_DIR/install/azure-cli.sh"
 fi
 
-# 16. Install Rust
+# 16. Install AI coding tools
+maybe_run AI_TOOLS "$DOTFILES_DIR/install/ai-tools.sh"
+
+# 17. Install Rust
 maybe_run RUST "$DOTFILES_DIR/install/rust.sh"
 
 # Ensure shared VS Code user data directories exist on Unix systems.
 mkdir -p "$HOME/.code-data/kariha70" "$HOME/.code-data/michag"
 
-# 17. WSL Specific Configuration
+# 18. WSL Specific Configuration
 if "$IS_WSL"; then
     maybe_run WSL "$DOTFILES_DIR/install/wsl.sh"
 fi
 
-# 18. macOS system defaults (optional — skipped by default)
+# 19. macOS system defaults (optional — skipped by default)
 if "$IS_MAC" && is_true "${APPLY_MACOS_DEFAULTS:-0}"; then
     maybe_run MACOS_DEFAULTS "$DOTFILES_DIR/install/macos-defaults.sh"
 fi

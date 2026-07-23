@@ -37,6 +37,7 @@ tool_declarations=(
     'glow|GLOW_VERSION|brew "glow"|charmbracelet.glow'
     'gping|add_optional_package gping gping|brew "gping"|orf.gping'
     'helm|add_optional_package helm helm|brew "helm"|Helm.Helm'
+    'herdr|HERDR_VERSION|brew "herdr"|HERDR_WINDOWS_PREVIEW_TAG'
     'http|add_optional_package httpie "HTTPie"|brew "httpie"|HTTPie.HTTPie'
     'hyperfine|add_optional_package hyperfine hyperfine|brew "hyperfine"|sharkdp.hyperfine'
     'jq|        jq|brew "jq"|jqlang.jq'
@@ -52,6 +53,9 @@ tool_declarations=(
     'xh|add_optional_package xh xh|brew "xh"|ducaale.xh'
     'yazi|YAZI_VERSION|brew "yazi"|sxyazi.yazi'
     'zoxide|ZOXIDE_INSTALLER_SHA256|brew "zoxide"|ajeetdsouza.zoxide'
+    'codex|@openai/codex|cask "codex"|OpenAI.Codex'
+    'claude|@anthropic-ai/claude-code|cask "claude-code"|Anthropic.ClaudeCode'
+    'copilot|@github/copilot|cask "copilot-cli"|GitHub.Copilot'
 )
 
 for declaration in "${tool_declarations[@]}"; do

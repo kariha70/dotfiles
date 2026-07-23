@@ -39,6 +39,7 @@ Use `SKIP_<STEP>=1` to disable individual bootstrap steps.
 | `SKIP_LAZYGIT` | lazygit TUI |
 | `SKIP_UV` | uv (Python package manager) |
 | `SKIP_AZURE_CLI` | Azure CLI |
+| `SKIP_AI_TOOLS` | Herdr, Codex, Claude Code, and GitHub Copilot CLI |
 | `SKIP_RUST` | Rust toolchain via rustup |
 | `SKIP_WSL` | WSL-specific setup |
 | `SKIP_DELTA` | git-delta pager |
@@ -57,6 +58,7 @@ Use `SKIP_<STEP>=1` to disable individual bootstrap steps.
 | `SKIP_PACKAGES` | winget package installs |
 | `SKIP_GIT_TOOLS` | Git-related tool setup |
 | `SKIP_NVM` | nvm-windows |
+| `SKIP_AI_TOOLS` | Herdr, Codex, Claude Code, and GitHub Copilot CLI |
 | `SKIP_RUST` | Rust toolchain |
 | `SKIP_FONTS` | Font installation |
 | `SKIP_EXTRAS` | Extra tools |

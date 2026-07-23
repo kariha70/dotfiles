@@ -32,6 +32,7 @@ $installerSteps = @(
     @{ Name = "PACKAGES"; Script = "install/packages.ps1" },
     @{ Name = "GIT_TOOLS"; Script = "install/git-tools.ps1" },
     @{ Name = "NVM"; Script = "install/nvm.ps1" },
+    @{ Name = "AI_TOOLS"; Script = "install/ai-tools.ps1" },
     @{ Name = "RUST"; Script = "install/rust.ps1" },
     @{ Name = "FONTS"; Script = "install/fonts.ps1" },
     @{ Name = "EXTRAS"; Script = "install/extras.ps1" },
