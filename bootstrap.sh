@@ -108,7 +108,7 @@ else
     # 12. Install git-delta
     maybe_run DELTA "$DOTFILES_DIR/install/delta.sh"
 
-    # 13. Install Extras (Glow, Atuin, Fastfetch, Yazi)
+    # 13. Install Extras (Glow, Atuin, Fastfetch, Yazi, superfile)
     maybe_run EXTRAS "$DOTFILES_DIR/install/extras.sh"
 
     # 14. Install Operations Extras (GH, direnv, age, kubectl, helm, duf, plus optional EXTRA_TOOLS)

@@ -147,6 +147,15 @@ fi
 yazi_sha_x86=$(fetch_sha "https://github.com/sxyazi/yazi/releases/download/${yazi_tag}/yazi-x86_64-unknown-linux-gnu.zip" "$TMP_DIR/yazi-x86_64-unknown-linux-gnu.zip")
 yazi_sha_arm64=$(fetch_sha "https://github.com/sxyazi/yazi/releases/download/${yazi_tag}/yazi-aarch64-unknown-linux-gnu.zip" "$TMP_DIR/yazi-aarch64-unknown-linux-gnu.zip")
 
+# superfile
+superfile_tag="${SUPERFILE_VERSION_OVERRIDE:-$(latest_tag "yorukot/superfile")}"
+if [ -z "$superfile_tag" ] || [ "$superfile_tag" = "null" ]; then
+    echo "Could not determine latest superfile release tag."
+    exit 1
+fi
+superfile_sha_amd64=$(fetch_sha "https://github.com/yorukot/superfile/releases/download/${superfile_tag}/superfile-linux-${superfile_tag}-amd64.tar.gz" "$TMP_DIR/superfile-linux-amd64.tar.gz")
+superfile_sha_arm64=$(fetch_sha "https://github.com/yorukot/superfile/releases/download/${superfile_tag}/superfile-linux-${superfile_tag}-arm64.tar.gz" "$TMP_DIR/superfile-linux-arm64.tar.gz")
+
 # atuin
 atuin_tag="${ATUIN_VERSION_OVERRIDE:-$(latest_tag "atuinsh/atuin")}"
 if [ -z "$atuin_tag" ] || [ "$atuin_tag" = "null" ]; then
@@ -250,6 +259,10 @@ FASTFETCH_DEB_SHA256_linux_aarch64=${fastfetch_sha_linux_aarch64}
 YAZI_VERSION=${yazi_tag}
 YAZI_ZIP_SHA256_x86_64_unknown_linux_gnu=${yazi_sha_x86}
 YAZI_ZIP_SHA256_aarch64_unknown_linux_gnu=${yazi_sha_arm64}
+
+SUPERFILE_VERSION=${superfile_tag}
+SUPERFILE_TAR_SHA256_amd64=${superfile_sha_amd64}
+SUPERFILE_TAR_SHA256_arm64=${superfile_sha_arm64}
 
 ATUIN_VERSION=${atuin_tag}
 ATUIN_TAR_SHA256_x86_64_unknown_linux_gnu=${atuin_sha_x86}

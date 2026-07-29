@@ -16,6 +16,7 @@ $optionalPackages = @(
     @{ Id = "Atuinsh.Atuin"; Name = "Atuin" },
     @{ Id = "Fastfetch-cli.Fastfetch"; Name = "Fastfetch" },
     @{ Id = "sxyazi.yazi"; Name = "Yazi" },
+    @{ Id = "yorukot.superfile"; Name = "superfile" },
     @{ Id = "aristocratos.btop4win"; Name = "btop" },
     @{ Id = "Clement.bottom"; Name = "bottom" },
     @{ Id = "bootandy.dust"; Name = "dust" },

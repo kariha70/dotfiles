@@ -4,7 +4,7 @@ The dotfiles support Linux, macOS, Windows, and WSL — each with platform-speci
 
 ## Linux (Ubuntu 22.04+)
 
-The primary platform. Bootstrap installs packages via `apt`, then layers on direct-download tools (Neovim AppImage, lazygit, delta, yazi, atuin, etc.) — all **SHA256-verified**.
+The primary platform. Bootstrap installs packages via `apt`, then layers on direct-download tools (Neovim AppImage, lazygit, delta, yazi, superfile, atuin, etc.) — all **SHA256-verified**.
 
 - Stows **6 config packages**: `bash`, `git`, `vim`, `zsh`, `tmux`, `nvim`
 - Sets **Zsh** as the default login shell

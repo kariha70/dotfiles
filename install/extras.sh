@@ -14,7 +14,7 @@ fi
 
 source_versions "$SCRIPT_DIR"
 
-echo "Installing extra modern tools (Glow, Atuin, Fastfetch, Yazi)..."
+echo "Installing extra modern tools (Glow, Atuin, Fastfetch, Yazi, superfile)..."
 
 # Detect architecture
 ARCH="$(get_arch)"
@@ -24,12 +24,14 @@ case "$ARCH" in
         YAZI_ARCH="x86_64-unknown-linux-gnu"
         ATUIN_ARCH="x86_64-unknown-linux-gnu"
         GLOW_ARCH="amd64"
+        SUPERFILE_ARCH="amd64"
         ;;
     arm64)
         FASTFETCH_ARCH="linux-aarch64"
         YAZI_ARCH="aarch64-unknown-linux-gnu"
         ATUIN_ARCH="aarch64-unknown-linux-gnu"
         GLOW_ARCH="arm64"
+        SUPERFILE_ARCH="arm64"
         ;;
 esac
 
@@ -148,6 +150,32 @@ if ! command -v yazi &> /dev/null; then
     echo "Yazi installed."
 else
     echo "Yazi is already installed."
+fi
+
+# 5. superfile (File manager)
+if ! command -v spf &> /dev/null; then
+    echo "Installing superfile..."
+    if [ -z "${SUPERFILE_VERSION:-}" ]; then
+        echo "SUPERFILE_VERSION is missing. Run scripts/bump-versions.sh."
+        exit 1
+    fi
+    SUPERFILE_SHA_VAR="SUPERFILE_TAR_SHA256_${SUPERFILE_ARCH}"
+    SUPERFILE_EXPECTED="${!SUPERFILE_SHA_VAR:-}"
+    SUPERFILE_URL="https://github.com/yorukot/superfile/releases/download/${SUPERFILE_VERSION}/superfile-linux-${SUPERFILE_VERSION}-${SUPERFILE_ARCH}.tar.gz"
+    SUPERFILE_TAR="$TMP_DIR/superfile.tar.gz"
+    download_and_verify "$SUPERFILE_URL" "$SUPERFILE_TAR" "$SUPERFILE_EXPECTED" "superfile ($SUPERFILE_ARCH)"
+    SUPERFILE_EXTRACT="$TMP_DIR/superfile"
+    mkdir -p "$SUPERFILE_EXTRACT"
+    tar -xf "$SUPERFILE_TAR" -C "$SUPERFILE_EXTRACT"
+    SUPERFILE_BIN=$(find "$SUPERFILE_EXTRACT" -maxdepth 3 -type f -name spf | head -1)
+    if [ -z "$SUPERFILE_BIN" ]; then
+        echo "superfile binary not found in extracted archive."
+        exit 1
+    fi
+    install -m 0755 "$SUPERFILE_BIN" "$HOME/.local/bin/spf"
+    echo "superfile installed."
+else
+    echo "superfile is already installed."
 fi
 
 echo "Extras installation complete."
