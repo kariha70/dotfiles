@@ -49,6 +49,7 @@ tool_declarations=(
     'procs|PROCS_APT_AVAILABLE|brew "procs"|dalance.procs'
     'rg|        ripgrep|brew "ripgrep"|BurntSushi.ripgrep.MSVC'
     'shellcheck|        shellcheck|brew "shellcheck"|koalaman.shellcheck'
+    'spf|SUPERFILE_VERSION|brew "superfile"|yorukot.superfile'
     'tldr|add_optional_package tealdeer "tealdeer (tldr)"|brew "tealdeer"|dbrgn.tealdeer'
     'xh|add_optional_package xh xh|brew "xh"|ducaale.xh'
     'yazi|YAZI_VERSION|brew "yazi"|sxyazi.yazi'

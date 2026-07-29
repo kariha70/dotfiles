@@ -42,7 +42,7 @@ Restart your shell and you're done. ✨
 
 | Category | Tools |
 |----------|-------|
-| **Files & Navigation** | [eza](https://github.com/eza-community/eza) · [zoxide](https://github.com/ajeetdsouza/zoxide) · [fd](https://github.com/sharkdp/fd) · [yazi](https://github.com/sxyazi/yazi) · [fzf](https://github.com/junegunn/fzf) |
+| **Files & Navigation** | [eza](https://github.com/eza-community/eza) · [zoxide](https://github.com/ajeetdsouza/zoxide) · [fd](https://github.com/sharkdp/fd) · [yazi](https://github.com/sxyazi/yazi) · [superfile](https://github.com/yorukot/superfile) · [fzf](https://github.com/junegunn/fzf) |
 | **Search & View** | [ripgrep](https://github.com/BurntSushi/ripgrep) · [bat](https://github.com/sharkdp/bat) · [glow](https://github.com/charmbracelet/glow) · [tldr](https://tldr.sh/) |
 | **Data & Text** | [jq](https://jqlang.org/) · [Miller (`mlr`)](https://miller.readthedocs.io/) |
 | **Git** | [delta](https://github.com/dandavison/delta) · [lazygit](https://github.com/jesseduffield/lazygit) · [gh](https://cli.github.com/) |
@@ -269,6 +269,7 @@ bash scripts/check-version-pins.sh    # Validate required pins and file parity
 | `FASTFETCH_DEB_SHA256_{linux_amd64,linux_aarch64}` | Fastfetch .deb packages |
 | `YAZI_ZIP_SHA256_{x86_64,aarch64}_unknown_linux_gnu` | Yazi prebuilt zips |
 | `ATUIN_TAR_SHA256_{x86_64,aarch64}_unknown_linux_gnu` | Atuin prebuilt tarballs |
+| `SUPERFILE_TAR_SHA256_{amd64,arm64}` | superfile prebuilt tarballs |
 | `NEOVIM_APPIMAGE_SHA256_{x86_64,arm64}` | Neovim AppImages |
 | `MESLO_*_TTF_SHA256` | MesloLGS NF fonts (4 variants) |
 | `EZA_KEY_FINGERPRINT` | eza apt repo GPG key |

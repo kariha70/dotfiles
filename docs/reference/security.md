@@ -50,6 +50,7 @@ Every downloaded asset is guarded by a dedicated environment variable:
 | `FASTFETCH_DEB_SHA256_{linux_amd64,linux_aarch64}` | Fastfetch `.deb` packages |
 | `YAZI_ZIP_SHA256_{x86_64,aarch64}_unknown_linux_gnu` | Yazi prebuilt zips |
 | `ATUIN_TAR_SHA256_{x86_64,aarch64}_unknown_linux_gnu` | Atuin prebuilt tarballs |
+| `SUPERFILE_TAR_SHA256_{amd64,arm64}` | superfile prebuilt tarballs |
 | `NEOVIM_APPIMAGE_SHA256_{x86_64,arm64}` | Neovim AppImages |
 | `MESLO_*_TTF_SHA256` | MesloLGS NF fonts (4 variants) |
 
