@@ -77,6 +77,10 @@ if command -v apt-get &> /dev/null; then
     sudo apt-get install -y eza
     
     echo "eza installed successfully."
+elif command -v pacman >/dev/null 2>&1; then
+    echo "Detected pacman. Installing eza from the Arch Linux repositories..."
+    pacman_install eza
+    echo "eza installed successfully."
 else
     echo "Package manager not supported for automatic eza installation. Please install eza manually."
 fi

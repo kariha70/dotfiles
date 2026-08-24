@@ -20,6 +20,12 @@ if command -v lazygit &> /dev/null; then
     exit 0
 fi
 
+if command -v pacman >/dev/null 2>&1; then
+    pacman_install lazygit
+    echo "lazygit installed via pacman."
+    exit 0
+fi
+
 if [ -z "${LAZYGIT_VERSION:-}" ]; then
     echo "LAZYGIT_VERSION is missing. Run scripts/bump-versions.sh to refresh install/versions.env."
     exit 1

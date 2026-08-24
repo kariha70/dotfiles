@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-GNU Stow-managed dotfiles repo targeting Linux, macOS (Homebrew), WSL, and Windows (PowerShell 7+). Each top-level directory (`bash/`, `git/`, `vim/`, `zsh/`, `tmux/`, `nvim/`) mirrors the `$HOME` tree and is symlinked by stow. Windows uses PowerShell link helpers instead of stow.
+GNU Stow-managed dotfiles repo targeting Ubuntu, Arch Linux, macOS (Homebrew), WSL, and Windows (PowerShell 7+). Each top-level directory (`bash/`, `git/`, `vim/`, `zsh/`, `tmux/`, `nvim/`) mirrors the `$HOME` tree and is symlinked by stow. Windows uses PowerShell link helpers instead of stow.
 
 ## Commands
 
@@ -100,7 +100,8 @@ download_and_verify "$URL" "$TMP_DIR/file" "$EXPECTED_SHA" "tool-name"
 | `is_true` | Parse boolean env var values |
 | `get_arch` | Normalize arch to `x86_64` / `arm64` |
 | `apt_update_once`, `apt_update_force` | Run apt-get update (once per session, or forced) |
-| `package_is_installed`, `apt_package_available` | Check dpkg/apt-cache for packages |
+| `pacman_update_once`, `pacman_install` | Upgrade Arch once per session and install signed packages |
+| `package_is_installed`, `apt_package_available`, `pacman_package_available` | Query installed or available distro packages |
 | `filter_missing_packages` | Return only packages not yet installed |
 | `download_and_verify <url> <output> <sha> <label>` | Download + SHA256 verify (fail-closed) |
 | `verify_sha256`, `sha256_file` | Checksum verification primitives |

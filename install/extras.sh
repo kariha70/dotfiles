@@ -12,6 +12,31 @@ if is_macos; then
     exit 0
 fi
 
+if command -v pacman >/dev/null 2>&1; then
+    echo "Installing extra modern tools from the Arch Linux repositories..."
+    ARCH_EXTRA_PACKAGES=()
+    command -v glow >/dev/null 2>&1 || ARCH_EXTRA_PACKAGES+=(glow)
+    command -v atuin >/dev/null 2>&1 || ARCH_EXTRA_PACKAGES+=(atuin)
+    command -v fastfetch >/dev/null 2>&1 || ARCH_EXTRA_PACKAGES+=(fastfetch)
+    command -v yazi >/dev/null 2>&1 || ARCH_EXTRA_PACKAGES+=(yazi)
+    command -v spf >/dev/null 2>&1 || ARCH_EXTRA_PACKAGES+=(superfile)
+
+    if [ "${#ARCH_EXTRA_PACKAGES[@]}" -gt 0 ]; then
+        pacman_install "${ARCH_EXTRA_PACKAGES[@]}"
+    else
+        echo "All extra modern tools are already installed."
+    fi
+
+    for command_name in glow atuin fastfetch yazi spf; do
+        if ! command -v "$command_name" >/dev/null 2>&1; then
+            echo "Arch package installation completed but '$command_name' is not available in PATH."
+            exit 1
+        fi
+    done
+    echo "Extras installation complete."
+    exit 0
+fi
+
 source_versions "$SCRIPT_DIR"
 
 echo "Installing extra modern tools (Glow, Atuin, Fastfetch, Yazi, superfile)..."

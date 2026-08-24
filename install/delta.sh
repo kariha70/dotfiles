@@ -30,6 +30,12 @@ if command -v apt-get &> /dev/null; then
     fi
 fi
 
+if command -v pacman >/dev/null 2>&1; then
+    pacman_install git-delta
+    echo "git-delta installed via pacman."
+    exit 0
+fi
+
 # Fallback: Download .deb from GitHub (for x86_64)
 # We use a fixed version for stability, but you might want to fetch the latest release tag.
 if [ -z "${DELTA_VERSION:-}" ]; then

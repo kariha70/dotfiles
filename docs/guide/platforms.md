@@ -2,17 +2,18 @@
 
 The dotfiles support Linux, macOS, Windows, and WSL — each with platform-specific tooling and behavior.
 
-## Linux (Ubuntu 22.04+)
+## Linux
 
-The primary platform. Bootstrap installs packages via `apt`, then layers on direct-download tools (Neovim AppImage, lazygit, delta, yazi, superfile, atuin, etc.) — all **SHA256-verified**.
+Ubuntu 22.04+ and Arch Linux are supported. Bootstrap uses `apt` on Ubuntu and `pacman` on Arch. Arch-native tools come from the signed official repositories; other upstream assets are **SHA256-verified** before installation.
 
 - Stows **6 config packages**: `bash`, `git`, `vim`, `zsh`, `tmux`, `nvim`
 - Sets **Zsh** as the default login shell
 - SSH server installed and enabled automatically
-- Supports both **x86_64** and **arm64** architectures
+- Ubuntu direct downloads support **x86_64** and **arm64**
+- Official Arch Linux support targets **x86_64**
 
 ::: tip Architecture support
-Every direct-download installer detects the CPU architecture at runtime and fetches the correct binary. No manual flags needed.
+Every direct-download installer detects the CPU architecture at runtime and fetches the correct binary. No manual flags are needed.
 :::
 
 ## WSL

@@ -35,6 +35,11 @@ ensure_cargo_path() {
 
 ensure_cargo_path
 
+if ! command -v rustup >/dev/null 2>&1 && command -v pacman >/dev/null 2>&1; then
+    echo "Installing rustup from the Arch Linux repositories..."
+    pacman_install rustup
+fi
+
 if is_macos; then
     load_brew_shellenv
 

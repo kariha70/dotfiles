@@ -12,6 +12,22 @@ if is_macos; then
     exit 0
 fi
 
+if command -v az >/dev/null 2>&1; then
+    echo "Azure CLI is already installed."
+    exit 0
+fi
+
+if command -v pacman >/dev/null 2>&1; then
+    echo "Installing Azure CLI from the Arch Linux repositories..."
+    pacman_install azure-cli
+    command -v az >/dev/null 2>&1 || {
+        echo "Azure CLI installation completed but 'az' is not available in PATH."
+        exit 1
+    }
+    echo "Azure CLI installation complete."
+    exit 0
+fi
+
 if ! is_linux || ! command -v apt-get >/dev/null 2>&1; then
     echo "Azure CLI installer currently supports apt-based Linux/WSL environments only. Skipping."
     exit 0

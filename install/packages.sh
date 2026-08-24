@@ -14,7 +14,7 @@ if is_macos; then
     exit 0
 fi
 
-# Check for apt-get (Debian/Ubuntu)
+# Debian/Ubuntu packages
 if command -v apt-get &> /dev/null; then
     echo "Detected apt-get. Updating and installing packages..."
     apt_update_once
@@ -155,6 +155,73 @@ if command -v apt-get &> /dev/null; then
             fi
         fi
     fi
+elif command -v pacman >/dev/null 2>&1; then
+    echo "Detected pacman. Updating and installing Arch Linux packages..."
+    pacman_update_once
+
+    PACKAGES=(
+        curl
+        git
+        vim
+        stow
+        htop
+        jq
+        base-devel
+        zsh
+        fontconfig
+        fzf
+        bat
+        ripgrep
+        fd
+        btop
+        tmux
+        unzip
+        shellcheck
+        gnupg
+        wakeonlan
+        openssh
+        libsecret
+    )
+
+    add_arch_optional_package() {
+        local pkg="$1" label="${2:-$1}"
+        if pacman_package_available "$pkg"; then
+            append_unique PACKAGES "$pkg"
+        else
+            echo "Skipping $label (pacman package not available)."
+        fi
+    }
+
+    add_arch_optional_package dust dust
+    add_arch_optional_package procs procs
+    add_arch_optional_package gping gping
+    add_arch_optional_package hyperfine hyperfine
+    add_arch_optional_package httpie "HTTPie"
+    add_arch_optional_package just just
+    add_arch_optional_package miller "Miller (mlr)"
+    add_arch_optional_package xh xh
+    add_arch_optional_package bottom bottom
+    add_arch_optional_package tealdeer "tealdeer (tldr)"
+    add_arch_optional_package github-cli "GitHub CLI (gh)"
+    add_arch_optional_package direnv direnv
+    add_arch_optional_package age age
+    add_arch_optional_package duf duf
+    add_arch_optional_package kubectl kubectl
+    add_arch_optional_package helm helm
+
+    if [ -n "${EXTRA_TOOLS:-}" ]; then
+        IFS=' ' read -r -a EXTRA_TOOL_PACKAGES <<< "${EXTRA_TOOLS}"
+        for extra_pkg in "${EXTRA_TOOL_PACKAGES[@]}"; do
+            [ -n "$extra_pkg" ] || continue
+            case "$extra_pkg" in
+                gh) arch_pkg="github-cli" ;;
+                *) arch_pkg="$extra_pkg" ;;
+            esac
+            add_arch_optional_package "$arch_pkg" "$extra_pkg"
+        done
+    fi
+
+    pacman_install "${PACKAGES[@]}"
 else
     echo "Package manager not supported in this script yet. Please install 'stow' manually."
 fi
