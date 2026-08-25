@@ -76,7 +76,16 @@ NEOVIM_URL="https://github.com/neovim/neovim/releases/download/${NEOVIM_VERSION}
 
 download_and_verify "$NEOVIM_URL" "$NEOVIM_ARCHIVE" "$EXPECTED_SHA" "Neovim appimage (${ARCH})"
 
-sudo install -m 0755 "$NEOVIM_ARCHIVE" "/usr/local/bin/nvim"
+chmod +x "$NEOVIM_ARCHIVE"
+(
+    cd "$TMP_DIR"
+    "$NEOVIM_ARCHIVE" --appimage-extract >/dev/null
+)
+
+NEOVIM_INSTALL_DIR="/usr/local/lib/nvim-${NEOVIM_VERSION}-${ARCH}"
+sudo install -d "$NEOVIM_INSTALL_DIR"
+sudo cp -a "$TMP_DIR/squashfs-root/." "$NEOVIM_INSTALL_DIR/"
+sudo ln -sfn "$NEOVIM_INSTALL_DIR/usr/bin/nvim" "/usr/local/bin/nvim"
 
 installed_version="$(normalize_version "$(nvim --version | awk '/^NVIM / {print $2}' | sed 's/^v//')")"
 if ! version_at_least "$installed_version" "$MINIMUM_VERSION"; then
