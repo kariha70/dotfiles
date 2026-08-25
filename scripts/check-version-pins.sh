@@ -90,6 +90,7 @@ version_pins=(
     ATUIN_VERSION
     HERDR_VERSION
     HERDR_WINDOWS_PREVIEW_TAG
+    HERDR_WINDOWS_ASSET
 )
 
 for name in "${sha_pins[@]}"; do
@@ -105,6 +106,11 @@ done
 for name in "${version_pins[@]}"; do
     [ -n "${!name:-}" ] || fail "$name is missing"
 done
+
+case "$HERDR_WINDOWS_ASSET" in
+    herdr-windows-x86_64.exe | herdr-windows-x86_64.zip) ;;
+    *) fail "HERDR_WINDOWS_ASSET must name a supported Herdr Windows asset" ;;
+esac
 
 [[ "${EZA_KEY_FINGERPRINT:-}" =~ ^[A-F0-9]{40}$ ]] || \
     fail "EZA_KEY_FINGERPRINT must be a full uppercase GPG fingerprint"

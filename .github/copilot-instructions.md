@@ -20,8 +20,7 @@ stow -v -R -t "$HOME" -d "$(pwd)" bash git vim zsh tmux nvim
 shellcheck install/*.sh install/lib/helpers.sh
 
 # Bump pinned versions and checksums
-bash scripts/bump-versions.sh         # regenerates install/versions.env
-pwsh -File scripts/bump-versions.ps1  # syncs install/versions.ps1
+bash scripts/bump-versions.sh  # regenerates install/versions.env and install/versions.ps1
 
 # Windows bootstrap
 pwsh -NoLogo -NoProfile -ExecutionPolicy Bypass -File .\bootstrap.ps1
@@ -119,7 +118,7 @@ All versions and SHA256 checksums live in `install/versions.env` (Linux) and `in
 
 1. Create `install/newapp.sh` following the pattern above
 2. Add version/SHA fetch logic to `scripts/bump-versions.sh`
-3. Run `scripts/bump-versions.sh` to populate `install/versions.env`
+3. Run `scripts/bump-versions.sh` to populate both version pin files
 4. Hook into `bootstrap.sh` with `maybe_run NEWAPP "$DOTFILES_DIR/install/newapp.sh"`
 
 ### Adding a New Stow Package

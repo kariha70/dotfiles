@@ -246,10 +246,13 @@ All third-party downloads are **SHA256-verified** — if a checksum doesn't matc
 Pinned versions and checksums live in `install/versions.env` (Bash) and `install/versions.ps1` (PowerShell). Refresh with:
 
 ```bash
-bash scripts/bump-versions.sh         # Download new releases, compute SHA256
-pwsh -File scripts/bump-versions.ps1  # Sync PowerShell pins from versions.env
-bash scripts/check-version-pins.sh    # Validate required pins and file parity
+bash scripts/bump-versions.sh       # Refresh Bash and PowerShell pins
+bash scripts/check-version-pins.sh  # Validate required pins and file parity
 ```
+
+The Bash updater runs on Ubuntu, Arch Linux, and macOS. The standalone
+`scripts/bump-versions.ps1` command can re-sync `versions.ps1` from an existing
+`versions.env` without downloading release assets again.
 
 <details>
 <summary><strong>Full checksum inventory</strong></summary>
