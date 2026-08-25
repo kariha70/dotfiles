@@ -20,6 +20,16 @@ require_cmd jq
 require_cmd git
 require_cmd gpg
 
+CURL_ARGS=(
+    --fail
+    --location
+    --silent
+    --show-error
+    --retry 3
+    --retry-delay 2
+    --retry-all-errors
+)
+
 sha256_portable() {
     if command -v sha256sum >/dev/null 2>&1; then
         sha256sum "$1" | awk '{print $1}'
@@ -33,7 +43,7 @@ sha256_portable() {
 
 fetch_sha() {
     local url="$1" dest="$2"
-    curl -fLs "$url" -o "$dest"
+    curl "${CURL_ARGS[@]}" "$url" -o "$dest"
     sha256_portable "$dest"
 }
 
@@ -49,7 +59,7 @@ gpg_fingerprint() {
 
 latest_tag() {
     local repo="$1"
-    curl -fsSL "https://api.github.com/repos/${repo}/releases/latest" |
+    curl "${CURL_ARGS[@]}" "https://api.github.com/repos/${repo}/releases/latest" |
         jq -er '.tag_name | select(type == "string" and length > 0)'
 }
 
@@ -179,7 +189,7 @@ herdr_sha_x86=$(fetch_sha "https://github.com/${herdr_repo}/releases/download/${
 herdr_sha_arm64=$(fetch_sha "https://github.com/${herdr_repo}/releases/download/${herdr_tag}/herdr-linux-aarch64" "$TMP_DIR/herdr-linux-aarch64")
 
 herdr_preview_manifest="$TMP_DIR/herdr-preview.json"
-curl -fLsS "https://herdr.dev/preview.json" -o "$herdr_preview_manifest"
+curl "${CURL_ARGS[@]}" "https://herdr.dev/preview.json" -o "$herdr_preview_manifest"
 herdr_windows_url=$(jq -er '.assets["windows-x86_64"].url' "$herdr_preview_manifest")
 herdr_windows_declared_sha=$(jq -er '.assets["windows-x86_64"].sha256' "$herdr_preview_manifest")
 herdr_windows_preview_tag=$(basename "$(dirname "$herdr_windows_url")")
@@ -217,7 +227,7 @@ homebrew_installer_sha=$(fetch_sha "https://raw.githubusercontent.com/Homebrew/i
 azure_cli_apt_installer_sha=$(fetch_sha "https://aka.ms/InstallAzureCLIDeb" "$TMP_DIR/install-azure-cli.sh")
 
 # eza apt repository signing key
-curl -fLsS "https://raw.githubusercontent.com/eza-community/eza/main/deb.asc" -o "$TMP_DIR/eza.asc"
+curl "${CURL_ARGS[@]}" "https://raw.githubusercontent.com/eza-community/eza/main/deb.asc" -o "$TMP_DIR/eza.asc"
 eza_key_fingerprint=$(gpg_fingerprint "$TMP_DIR/eza.asc")
 
 # Pinned git refs
