@@ -15,13 +15,8 @@ if is_macos; then
     exit 0
 fi
 
-if ! command -v curl >/dev/null 2>&1; then
-    echo "curl is required to install Neovim."
-    exit 1
-fi
-
 if ! command -v nvim >/dev/null 2>&1; then
-    echo "Neovim not found. Installing from pinned release appimage."
+    echo "Neovim not found."
 else
     current_version="$(normalize_version "$(nvim --version | awk '/^NVIM / {print $2}' | sed 's/^v//')")"
     if version_at_least "$current_version" "$MINIMUM_VERSION"; then
@@ -30,6 +25,25 @@ else
     fi
     echo "Neovim ${current_version} is below minimum ${MINIMUM_VERSION}. Upgrading."
 fi
+
+if command -v pacman >/dev/null 2>&1; then
+    echo "Installing Neovim from the Arch Linux repositories..."
+    pacman_install neovim
+    installed_version="$(normalize_version "$(nvim --version | awk '/^NVIM / {print $2}' | sed 's/^v//')")"
+    if ! version_at_least "$installed_version" "$MINIMUM_VERSION"; then
+        echo "Neovim upgrade failed; installed version ${installed_version} is below ${MINIMUM_VERSION}."
+        exit 1
+    fi
+    echo "Neovim upgraded to ${installed_version}."
+    exit 0
+fi
+
+if ! command -v curl >/dev/null 2>&1; then
+    echo "curl is required to install Neovim."
+    exit 1
+fi
+
+echo "Installing Neovim from pinned release appimage."
 
 if [ -z "${NEOVIM_VERSION:-}" ]; then
     echo "NEOVIM_VERSION is missing. Run scripts/bump-versions.sh to refresh install/versions.env."
@@ -62,7 +76,16 @@ NEOVIM_URL="https://github.com/neovim/neovim/releases/download/${NEOVIM_VERSION}
 
 download_and_verify "$NEOVIM_URL" "$NEOVIM_ARCHIVE" "$EXPECTED_SHA" "Neovim appimage (${ARCH})"
 
-sudo install -m 0755 "$NEOVIM_ARCHIVE" "/usr/local/bin/nvim"
+chmod +x "$NEOVIM_ARCHIVE"
+(
+    cd "$TMP_DIR"
+    "$NEOVIM_ARCHIVE" --appimage-extract >/dev/null
+)
+
+NEOVIM_INSTALL_DIR="/usr/local/lib/nvim-${NEOVIM_VERSION}-${ARCH}"
+sudo install -d "$NEOVIM_INSTALL_DIR"
+sudo cp -a "$TMP_DIR/squashfs-root/." "$NEOVIM_INSTALL_DIR/"
+sudo ln -sfn "$NEOVIM_INSTALL_DIR/usr/bin/nvim" "/usr/local/bin/nvim"
 
 installed_version="$(normalize_version "$(nvim --version | awk '/^NVIM / {print $2}' | sed 's/^v//')")"
 if ! version_at_least "$installed_version" "$MINIMUM_VERSION"; then

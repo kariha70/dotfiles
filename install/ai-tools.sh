@@ -30,7 +30,7 @@ if ! command -v herdr >/dev/null 2>&1; then
         x86_64) HERDR_ASSET="herdr-linux-x86_64" ;;
         arm64) HERDR_ASSET="herdr-linux-aarch64" ;;
     esac
-    HERDR_URL="https://github.com/ogulcancelik/herdr/releases/download/v${HERDR_VERSION}/${HERDR_ASSET}"
+    HERDR_URL="https://github.com/herdrdev/herdr/releases/download/v${HERDR_VERSION}/${HERDR_ASSET}"
     HERDR_TMP="$(mktemp /tmp/herdr.XXXXXX)"
     trap 'rm -f "$HERDR_TMP"' EXIT
 

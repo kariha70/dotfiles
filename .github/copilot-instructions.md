@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-GNU Stow-managed dotfiles repo targeting Linux, macOS (Homebrew), WSL, and Windows (PowerShell 7+). Each top-level directory (`bash/`, `git/`, `vim/`, `zsh/`, `tmux/`, `nvim/`) mirrors the `$HOME` tree and is symlinked by stow. Windows uses PowerShell link helpers instead of stow.
+GNU Stow-managed dotfiles repo targeting Ubuntu, Arch Linux, macOS (Homebrew), WSL, and Windows (PowerShell 7+). Each top-level directory (`bash/`, `git/`, `vim/`, `zsh/`, `tmux/`, `nvim/`) mirrors the `$HOME` tree and is symlinked by stow. Windows uses PowerShell link helpers instead of stow.
 
 ## Commands
 
@@ -20,8 +20,7 @@ stow -v -R -t "$HOME" -d "$(pwd)" bash git vim zsh tmux nvim
 shellcheck install/*.sh install/lib/helpers.sh
 
 # Bump pinned versions and checksums
-bash scripts/bump-versions.sh         # regenerates install/versions.env
-pwsh -File scripts/bump-versions.ps1  # syncs install/versions.ps1
+bash scripts/bump-versions.sh  # regenerates install/versions.env and install/versions.ps1
 
 # Windows bootstrap
 pwsh -NoLogo -NoProfile -ExecutionPolicy Bypass -File .\bootstrap.ps1
@@ -100,7 +99,8 @@ download_and_verify "$URL" "$TMP_DIR/file" "$EXPECTED_SHA" "tool-name"
 | `is_true` | Parse boolean env var values |
 | `get_arch` | Normalize arch to `x86_64` / `arm64` |
 | `apt_update_once`, `apt_update_force` | Run apt-get update (once per session, or forced) |
-| `package_is_installed`, `apt_package_available` | Check dpkg/apt-cache for packages |
+| `pacman_update_once`, `pacman_install` | Upgrade Arch once per session and install signed packages |
+| `package_is_installed`, `apt_package_available`, `pacman_package_available` | Query installed or available distro packages |
 | `filter_missing_packages` | Return only packages not yet installed |
 | `download_and_verify <url> <output> <sha> <label>` | Download + SHA256 verify (fail-closed) |
 | `verify_sha256`, `sha256_file` | Checksum verification primitives |
@@ -118,7 +118,7 @@ All versions and SHA256 checksums live in `install/versions.env` (Linux) and `in
 
 1. Create `install/newapp.sh` following the pattern above
 2. Add version/SHA fetch logic to `scripts/bump-versions.sh`
-3. Run `scripts/bump-versions.sh` to populate `install/versions.env`
+3. Run `scripts/bump-versions.sh` to populate both version pin files
 4. Hook into `bootstrap.sh` with `maybe_run NEWAPP "$DOTFILES_DIR/install/newapp.sh"`
 
 ### Adding a New Stow Package

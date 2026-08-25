@@ -76,14 +76,14 @@ Restart your shell and you're done. ✨
 ## 🖥️ Platform Details
 
 <details>
-<summary><strong>🐧 Linux (Ubuntu 22.04+)</strong></summary>
+<summary><strong>🐧 Linux (Ubuntu 22.04+ and Arch Linux)</strong></summary>
 
-The primary platform. Bootstrap installs packages via `apt`, then layers on direct-download tools (Neovim AppImage, lazygit, delta, yazi, atuin, etc.) — all SHA256-verified.
+Bootstrap uses `apt` on Ubuntu and `pacman` on Arch Linux. Arch-native packages come from the signed official repositories; tools without a suitable distro package use SHA256-verified upstream assets.
 
 - Stows 6 config packages: `bash`, `git`, `vim`, `zsh`, `tmux`, `nvim`
 - Sets Zsh as the default login shell
 - SSH server installed and enabled automatically
-- Supports both `x86_64` and `arm64` architectures
+- Ubuntu direct downloads support both `x86_64` and `arm64`; official Arch Linux support targets `x86_64`
 
 </details>
 
@@ -136,7 +136,7 @@ Parallel bootstrap flow using `winget` and PowerShell modules:
 | `ONLY_STOW=1` | Skip all installers — only symlink configs |
 | `SKIP_<STEP>=1` | Skip a specific step (see full list below) |
 | `APPLY_MACOS_DEFAULTS=1` | Opt-in to macOS system preferences |
-| `EXTRA_TOOLS="pkg1 pkg2"` | Additional apt packages to install |
+| `EXTRA_TOOLS="pkg1 pkg2"` | Additional apt or pacman packages to install |
 | `EXTRA_CONFLICT_FILES="path1"` | Extra files to back up before stowing |
 | `BREWFILE_PATH=/path` | Override the macOS Brewfile |
 | `BREW_CLEANUP=1` | Remove unlisted Homebrew packages |
@@ -241,15 +241,18 @@ stow -v -R -t "$HOME" -d "$(pwd)" alacritty
 
 ## 🔒 Security
 
-All third-party downloads are **SHA256-verified** — if a checksum doesn't match, the installer fails immediately. No silent fallbacks.
+All third-party downloads are **SHA256-verified** — if a checksum doesn't match, the installer fails immediately. Distro packages are authenticated by apt or pacman. No silent fallbacks.
 
 Pinned versions and checksums live in `install/versions.env` (Bash) and `install/versions.ps1` (PowerShell). Refresh with:
 
 ```bash
-bash scripts/bump-versions.sh         # Download new releases, compute SHA256
-pwsh -File scripts/bump-versions.ps1  # Sync PowerShell pins from versions.env
-bash scripts/check-version-pins.sh    # Validate required pins and file parity
+bash scripts/bump-versions.sh       # Refresh Bash and PowerShell pins
+bash scripts/check-version-pins.sh  # Validate required pins and file parity
 ```
+
+The Bash updater runs on Ubuntu, Arch Linux, and macOS. The standalone
+`scripts/bump-versions.ps1` command can re-sync `versions.ps1` from an existing
+`versions.env` without downloading release assets again.
 
 <details>
 <summary><strong>Full checksum inventory</strong></summary>
@@ -284,7 +287,7 @@ Every push and PR is validated automatically:
 | Workflow | What it checks |
 |----------|---------------|
 | **[Lint](https://github.com/kariha70/dotfiles/actions/workflows/lint.yml)** | ShellCheck · PSScriptAnalyzer · version-pin validation · cross-platform CLI parity |
-| **[Bootstrap](https://github.com/kariha70/dotfiles/actions/workflows/bootstrap.yml)** | Full bootstrap on Ubuntu 22.04, Ubuntu 24.04, macOS, and Windows · Tool verification · Symlink checks · Idempotency (runs twice) |
+| **[Bootstrap](https://github.com/kariha70/dotfiles/actions/workflows/bootstrap.yml)** | Full bootstrap on Ubuntu 22.04, Ubuntu 24.04, Arch Linux, macOS, and Windows · Tool verification · Symlink checks · Idempotency (runs twice) |
 
 ## 📁 Project Structure
 
@@ -334,7 +337,7 @@ dotfiles/
 │   ├── versions.ps1                # PowerShell version definitions
 │   ├── Brewfile                    # macOS Homebrew manifest
 │   ├── macos.sh / macos-defaults.sh
-│   ├── packages.sh                 # Core apt packages
+│   ├── packages.sh                 # Core apt/pacman packages
 │   ├── ohmyzsh.sh                  # Oh My Zsh + plugins + Powerlevel10k
 │   ├── fonts.sh                    # MesloLGS Nerd Font
 │   ├── eza.sh / zoxide.sh / delta.sh / lazygit.sh
@@ -345,7 +348,8 @@ dotfiles/
 │
 ├── scripts/
 │   ├── bump-versions.sh            # Update versions + checksums
-│   └── bump-versions.ps1           # Sync PS versions from env
+│   ├── bump-versions.ps1           # Sync PS versions from env
+│   └── arch-smoke-test.sh          # Arch bootstrap + idempotency test
 │
 ├── .github/
 │   ├── workflows/

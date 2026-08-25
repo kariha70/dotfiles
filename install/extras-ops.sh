@@ -14,6 +14,55 @@ fi
 
 echo "Installing operations extras (gh, direnv, age, kubectl, helm, duf)..."
 
+if command -v pacman >/dev/null 2>&1; then
+    ARCH_EXTRAS_OPS_PACKAGES=()
+    if [ "${DOTFILES_BOOTSTRAP:-0}" != "1" ]; then
+        ARCH_EXTRAS_OPS_PACKAGES=(
+            github-cli
+            direnv
+            age
+            duf
+            kubectl
+            helm
+        )
+    fi
+
+    if [ -n "${EXTRA_TOOLS:-}" ]; then
+        IFS=' ' read -r -a EXTRA_TOOL_PACKAGES <<< "${EXTRA_TOOLS}"
+        for extra_pkg in "${EXTRA_TOOL_PACKAGES[@]}"; do
+            [ -n "$extra_pkg" ] || continue
+            case "$extra_pkg" in
+                gh) arch_pkg="github-cli" ;;
+                *) arch_pkg="$extra_pkg" ;;
+            esac
+            append_unique ARCH_EXTRAS_OPS_PACKAGES "$arch_pkg"
+        done
+    fi
+
+    if [ "${#ARCH_EXTRAS_OPS_PACKAGES[@]}" -eq 0 ]; then
+        echo "No standalone operations extras requested."
+        exit 0
+    fi
+
+    pacman_update_once
+    ARCH_EXTRAS_OPS_INSTALLABLE=()
+    for pkg in "${ARCH_EXTRAS_OPS_PACKAGES[@]}"; do
+        if pacman_package_available "$pkg"; then
+            ARCH_EXTRAS_OPS_INSTALLABLE+=("$pkg")
+        else
+            echo "Skipping $pkg (pacman package not available)."
+        fi
+    done
+
+    if [ "${#ARCH_EXTRAS_OPS_INSTALLABLE[@]}" -gt 0 ]; then
+        pacman_install "${ARCH_EXTRAS_OPS_INSTALLABLE[@]}"
+    else
+        echo "No operations extras available for this distro."
+    fi
+    echo "Operations extras installation complete."
+    exit 0
+fi
+
 if ! command -v apt-get >/dev/null 2>&1; then
     echo "Package manager not supported for this script; skipping."
     exit 0

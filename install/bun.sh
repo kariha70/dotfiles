@@ -20,6 +20,12 @@ if command -v bun &> /dev/null; then
     exit 0
 fi
 
+if command -v pacman >/dev/null 2>&1; then
+    pacman_install bun
+    echo "bun installed via pacman."
+    exit 0
+fi
+
 EXPECTED_SHA="${BUN_INSTALLER_SHA256:-}"
 INSTALLER_PATH="$(mktemp /tmp/bun-install.XXXXXX.sh)"
 trap 'rm -f "$INSTALLER_PATH"' EXIT

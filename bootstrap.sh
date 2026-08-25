@@ -12,7 +12,8 @@ source "$HELPERS"
 
 # Shared apt update sentinel for this bootstrap run
 export APT_UPDATE_SENTINEL="${APT_UPDATE_SENTINEL:-/tmp/dotfiles_apt_updated_$$}"
-rm -f "$APT_UPDATE_SENTINEL" 2>/dev/null || true
+export PACMAN_UPDATE_SENTINEL="${PACMAN_UPDATE_SENTINEL:-/tmp/dotfiles_pacman_updated_$$}"
+rm -f "$APT_UPDATE_SENTINEL" "$PACMAN_UPDATE_SENTINEL" 2>/dev/null || true
 export DOTFILES_BOOTSTRAP=1
 
 IS_WSL=false

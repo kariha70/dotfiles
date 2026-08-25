@@ -9,7 +9,7 @@ Customize the bootstrap behavior with environment variables, skip flags, and loc
 | `ONLY_STOW=1` | Skip all installers — only symlink configs |
 | `SKIP_<STEP>=1` | Skip a specific step (see [full list below](#skip-flags)) |
 | `APPLY_MACOS_DEFAULTS=1` | Opt-in to macOS system preferences automation |
-| `EXTRA_TOOLS="pkg1 pkg2"` | Additional apt packages to install alongside defaults |
+| `EXTRA_TOOLS="pkg1 pkg2"` | Additional apt or pacman packages to install alongside defaults |
 | `EXTRA_CONFLICT_FILES="path1"` | Extra files to back up before stowing |
 | `BREWFILE_PATH=/path` | Override the macOS Brewfile location |
 | `BREW_CLEANUP=1` | Remove unlisted Homebrew packages after install |
@@ -26,7 +26,7 @@ Use `SKIP_<STEP>=1` to disable individual bootstrap steps.
 
 | Flag | Skips |
 |------|-------|
-| `SKIP_PACKAGES` | Core apt packages |
+| `SKIP_PACKAGES` | Core apt or pacman packages |
 | `SKIP_MACOS` | macOS Homebrew bundle |
 | `SKIP_SSH` | SSH server setup |
 | `SKIP_OHMYZSH` | Oh My Zsh + plugins + Powerlevel10k |

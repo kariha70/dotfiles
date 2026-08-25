@@ -145,8 +145,16 @@ apt_load_installed_cache() {
 
 package_is_installed() {
     local pkg="$1"
-    apt_load_installed_cache || return 1
-    grep -Fxq "$pkg" <<<"$APT_INSTALLED_CACHE"
+    if command -v dpkg-query >/dev/null 2>&1; then
+        apt_load_installed_cache || return 1
+        grep -Fxq "$pkg" <<<"$APT_INSTALLED_CACHE"
+        return
+    fi
+    if command -v pacman >/dev/null 2>&1; then
+        pacman -Qq "$pkg" >/dev/null 2>&1
+        return
+    fi
+    return 1
 }
 
 # Cache the package index names once per shell process.
@@ -165,6 +173,40 @@ apt_package_available() {
     local pkg="$1"
     apt_load_available_cache || return 1
     grep -Fxq "$pkg" <<<"$APT_AVAILABLE_CACHE"
+}
+
+# --- Pacman helpers --------------------------------------------------------
+
+: "${PACMAN_UPDATE_SENTINEL:=/tmp/dotfiles_pacman_updated_$$}"
+export PACMAN_UPDATE_SENTINEL
+
+# Arch Linux does not support partial upgrades, so the first package install
+# in a bootstrap run performs a full system upgrade.
+pacman_update_once() {
+    if ! command -v pacman >/dev/null 2>&1; then
+        return 1
+    fi
+    if [ -n "${PACMAN_UPDATED:-}" ] || [ -f "${PACMAN_UPDATE_SENTINEL:-/tmp/dotfiles_pacman_updated}" ]; then
+        echo "Skipping pacman system update (already run)."
+        return 0
+    fi
+    echo "Updating Arch Linux packages..."
+    sudo pacman -Syu --noconfirm
+    export PACMAN_UPDATED=1
+    touch "${PACMAN_UPDATE_SENTINEL:-/tmp/dotfiles_pacman_updated}"
+}
+
+pacman_package_available() {
+    local pkg="$1"
+    command -v pacman >/dev/null 2>&1 && pacman -Si "$pkg" >/dev/null 2>&1
+}
+
+pacman_install() {
+    if [ "$#" -eq 0 ]; then
+        return 0
+    fi
+    pacman_update_once
+    sudo pacman -S --needed --noconfirm "$@"
 }
 
 filter_missing_packages() {

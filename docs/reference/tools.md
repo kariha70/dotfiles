@@ -29,12 +29,11 @@ herdr integration install claude
 herdr integration install copilot
 ```
 
-::: info Linux tool fallback behaviour
-On Linux, most tools are installed from `.deb` packages or prebuilt archives.
-When a prebuilt binary is not available for the current architecture, the
-installer falls back to a `cargo install` (e.g. **procs**). Cargo fallbacks
-require Rust to be installed first — the bootstrap handles ordering
-automatically.
+::: info Linux package behaviour
+Ubuntu uses apt packages plus SHA256-verified upstream assets. Arch Linux uses
+signed packages from the official pacman repositories when available. The
+optional **procs** source fallback is available on apt systems when no distro
+package exists; enable it with `INSTALL_PROCS_FROM_SOURCE=1`.
 :::
 
 ## Development Runtimes

@@ -19,17 +19,17 @@ Use the bump-versions scripts to download new releases and compute fresh
 SHA256 hashes:
 
 ```bash
-# Bash — downloads assets and recomputes checksums
+# Bash — downloads assets, recomputes checksums, and updates both pin files
 bash scripts/bump-versions.sh
-
-# PowerShell — syncs pins from versions.env into versions.ps1
-pwsh -File scripts/bump-versions.ps1
 ```
 
 ::: warning
-Always run **both** scripts when updating versions so Linux/macOS and Windows
-pins stay in sync.
+Always commit both generated pin files so Linux/macOS and Windows stay in sync.
 :::
+
+The Bash updater works on Ubuntu, Arch Linux, and macOS. To re-sync only the
+PowerShell pins from an existing `versions.env`, run
+`pwsh -File scripts/bump-versions.ps1`.
 
 ## Checksum Inventory
 

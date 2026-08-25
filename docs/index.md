@@ -14,7 +14,7 @@ hero:
 features:
   - icon: 🖥️
     title: Cross-Platform
-    details: Native support for Linux, macOS, Windows, and WSL — with platform-specific bootstraps using apt, Homebrew, and winget.
+    details: Native support for Linux, macOS, Windows, and WSL — with platform-specific bootstraps using apt, pacman, Homebrew, and winget.
   - icon: 🧰
     title: 30+ Modern CLI Tools
     details: eza, bat, ripgrep, fd, delta, lazygit, yazi, atuin, zoxide, fzf, and more — all configured with aliases and shell integration.

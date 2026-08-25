@@ -31,6 +31,12 @@ if command -v apt-get &> /dev/null; then
     echo "zoxide not available via apt, falling back to upstream installer."
 fi
 
+if command -v pacman >/dev/null 2>&1; then
+    pacman_install zoxide
+    echo "zoxide installed via pacman."
+    exit 0
+fi
+
 # Fallback: install zoxide to ~/.local/bin with checksum enforcement
 INSTALLER_PATH="$(mktemp /tmp/zoxide-install.XXXXXX.sh)"
 trap 'rm -f "$INSTALLER_PATH"' EXIT

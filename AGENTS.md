@@ -2,8 +2,8 @@
 
 ## Project Structure & Module Organization
 - Core configs live in `bash/`, `git/`, `vim/`, and `zsh/`; each mirrors files symlinked into `$HOME`.
-- `install/` holds modular installers (`packages.sh`, `ohmyzsh.sh`, `fonts.sh`, etc.) invoked by the bootstrap flow; each should be re-runnable.
-- Shared shell helpers live in `install/lib/helpers.sh`; **always hard-source it** (`source "$SCRIPT_DIR/lib/helpers.sh"`) at the top of every installer — never conditionally fall back to inline definitions. It provides: `is_wsl`, `is_macos`, `is_linux`, `apt_update_once`, `ensure_local_bin`, `get_arch`, `sha256_file`, `verify_sha256`, `source_versions`, `download_and_verify`, `log_info`, `log_warn`.
+- `install/` holds modular installers (`packages.sh`, `ohmyzsh.sh`, `fonts.sh`, etc.) invoked by the bootstrap flow; each should be re-runnable. Linux package paths must support both apt-based Ubuntu and pacman-based Arch Linux.
+- Shared shell helpers live in `install/lib/helpers.sh`; **always hard-source it** (`source "$SCRIPT_DIR/lib/helpers.sh"`) at the top of every installer — never conditionally fall back to inline definitions. It provides: `is_wsl`, `is_macos`, `is_linux`, `apt_update_once`, `pacman_update_once`, `pacman_install`, `ensure_local_bin`, `get_arch`, `sha256_file`, `verify_sha256`, `source_versions`, `download_and_verify`, `log_info`, `log_warn`.
 - Pinned versions and checksums are centralized in `install/versions.env`; use `source_versions "$SCRIPT_DIR"` instead of inline sourcing boilerplate. For downloads, prefer `download_and_verify <url> <output> <sha> <label>`.
 - Shared shell logic (used by both `.bashrc` and `.zshrc`) lives in `bash/.config/shell/` and is stowed to `~/.config/shell/`.
 - `bootstrap.sh` orchestrates installs, WSL detection, stow runs, and default-shell switching. macOS system defaults are opt-in via `APPLY_MACOS_DEFAULTS=1`.
@@ -15,7 +15,7 @@
 - Iterate on one tool: `bash install/<script>.sh` (e.g., `bash install/eza.sh`) instead of the whole bootstrap.
 - Restow after config edits: `stow -v -R -t "$HOME" -d "$(pwd)" bash git vim zsh tmux nvim`.
 - Spot-check shell scripts: `shellcheck install/*.sh install/lib/helpers.sh` to catch quoting and portability issues (bootstrap installs shellcheck).
-- CI runs automatically on push/PR to `main`: shellcheck + PSScriptAnalyzer linting, and cross-platform bootstrap smoke tests on Ubuntu, macOS, and Windows.
+- CI runs automatically on push/PR to `main`: shellcheck + PSScriptAnalyzer linting, and cross-platform bootstrap smoke tests on Ubuntu, Arch Linux, macOS, and Windows.
 
 ## Coding Style & Naming Conventions
 - Shell scripts use Bash with `set -e`; keep commands strictly quoted, favor `command -v` checks, and gate OS-specific logic with the existing WSL detection pattern (`grep -qEi "(Microsoft|WSL)" /proc/version`).
@@ -34,7 +34,7 @@
 - Link related issues when present, and attach terminal snippets only if they clarify behavior (e.g., WSL detection output).
 
 ## Security & Configuration Tips
-- Installers call `sudo apt-get` and modify login shells; avoid secrets or machine-specific paths. Prefer env vars to tokens.
+- Installers call `sudo apt-get` or `sudo pacman` and modify login shells; avoid secrets or machine-specific paths. Prefer env vars to tokens.
 - Respect WSL/host differences: keep font installs gated to non-WSL and leave SSH changes skipped on WSL unless explicitly needed.
 - For any installer that downloads a script or prebuilt archive, require a SHA256 and fail closed if it is missing or mismatched. Use `download_and_verify` from `helpers.sh` for the download+verify pattern. Existing env vars used by the scripts include: `NVM_INSTALLER_SHA256`, `BUN_INSTALLER_SHA256`, `NEOVIM_APPIMAGE_SHA256_*`, `LAZYGIT_TAR_SHA256_*`, `DELTA_DEB_SHA256_*`, `GLOW_DEB_SHA256_*`, `FASTFETCH_DEB_SHA256_*`, `YAZI_ZIP_SHA256_*`, `SUPERFILE_TAR_SHA256_*`, `ATUIN_TAR_SHA256_*`, `ZOXIDE_INSTALLER_SHA256`, `UV_INSTALLER_SHA256`, `RUSTUP_INSTALLER_SHA256`, `AZURE_CLI_APT_INSTALLER_SHA256`, `EZA_KEY_FINGERPRINT`, `MESLO_*_TTF_SHA256`, `HOMEBREW_INSTALLER_SHA256`, and optional `HOMEBREW_INSTALLER_URL`.
 When updating versions, download the matching release asset (or installer) and compute `sha256sum` before setting the pin.

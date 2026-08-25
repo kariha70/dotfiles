@@ -22,13 +22,14 @@ dotfiles/
 │   ├── versions.env          # Pinned versions + SHA256 checksums
 │   ├── versions.ps1          # PowerShell version definitions
 │   ├── Brewfile              # macOS Homebrew manifest
-│   ├── packages.sh           # Core apt packages
+│   ├── packages.sh           # Core apt/pacman packages
 │   ├── ohmyzsh.sh            # Oh My Zsh + plugins + Powerlevel10k
 │   ├── fonts.sh              # MesloLGS Nerd Font
 │   └── *.sh / *.ps1          # Individual tool installers
 ├── scripts/
 │   ├── bump-versions.sh      # Update versions + checksums
-│   └── bump-versions.ps1     # Sync PS versions from env
+│   ├── bump-versions.ps1     # Sync PS versions from env
+│   └── arch-smoke-test.sh    # Arch bootstrap + idempotency test
 ├── .github/
 │   ├── workflows/            # CI: lint + bootstrap smoke tests
 │   └── copilot-instructions.md
@@ -164,6 +165,8 @@ The following functions are provided by `install/lib/helpers.sh`:
 | `is_linux` | Returns true if running on Linux (including WSL) |
 | `get_arch` | Returns the system architecture (`x86_64` or `aarch64`) |
 | `apt_update_once` | Runs `sudo apt-get update` at most once per session |
+| `pacman_update_once` | Performs one full Arch Linux system upgrade per session |
+| `pacman_install` | Installs signed Arch Linux packages idempotently |
 | `ensure_local_bin` | Creates `~/.local/bin` and ensures it's on `$PATH` |
 | `source_versions` | Sources `versions.env` from the given directory |
 | `download_and_verify` | Downloads a file and verifies its SHA256 checksum; fails if mismatched |
