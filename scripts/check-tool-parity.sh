@@ -35,6 +35,7 @@ tool_declarations=(
     'fzf|        fzf|brew "fzf"|junegunn.fzf'
     'gh|add_optional_package gh "GitHub CLI (gh)"|brew "gh"|GitHub.cli'
     'glow|GLOW_VERSION|brew "glow"|charmbracelet.glow'
+    'go|        golang-go|brew "go"|GoLang.Go'
     'gping|add_optional_package gping gping|brew "gping"|orf.gping'
     'helm|add_optional_package helm helm|brew "helm"|Helm.Helm'
     'herdr|HERDR_VERSION|brew "herdr"|HERDR_WINDOWS_PREVIEW_TAG'

@@ -23,6 +23,7 @@ if command -v apt-get &> /dev/null; then
     PACKAGES=(
         curl
         git
+        golang-go
         vim
         stow
         htop
@@ -162,6 +163,7 @@ elif command -v pacman >/dev/null 2>&1; then
     PACKAGES=(
         curl
         git
+        go
         vim
         stow
         htop
