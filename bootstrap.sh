@@ -157,12 +157,16 @@ STOW_DIRS=(
     nvim
 )
 
-# Pre-stow backup: Move existing files that are not symlinks to avoid conflicts
+# Pre-stow cleanup: back up real files and replace dangling links left behind
+# when this repository moves.
 DEFAULT_CONFLICT_FILES=(
     ".bashrc"
     ".bash_aliases"
+    ".config/shell"
     ".gitconfig"
     ".gitignore_global"
+    "export_ssh.sh"
+    "import_ssh.sh"
     ".vimrc"
     ".zshrc"
     ".zlogin"
@@ -178,13 +182,32 @@ fi
 
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
 
+is_stale_stow_link() {
+    local target="$1"
+    local relative_path="$2"
+    local link_target package
+
+    link_target="$(readlink "$target")" || return 1
+    for package in "${STOW_DIRS[@]}"; do
+        if [ -e "$DOTFILES_DIR/$package/$relative_path" ]; then
+            case "/$link_target" in
+                *"/$package/$relative_path") return 0 ;;
+            esac
+        fi
+    done
+    return 1
+}
+
 if is_true "${SKIP_STOW:-0}"; then
     echo "Skipping stow (via SKIP_STOW)."
 else
     echo "Checking for existing config files..."
     for file in "${CONFLICT_FILES[@]}"; do
         target="$HOME/$file"
-        if [ -e "$target" ] && [ ! -L "$target" ]; then
+        if [ -L "$target" ] && [ ! -e "$target" ] && is_stale_stow_link "$target" "$file"; then
+            echo "  Removing stale symlink $file -> $(readlink "$target")"
+            rm -- "$target"
+        elif [ -e "$target" ] && [ ! -L "$target" ]; then
             echo "  Backing up existing $file to $target.backup.$TIMESTAMP"
             mv "$target" "$target.backup.$TIMESTAMP"
         fi

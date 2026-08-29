@@ -63,6 +63,9 @@ jobs:
           test -d "$HOME/.config/nvim"
           echo "All symlink checks passed."
 
+      - name: Test repository relocation
+        run: bash scripts/test-stow-relocation.sh
+
       - name: Idempotency test
         run: |
           echo "Running bootstrap again for idempotency check..."
