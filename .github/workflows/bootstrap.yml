@@ -102,6 +102,8 @@ jobs:
       - name: Verify Homebrew packages
         run: |
           echo "Checking installed tools..."
+          export NVM_DIR="$HOME/.nvm"
+          source "$HOME/.config/shell/nvm-lazy-load.sh"
           command -v zsh
           command -v eza
           command -v bat
