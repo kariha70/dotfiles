@@ -56,7 +56,7 @@ tool_declarations=(
     'zoxide|ZOXIDE_INSTALLER_SHA256|brew "zoxide"|ajeetdsouza.zoxide'
     'codex|@openai/codex|cask "codex"|OpenAI.Codex'
     'claude|@anthropic-ai/claude-code|cask "claude-code"|Anthropic.ClaudeCode'
-    'copilot|@github/copilot|cask "homebrew/cask/copilot-cli"|GitHub.Copilot'
+    'copilot|@github/copilot|cask "copilot-cli"|GitHub.Copilot'
     'pi|@earendil-works/pi-coding-agent|brew "pi-coding-agent"|EarendilWorks.pi'
 )
 
