@@ -121,6 +121,16 @@ lazygit_version="${lazygit_tag#v}"
 lazygit_sha_x86=$(fetch_sha "https://github.com/jesseduffield/lazygit/releases/download/${lazygit_tag}/lazygit_${lazygit_version}_Linux_x86_64.tar.gz" "$TMP_DIR/lazygit_x86_64.tar.gz")
 lazygit_sha_arm64=$(fetch_sha "https://github.com/jesseduffield/lazygit/releases/download/${lazygit_tag}/lazygit_${lazygit_version}_Linux_arm64.tar.gz" "$TMP_DIR/lazygit_arm64.tar.gz")
 
+# just
+just_tag="${JUST_VERSION_OVERRIDE:-$(latest_tag "casey/just")}"
+if [ -z "$just_tag" ] || [ "$just_tag" = "null" ]; then
+    echo "Could not determine latest just release tag."
+    exit 1
+fi
+just_version="${just_tag#v}"
+just_sha_x86=$(fetch_sha "https://github.com/casey/just/releases/download/${just_tag}/just-${just_version}-x86_64-unknown-linux-musl.tar.gz" "$TMP_DIR/just-x86_64-unknown-linux-musl.tar.gz")
+just_sha_arm64=$(fetch_sha "https://github.com/casey/just/releases/download/${just_tag}/just-${just_version}-aarch64-unknown-linux-musl.tar.gz" "$TMP_DIR/just-aarch64-unknown-linux-musl.tar.gz")
+
 # git-delta
 delta_tag="${DELTA_VERSION_OVERRIDE:-$(latest_tag "dandavison/delta")}"
 if [ -z "$delta_tag" ] || [ "$delta_tag" = "null" ]; then
@@ -261,6 +271,10 @@ NEOVIM_APPIMAGE_SHA256_arm64=${neovim_sha_arm64}
 LAZYGIT_VERSION=${lazygit_version}
 LAZYGIT_TAR_SHA256_x86_64=${lazygit_sha_x86}
 LAZYGIT_TAR_SHA256_arm64=${lazygit_sha_arm64}
+
+JUST_VERSION=${just_version}
+JUST_TAR_SHA256_x86_64=${just_sha_x86}
+JUST_TAR_SHA256_arm64=${just_sha_arm64}
 
 DELTA_VERSION=${delta_version}
 DELTA_DEB_SHA256_amd64=${delta_sha_amd64}

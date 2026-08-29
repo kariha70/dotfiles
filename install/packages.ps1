@@ -13,7 +13,8 @@ Write-Step "Installing base packages with winget..."
 
 $requiredPackages = @(
     @{ Id = "Git.Git"; Name = "Git" },
-    @{ Id = "Neovim.Neovim"; Name = "Neovim" }
+    @{ Id = "Neovim.Neovim"; Name = "Neovim" },
+    @{ Id = "Casey.Just"; Name = "just" }
 )
 
 $optionalPackages = @(
@@ -26,7 +27,6 @@ $optionalPackages = @(
     @{ Id = "BurntSushi.ripgrep.MSVC"; Name = "ripgrep" },
     @{ Id = "sharkdp.fd"; Name = "fd" },
     @{ Id = "sharkdp.bat"; Name = "bat" },
-    @{ Id = "Casey.Just"; Name = "just" },
     @{ Id = "ducaale.xh"; Name = "xh" },
     @{ Id = "sharkdp.hyperfine"; Name = "hyperfine" },
     @{ Id = "dalance.procs"; Name = "procs" },
