@@ -50,7 +50,7 @@ Restart your shell and you're done. ✨
 | **Networking** | [HTTPie](https://httpie.io/cli) · [xh](https://github.com/ducaale/xh) · [gping](https://github.com/orf/gping) |
 | **Dev & Ops** | [just](https://github.com/casey/just) · [hyperfine](https://github.com/sharkdp/hyperfine) · [direnv](https://direnv.net/) · [age](https://github.com/FiloSottile/age) |
 | **Cloud & K8s** | [Azure CLI](https://learn.microsoft.com/cli/azure/) · [kubectl](https://kubernetes.io/docs/reference/kubectl/) · [helm](https://helm.sh/) |
-| **AI Coding** | [Herdr](https://herdr.dev/) · [Codex CLI](https://developers.openai.com/codex/cli/) · [Claude Code](https://docs.anthropic.com/en/docs/claude-code/) · [GitHub Copilot CLI](https://docs.github.com/en/copilot/how-tos/copilot-cli/) |
+| **AI Coding** | [Herdr](https://herdr.dev/) · [Codex CLI](https://developers.openai.com/codex/cli/) · [Claude Code](https://docs.anthropic.com/en/docs/claude-code/) · [GitHub Copilot CLI](https://docs.github.com/en/copilot/how-tos/copilot-cli/) · [Pi](https://pi.dev/) |
 | **Shell & Editor** | [Neovim](https://neovim.io/) (LazyVim) · [tmux](https://github.com/tmux/tmux) · [atuin](https://github.com/atuinsh/atuin) · [starship](https://starship.rs/) |
 
 ### Development Runtimes

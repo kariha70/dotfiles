@@ -48,7 +48,7 @@ source "$HOME/.config/shell/nvm-lazy-load.sh"
 
 for tool in \
     zsh eza bat fzf rg fd zoxide nvim lazygit delta glow atuin fastfetch yazi \
-    spf az herdr codex claude copilot tmux stow just bun bunx uv rustup cargo rustc; do
+    spf az herdr codex claude copilot pi tmux stow just bun bunx uv rustup cargo rustc; do
     if ! command -v "$tool" >/dev/null 2>&1; then
         echo "Missing expected command after Arch bootstrap: $tool"
         exit 1

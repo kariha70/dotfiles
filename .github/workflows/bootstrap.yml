@@ -46,6 +46,7 @@ jobs:
           command -v codex
           command -v claude
           command -v copilot
+          command -v pi
           command -v tmux
           command -v stow
           command -v just
@@ -115,6 +116,7 @@ jobs:
           command -v codex
           command -v claude
           command -v copilot
+          command -v pi
           command -v tmux
           command -v stow
           command -v just

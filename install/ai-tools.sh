@@ -8,7 +8,7 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 source "$SCRIPT_DIR/lib/helpers.sh"
 source_versions "$SCRIPT_DIR"
 
-echo "Installing AI coding tools (Herdr, Codex, Claude Code, GitHub Copilot)..."
+echo "Installing AI coding tools (Herdr, Codex, Claude Code, GitHub Copilot, Pi)..."
 
 if is_macos; then
     echo "macOS detected. AI coding tools are managed via Homebrew (install/Brewfile)."
@@ -51,7 +51,7 @@ if [ -s "$NVM_DIR/nvm.sh" ]; then
 fi
 
 if ! command -v npm >/dev/null 2>&1; then
-    echo "npm is required to install Codex, Claude Code, and GitHub Copilot CLI."
+    echo "npm is required to install Codex, Claude Code, GitHub Copilot CLI, and Pi."
     echo "Run install/nvm.sh first, then rerun this installer."
     exit 1
 fi
@@ -74,5 +74,24 @@ install_npm_cli() {
 install_npm_cli codex @openai/codex "Codex CLI"
 install_npm_cli claude @anthropic-ai/claude-code "Claude Code"
 install_npm_cli copilot @github/copilot "GitHub Copilot CLI"
+
+install_pi() {
+    local package_name="@earendil-works/pi-coding-agent"
+
+    if command -v pi >/dev/null 2>&1 \
+        && npm list --global --depth=0 "$package_name" >/dev/null 2>&1; then
+        echo "Pi Coding Agent is already installed."
+        return 0
+    fi
+
+    echo "Installing Pi Coding Agent..."
+    npm_config_ignore_scripts=true npm install --global "$package_name"
+    command -v pi >/dev/null 2>&1 || {
+        echo "Pi Coding Agent installation completed, but 'pi' is not on PATH."
+        exit 1
+    }
+}
+
+install_pi
 
 echo "AI coding tools installation complete."

@@ -14,7 +14,8 @@ Write-Step "Installing AI coding tools..."
 $aiPackages = @(
     @{ Id = "OpenAI.Codex"; Name = "Codex CLI" },
     @{ Id = "Anthropic.ClaudeCode"; Name = "Claude Code" },
-    @{ Id = "GitHub.Copilot"; Name = "GitHub Copilot CLI" }
+    @{ Id = "GitHub.Copilot"; Name = "GitHub Copilot CLI" },
+    @{ Id = "EarendilWorks.pi"; Name = "Pi Coding Agent" }
 )
 
 foreach ($pkg in $aiPackages) {
