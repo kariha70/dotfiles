@@ -4,7 +4,7 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 LINUX_PACKAGES=("$ROOT_DIR"/install/*.sh)
-MACOS_PACKAGES="$ROOT_DIR/install/Brewfile"
+MACOS_PACKAGES=("$ROOT_DIR/install/Brewfile" "$ROOT_DIR/install/ai-tools.sh")
 WINDOWS_PACKAGES=("$ROOT_DIR"/install/*.ps1)
 
 fail() {
@@ -56,14 +56,14 @@ tool_declarations=(
     'zoxide|ZOXIDE_INSTALLER_SHA256|brew "zoxide"|ajeetdsouza.zoxide'
     'codex|@openai/codex|cask "codex"|OpenAI.Codex'
     'claude|@anthropic-ai/claude-code|cask "claude-code"|Anthropic.ClaudeCode'
-    'copilot|@github/copilot|cask "copilot-cli"|GitHub.Copilot'
+    'copilot|@github/copilot|@github/copilot|GitHub.Copilot'
     'pi|@earendil-works/pi-coding-agent|brew "pi-coding-agent"|EarendilWorks.pi'
 )
 
 for declaration in "${tool_declarations[@]}"; do
     IFS='|' read -r command linux_token macos_token windows_token <<< "$declaration"
     contains "$linux_token" "${LINUX_PACKAGES[@]}" || fail "$command is missing from Linux packages"
-    contains "$macos_token" "$MACOS_PACKAGES" || fail "$command is missing from the Brewfile"
+    contains "$macos_token" "${MACOS_PACKAGES[@]}" || fail "$command is missing from macOS packages"
     contains "$windows_token" "${WINDOWS_PACKAGES[@]}" || fail "$command is missing from Windows packages"
 done
 

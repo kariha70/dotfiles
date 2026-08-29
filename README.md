@@ -102,9 +102,9 @@ Auto-detected via `/proc/version`. WSL-specific behavior:
 <details>
 <summary><strong>🍎 macOS</strong></summary>
 
-Uses Homebrew and a declarative `install/Brewfile` for all tools. Requires `brew` — bootstrap exits with instructions if missing.
+Uses Homebrew and a declarative `install/Brewfile` for most tools. GitHub Copilot CLI is installed through npm to avoid colliding with the AWS Copilot CLI preinstalled on GitHub runners. Requires `brew` — bootstrap exits with instructions if missing.
 
-- All CLI tools come from Homebrew (no manual downloads needed)
+- CLI tools come from Homebrew except GitHub Copilot CLI, which uses npm
 - Meslo Nerd Font via `font-meslo-lg-nerd-font` cask
 - Includes Ghostty, Zed, and VS Code Insiders casks
 - Optional system defaults automation:

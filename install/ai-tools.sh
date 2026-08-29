@@ -11,34 +11,33 @@ source_versions "$SCRIPT_DIR"
 echo "Installing AI coding tools (Herdr, Codex, Claude Code, GitHub Copilot, Pi)..."
 
 if is_macos; then
-    echo "macOS detected. AI coding tools are managed via Homebrew (install/Brewfile)."
-    exit 0
-fi
-
-ensure_local_bin
-
-if ! command -v herdr >/dev/null 2>&1; then
-    if [ -z "${HERDR_VERSION:-}" ]; then
-        echo "HERDR_VERSION is missing. Run scripts/bump-versions.sh."
-        exit 1
-    fi
-
-    ARCH="$(get_arch)"
-    HERDR_SHA_VAR="HERDR_BINARY_SHA256_${ARCH}"
-    HERDR_EXPECTED_SHA="${!HERDR_SHA_VAR:-}"
-    case "$ARCH" in
-        x86_64) HERDR_ASSET="herdr-linux-x86_64" ;;
-        arm64) HERDR_ASSET="herdr-linux-aarch64" ;;
-    esac
-    HERDR_URL="https://github.com/herdrdev/herdr/releases/download/v${HERDR_VERSION}/${HERDR_ASSET}"
-    HERDR_TMP="$(mktemp /tmp/herdr.XXXXXX)"
-    trap 'rm -f "$HERDR_TMP"' EXIT
-
-    download_and_verify "$HERDR_URL" "$HERDR_TMP" "$HERDR_EXPECTED_SHA" "Herdr (${ARCH})"
-    install -m 0755 "$HERDR_TMP" "$HOME/.local/bin/herdr"
-    echo "Herdr installed."
+    echo "macOS detected. Homebrew manages AI coding tools except GitHub Copilot CLI, which is installed via npm."
 else
-    echo "Herdr is already installed."
+    ensure_local_bin
+
+    if ! command -v herdr >/dev/null 2>&1; then
+        if [ -z "${HERDR_VERSION:-}" ]; then
+            echo "HERDR_VERSION is missing. Run scripts/bump-versions.sh."
+            exit 1
+        fi
+
+        ARCH="$(get_arch)"
+        HERDR_SHA_VAR="HERDR_BINARY_SHA256_${ARCH}"
+        HERDR_EXPECTED_SHA="${!HERDR_SHA_VAR:-}"
+        case "$ARCH" in
+            x86_64) HERDR_ASSET="herdr-linux-x86_64" ;;
+            arm64) HERDR_ASSET="herdr-linux-aarch64" ;;
+        esac
+        HERDR_URL="https://github.com/herdrdev/herdr/releases/download/v${HERDR_VERSION}/${HERDR_ASSET}"
+        HERDR_TMP="$(mktemp /tmp/herdr.XXXXXX)"
+        trap 'rm -f "$HERDR_TMP"' EXIT
+
+        download_and_verify "$HERDR_URL" "$HERDR_TMP" "$HERDR_EXPECTED_SHA" "Herdr (${ARCH})"
+        install -m 0755 "$HERDR_TMP" "$HOME/.local/bin/herdr"
+        echo "Herdr installed."
+    else
+        echo "Herdr is already installed."
+    fi
 fi
 
 export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
@@ -57,8 +56,10 @@ if ! command -v npm >/dev/null 2>&1; then
 fi
 
 install_npm_cli() {
-    local command_name="$1" package_name="$2" label="$3"
-    if command -v "$command_name" >/dev/null 2>&1; then
+    local command_name="$1" package_name="$2" label="$3" verify_package="${4:-false}"
+    if command -v "$command_name" >/dev/null 2>&1 \
+        && { [ "$verify_package" != "true" ] \
+            || npm list --global --depth=0 "$package_name" >/dev/null 2>&1; }; then
         echo "$label is already installed."
         return 0
     fi
@@ -73,10 +74,15 @@ install_npm_cli() {
 
 install_npm_cli codex @openai/codex "Codex CLI"
 install_npm_cli claude @anthropic-ai/claude-code "Claude Code"
-install_npm_cli copilot @github/copilot "GitHub Copilot CLI"
+install_npm_cli copilot @github/copilot "GitHub Copilot CLI" true
 
 install_pi() {
     local package_name="@earendil-works/pi-coding-agent"
+
+    if is_macos && command -v pi >/dev/null 2>&1; then
+        echo "Pi Coding Agent is already installed via Homebrew."
+        return 0
+    fi
 
     if command -v pi >/dev/null 2>&1 \
         && npm list --global --depth=0 "$package_name" >/dev/null 2>&1; then
