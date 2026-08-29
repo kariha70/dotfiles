@@ -32,7 +32,7 @@ Restart your shell and you're done. ✨
 The bootstrap script is **idempotent** — safe to re-run at any time. It performs the following:
 
 - Installs 30+ modern CLI tools (eza, ripgrep, bat, fzf, lazygit, delta, etc.)
-- Sets up development runtimes (Node.js via nvm, Rust via rustup, Python via uv, Bun)
+- Sets up development runtimes (Node.js via nvm, Go, Rust via rustup, Python via uv, Bun)
 - Installs and configures **Zsh** with Oh My Zsh, Powerlevel10k, and plugins (Linux/macOS)
 - Configures **PowerShell 7** with Starship prompt and PSReadLine (Windows)
 - Symlinks dotfiles into `$HOME` using GNU Stow (Linux/macOS) or PowerShell junctions (Windows)

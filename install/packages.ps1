@@ -13,6 +13,7 @@ Write-Step "Installing base packages with winget..."
 
 $requiredPackages = @(
     @{ Id = "Git.Git"; Name = "Git" },
+    @{ Id = "GoLang.Go"; Name = "Go" },
     @{ Id = "Neovim.Neovim"; Name = "Neovim" },
     @{ Id = "Casey.Just"; Name = "just" }
 )

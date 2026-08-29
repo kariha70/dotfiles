@@ -42,6 +42,7 @@ package exists; enable it with `INSTALL_PROCS_FROM_SOURCE=1`.
 |---------|---------------|---------|
 | **Node.js** | [nvm](https://github.com/nvm-sh/nvm) with lazy-loading | [nvm-windows](https://github.com/coreybutler/nvm-windows) via winget |
 | **Bun** | Official installer / Homebrew | winget |
+| **Go** | apt / pacman / Homebrew | winget |
 | **Rust** | [rustup](https://rustup.rs/) + stable toolchain | rustup via winget |
 | **Python** | [uv](https://github.com/astral-sh/uv) | winget |
 

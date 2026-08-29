@@ -50,6 +50,7 @@ jobs:
           command -v tmux
           command -v stow
           command -v just
+          command -v go
           echo "All tool checks passed."
 
       - name: Verify stow symlinks
@@ -125,6 +126,7 @@ jobs:
           command -v tmux
           command -v stow
           command -v just
+          command -v go
           echo "All tool checks passed."
 
       - name: Verify stow symlinks
