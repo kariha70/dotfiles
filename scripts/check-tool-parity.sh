@@ -41,7 +41,7 @@ tool_declarations=(
     'http|add_optional_package httpie "HTTPie"|brew "httpie"|HTTPie.HTTPie'
     'hyperfine|add_optional_package hyperfine hyperfine|brew "hyperfine"|sharkdp.hyperfine'
     'jq|        jq|brew "jq"|jqlang.jq'
-    'just|add_optional_package just just|brew "just"|Casey.Just'
+    'just|JUST_VERSION|brew "just"|Casey.Just'
     'kubectl|add_optional_package kubectl kubectl|brew "kubectl"|Kubernetes.kubectl'
     'lazygit|LAZYGIT_VERSION|brew "lazygit"|JesseDuffield.lazygit'
     'mlr|add_optional_package miller "Miller (mlr)"|brew "miller"|Miller.Miller'

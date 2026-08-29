@@ -60,6 +60,9 @@ else
     maybe_run PACKAGES "$DOTFILES_DIR/install/packages.sh"
 fi
 
+# 1b. Ensure just is available when the distro package is missing
+maybe_run JUST "$DOTFILES_DIR/install/just.sh"
+
 # 2. Setup SSH
 # Skip SSH setup on WSL as it's usually not needed or handled differently
 if "$IS_WSL"; then

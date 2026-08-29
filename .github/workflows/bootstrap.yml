@@ -48,6 +48,7 @@ jobs:
           command -v copilot
           command -v tmux
           command -v stow
+          command -v just
           echo "All tool checks passed."
 
       - name: Verify stow symlinks
@@ -116,6 +117,7 @@ jobs:
           command -v copilot
           command -v tmux
           command -v stow
+          command -v just
           echo "All tool checks passed."
 
       - name: Verify stow symlinks
