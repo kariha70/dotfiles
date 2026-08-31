@@ -21,7 +21,10 @@ GCM_PATHS=(
 )
 
 GCM_FOUND=""
-CURRENT_GCM="$(git config --global --get credential.helper || true)"
+# Keep machine-specific settings out of the stowed, repository-managed
+# ~/.gitconfig. That file includes ~/.gitconfig.local once stow completes.
+GIT_LOCAL="$HOME/.gitconfig.local"
+CURRENT_GCM="$(git config --file "$GIT_LOCAL" --get credential.helper 2>/dev/null || true)"
 if [ -n "$CURRENT_GCM" ] && [ -f "$CURRENT_GCM" ]; then
     GCM_FOUND="$CURRENT_GCM"
 else
@@ -41,7 +44,7 @@ if [ -n "$GCM_FOUND" ]; then
     else
         echo "Configuring Git to use Windows Credential Manager..."
         echo "  Found at: $GCM_FOUND"
-        git config --global credential.helper "$GCM_FOUND"
+        git config --file "$GIT_LOCAL" credential.helper "$GCM_FOUND"
     fi
 else
     echo "Git Credential Manager not found."
