@@ -30,6 +30,15 @@ CURL_ARGS=(
     --retry-all-errors
 )
 
+GITHUB_API_ARGS=(
+    -H "User-Agent: dotfiles-bump-versions"
+    -H "Accept: application/vnd.github+json"
+)
+
+if [ -n "${GITHUB_TOKEN:-${GH_TOKEN:-}}" ]; then
+    GITHUB_API_ARGS+=( -H "Authorization: Bearer ${GITHUB_TOKEN:-${GH_TOKEN:-}}" )
+fi
+
 sha256_portable() {
     if command -v sha256sum >/dev/null 2>&1; then
         sha256sum "$1" | awk '{print $1}'
@@ -42,9 +51,31 @@ sha256_portable() {
 }
 
 fetch_sha() {
-    local url="$1" dest="$2"
-    curl "${CURL_ARGS[@]}" "$url" -o "$dest"
-    sha256_portable "$dest"
+    local url="$1" dest="$2" tmp sha
+    tmp="${dest}.part"
+    rm -f "$dest" "$tmp"
+
+    if ! curl "${CURL_ARGS[@]}" "$url" -o "$tmp"; then
+        rm -f "$tmp"
+        return 1
+    fi
+
+    mv "$tmp" "$dest"
+
+    if ! sha="$(sha256_portable "$dest")"; then
+        rm -f "$dest"
+        return 1
+    fi
+
+    printf '%s\n' "$sha"
+}
+
+github_api() {
+    curl "${CURL_ARGS[@]}" "${GITHUB_API_ARGS[@]}" "$1"
+}
+
+url_exists() {
+    curl "${CURL_ARGS[@]}" --head "$1" >/dev/null
 }
 
 gpg_fingerprint() {
@@ -57,10 +88,98 @@ gpg_fingerprint() {
     printf '%s\n' "$fingerprint"
 }
 
-latest_tag() {
+latest_git_tag() {
     local repo="$1"
-    curl "${CURL_ARGS[@]}" "https://api.github.com/repos/${repo}/releases/latest" |
-        jq -er '.tag_name | select(type == "string" and length > 0)'
+    git ls-remote --refs --sort='version:refname' --tags "https://github.com/${repo}.git" |
+        awk 'END { sub(/^refs\/tags\//, "", $2); print $2 }'
+}
+
+latest_tag() {
+    local repo="$1" tag
+
+    tag="$(github_api "https://api.github.com/repos/${repo}/releases/latest" |
+        jq -er '.tag_name | select(type == "string" and length > 0)' 2>/dev/null || true)"
+    if [ -n "$tag" ] && [ "$tag" != "null" ]; then
+        printf '%s\n' "$tag"
+        return 0
+    fi
+
+    tag="$(latest_git_tag "$repo" || true)"
+    if [ -n "$tag" ]; then
+        echo "Warning: could not query GitHub releases API for ${repo}; using newest git tag ${tag}." >&2
+        printf '%s\n' "$tag"
+        return 0
+    fi
+
+    return 1
+}
+
+latest_release_with_assets() {
+    local repo="$1" current_tag="$2"
+    shift 2
+
+    if [ "$#" -eq 0 ]; then
+        echo "latest_release_with_assets requires at least one asset name." >&2
+        exit 1
+    fi
+
+    local required_assets_json releases_json tag latest_seen_tag="" page=1 asset api_failed=0
+    required_assets_json="$(printf '%s\n' "$@" | jq -R . | jq -s .)"
+
+    while :; do
+        if ! releases_json="$(github_api "https://api.github.com/repos/${repo}/releases?per_page=100&page=${page}")"; then
+            api_failed=1
+            break
+        fi
+
+        if [ "$(jq 'length' <<<"$releases_json")" -eq 0 ]; then
+            break
+        fi
+
+        if [ -z "$latest_seen_tag" ]; then
+            latest_seen_tag="$(jq -er '[ .[] | select(.draft | not) | select(.prerelease | not) | .tag_name ][0] // empty' <<<"$releases_json" 2>/dev/null || true)"
+        fi
+
+        tag="$(jq -er --argjson required "$required_assets_json" '
+            [ .[] as $release
+              | select($release.draft | not)
+              | select($release.prerelease | not)
+              | select($required | all(. as $name | any($release.assets[]?; .name == $name)))
+              | $release.tag_name
+            ][0] // empty
+        ' <<<"$releases_json" 2>/dev/null || true)"
+
+        if [ -n "$tag" ] && [ "$tag" != "null" ]; then
+            if [ -n "$latest_seen_tag" ] && [ "$tag" != "$latest_seen_tag" ]; then
+                echo "Warning: latest ${repo} release ${latest_seen_tag} is missing required assets; using ${tag}." >&2
+            fi
+            printf '%s\n' "$tag"
+            return 0
+        fi
+
+        page=$((page + 1))
+    done
+
+    if [ -n "$current_tag" ]; then
+        for asset in "$@"; do
+            if ! url_exists "https://github.com/${repo}/releases/download/${current_tag}/${asset}"; then
+                current_tag=""
+                break
+            fi
+        done
+    fi
+
+    if [ -n "$current_tag" ]; then
+        if [ "$api_failed" -eq 1 ]; then
+            echo "Warning: could not query GitHub releases API for ${repo}; keeping existing pin ${current_tag}." >&2
+        else
+            echo "Warning: could not find a newer ${repo} release with the required assets; keeping existing pin ${current_tag}." >&2
+        fi
+        printf '%s\n' "$current_tag"
+        return 0
+    fi
+
+    return 1
 }
 
 latest_head_ref() {
@@ -152,13 +271,23 @@ glow_sha_amd64=$(fetch_sha "https://github.com/charmbracelet/glow/releases/downl
 glow_sha_arm64=$(fetch_sha "https://github.com/charmbracelet/glow/releases/download/${glow_tag}/glow_${glow_version}_arm64.deb" "$TMP_DIR/glow_${glow_version}_arm64.deb")
 
 # fastfetch
-fastfetch_tag="${FASTFETCH_VERSION_OVERRIDE:-$(latest_tag "fastfetch-cli/fastfetch")}"
+fastfetch_repo="fastfetch-cli/fastfetch"
+fastfetch_amd64_asset="fastfetch-linux-amd64.deb"
+fastfetch_aarch64_asset="fastfetch-linux-aarch64.deb"
+
+if [ -n "${FASTFETCH_VERSION_OVERRIDE:-}" ]; then
+    fastfetch_tag="$FASTFETCH_VERSION_OVERRIDE"
+else
+    fastfetch_tag="$(latest_release_with_assets "$fastfetch_repo" "${FASTFETCH_VERSION:-}" "$fastfetch_amd64_asset" "$fastfetch_aarch64_asset")"
+fi
+
 if [ -z "$fastfetch_tag" ] || [ "$fastfetch_tag" = "null" ]; then
-    echo "Could not determine latest fastfetch release tag."
+    echo "Could not determine a fastfetch release with the required Debian assets."
     exit 1
 fi
-fastfetch_sha_linux_amd64=$(fetch_sha "https://github.com/fastfetch-cli/fastfetch/releases/download/${fastfetch_tag}/fastfetch-linux-amd64.deb" "$TMP_DIR/fastfetch-linux-amd64.deb")
-fastfetch_sha_linux_aarch64=$(fetch_sha "https://github.com/fastfetch-cli/fastfetch/releases/download/${fastfetch_tag}/fastfetch-linux-aarch64.deb" "$TMP_DIR/fastfetch-linux-aarch64.deb")
+
+fastfetch_sha_linux_amd64="$(fetch_sha "https://github.com/${fastfetch_repo}/releases/download/${fastfetch_tag}/${fastfetch_amd64_asset}" "$TMP_DIR/${fastfetch_amd64_asset}")" || exit 1
+fastfetch_sha_linux_aarch64="$(fetch_sha "https://github.com/${fastfetch_repo}/releases/download/${fastfetch_tag}/${fastfetch_aarch64_asset}" "$TMP_DIR/${fastfetch_aarch64_asset}")" || exit 1
 
 # yazi
 yazi_tag="${YAZI_VERSION_OVERRIDE:-$(latest_tag "sxyazi/yazi")}"
