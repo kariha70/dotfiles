@@ -255,6 +255,25 @@ The Bash updater runs on Ubuntu, Arch Linux, and macOS. The standalone
 `scripts/bump-versions.ps1` command can re-sync `versions.ps1` from an existing
 `versions.env` without downloading release assets again.
 
+For better reliability with GitHub-hosted releases, you can optionally export
+`GITHUB_TOKEN` (or `GH_TOKEN`) before running the updater. The script uses it
+for GitHub API requests to reduce rate-limit failures. It also now falls back to
+the newest compatible release when an upstream project's latest release is
+missing required assets.
+
+```bash
+export GITHUB_TOKEN=your_github_token
+bash scripts/bump-versions.sh
+```
+
+If you already use the GitHub CLI, a safer option is to reuse its stored token
+instead of copying one into your shell history:
+
+```bash
+export GITHUB_TOKEN="$(gh auth token)"
+bash scripts/bump-versions.sh
+```
+
 <details>
 <summary><strong>Full checksum inventory</strong></summary>
 
