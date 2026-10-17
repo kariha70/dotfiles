@@ -47,6 +47,18 @@ sha_pins=(
     JUST_TAR_SHA256_arm64
     DELTA_DEB_SHA256_amd64
     DELTA_DEB_SHA256_arm64
+    ZOXIDE_TAR_SHA256_x86_64
+    ZOXIDE_TAR_SHA256_arm64
+    FZF_TAR_SHA256_x86_64
+    FZF_TAR_SHA256_arm64
+    BAT_DEB_SHA256_amd64
+    BAT_DEB_SHA256_arm64
+    FD_DEB_SHA256_amd64
+    FD_DEB_SHA256_arm64
+    HYPERFINE_DEB_SHA256_amd64
+    HYPERFINE_DEB_SHA256_arm64
+    GO_TAR_SHA256_x86_64
+    GO_TAR_SHA256_arm64
     GLOW_DEB_SHA256_amd64
     GLOW_DEB_SHA256_arm64
     FASTFETCH_DEB_SHA256_linux_amd64
@@ -57,7 +69,6 @@ sha_pins=(
     ATUIN_TAR_SHA256_aarch64_unknown_linux_gnu
     SUPERFILE_TAR_SHA256_amd64
     SUPERFILE_TAR_SHA256_arm64
-    ZOXIDE_INSTALLER_SHA256
     RUSTUP_INSTALLER_SHA256
     UV_INSTALLER_SHA256
     BUN_INSTALLER_SHA256
@@ -66,6 +77,7 @@ sha_pins=(
     HERDR_WINDOWS_BINARY_SHA256_x86_64
     HOMEBREW_INSTALLER_SHA256
     AZURE_CLI_APT_INSTALLER_SHA256
+    GH_APT_KEYRING_SHA256
     MESLO_REGULAR_TTF_SHA256
     MESLO_BOLD_TTF_SHA256
     MESLO_ITALIC_TTF_SHA256
@@ -86,6 +98,12 @@ version_pins=(
     LAZYGIT_VERSION
     JUST_VERSION
     DELTA_VERSION
+    ZOXIDE_VERSION
+    FZF_VERSION
+    BAT_VERSION
+    FD_VERSION
+    HYPERFINE_VERSION
+    GO_VERSION
     GLOW_VERSION
     FASTFETCH_VERSION
     YAZI_VERSION
@@ -115,7 +133,9 @@ case "$HERDR_WINDOWS_ASSET" in
     *) fail "HERDR_WINDOWS_ASSET must name a supported Herdr Windows asset" ;;
 esac
 
-[[ "${EZA_KEY_FINGERPRINT:-}" =~ ^[A-F0-9]{40}$ ]] || \
-    fail "EZA_KEY_FINGERPRINT must be a full uppercase GPG fingerprint"
+for name in EZA_KEY_FINGERPRINT GIT_CORE_PPA_KEY_FINGERPRINT; do
+    [[ "${!name:-}" =~ ^[A-F0-9]{40}$ ]] || \
+        fail "$name must be a full uppercase GPG fingerprint"
+done
 
 echo "Version pins are complete, valid, and synchronized."

@@ -15,32 +15,30 @@ if is_macos; then
     exit 0
 fi
 
-if command -v delta &> /dev/null; then
-    echo "git-delta is already installed."
-    exit 0
-fi
-
-# Try installing via apt (available in newer Ubuntu/Debian)
-if command -v apt-get &> /dev/null; then
-    if apt_package_available git-delta; then
-        apt_update_once
-        sudo apt-get install -y --no-install-recommends git-delta
-        echo "git-delta installed via apt."
+if command -v pacman >/dev/null 2>&1; then
+    if command -v delta >/dev/null 2>&1; then
+        echo "git-delta is already installed."
         exit 0
     fi
-fi
-
-if command -v pacman >/dev/null 2>&1; then
     pacman_install git-delta
     echo "git-delta installed via pacman."
     exit 0
 fi
 
-# Fallback: Download .deb from GitHub (for x86_64)
-# We use a fixed version for stability, but you might want to fetch the latest release tag.
+if ! command -v apt-get >/dev/null 2>&1; then
+    echo "Package manager not supported for automatic git-delta installation. Please install git-delta manually."
+    exit 0
+fi
+
+# Install the pinned upstream .deb rather than the distro package so bumping
+# DELTA_VERSION upgrades existing machines too.
 if [ -z "${DELTA_VERSION:-}" ]; then
     echo "DELTA_VERSION is missing. Run scripts/bump-versions.sh to refresh install/versions.env."
     exit 1
+fi
+
+if pinned_version_satisfied "$DELTA_VERSION" delta; then
+    exit 0
 fi
 
 ARCH="$(get_arch)"
@@ -59,12 +57,7 @@ EXPECTED_DELTA_SHA="${!EXPECTED_DELTA_VAR:-}"
 DEB_FILE="git-delta_${DELTA_VERSION}_${DELTA_ARCH}.deb"
 URL="https://github.com/dandavison/delta/releases/download/${DELTA_VERSION}/${DEB_FILE}"
 
-echo "Downloading git-delta $DELTA_VERSION from GitHub..."
-TMP_DEB="$(mktemp /tmp/git-delta.XXXXXX.deb)"
-trap 'rm -f "$TMP_DEB"' EXIT
-download_and_verify "$URL" "$TMP_DEB" "$EXPECTED_DELTA_SHA" "git-delta deb (${DELTA_ARCH})"
-
-echo "Installing..."
-sudo dpkg -i "$TMP_DEB"
+echo "Installing git-delta $DELTA_VERSION from GitHub..."
+install_verified_deb "$URL" "$EXPECTED_DELTA_SHA" "git-delta deb (${DELTA_ARCH})"
 
 echo "git-delta installed successfully."

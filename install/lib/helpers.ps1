@@ -544,6 +544,41 @@ function Test-WingetPackageInstalled {
     return $isInstalled
 }
 
+function Update-WithWinget {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Id,
+        [Parameter(Mandatory = $true)]
+        [string]$Name,
+        [string]$Source = "winget"
+    )
+
+    # winget reports "no applicable update" as APPINSTALLER_CLI_ERROR_UPDATE_NOT_APPLICABLE.
+    $updateNotApplicable = -1978335189
+
+    $result = Invoke-WingetCommand -Arguments @(
+        "upgrade",
+        "--id", $Id,
+        "--exact",
+        "--source", $Source,
+        "--accept-source-agreements",
+        "--accept-package-agreements",
+        "--silent"
+    )
+
+    if ($result.ExitCode -eq 0) {
+        Write-Step "Upgraded $Name (or it was already current)."
+    } elseif ($result.ExitCode -eq $updateNotApplicable) {
+        Write-Step "$Name is already up to date."
+    } else {
+        $details = ($result.Output | Out-String).Trim()
+        Write-Warning "Could not upgrade $Name (id: $Id). Exit code: $($result.ExitCode). Output: $details"
+    }
+
+    return $true
+}
+
 function Install-WithWinget {
     [CmdletBinding()]
     param(
@@ -560,6 +595,9 @@ function Install-WithWinget {
 
     $displayName = if ([string]::IsNullOrWhiteSpace($Name)) { $Id } else { $Name }
     if (Test-WingetPackageInstalled -Id $Id) {
+        if (Test-EnvFlag -Name "UPGRADE_PACKAGES") {
+            return (Update-WithWinget -Id $Id -Name $displayName -Source $Source)
+        }
         Write-Step "$displayName is already installed."
         return $true
     }

@@ -59,7 +59,7 @@ Restart your shell and you're done. ✨
 |---------|-------------|---------|
 | **Node.js** | [nvm](https://github.com/nvm-sh/nvm) with lazy-loading | [nvm-windows](https://github.com/coreybutler/nvm-windows) via winget |
 | **Bun** | Official installer / Homebrew | winget |
-| **Go** | apt / pacman / Homebrew | winget |
+| **Go** | go.dev tarball (Ubuntu) / pacman / Homebrew | winget |
 | **Rust** | [rustup](https://rustup.rs/) + stable toolchain | rustup via winget |
 | **Python** | [uv](https://github.com/astral-sh/uv) | winget |
 
@@ -79,7 +79,7 @@ Restart your shell and you're done. ✨
 <details>
 <summary><strong>🐧 Linux (Ubuntu 22.04+ and Arch Linux)</strong></summary>
 
-Bootstrap uses `apt` on Ubuntu and `pacman` on Arch Linux. Arch-native packages come from the signed official repositories; tools without a suitable distro package use SHA256-verified upstream assets.
+Bootstrap uses `apt` on Ubuntu and `pacman` on Arch Linux. Arch-native packages come from the signed official repositories. On Ubuntu, base tools come from apt, while fast-moving tools (Go, fzf, bat, fd, hyperfine, just, delta, zoxide, lazygit, Neovim, …) use SHA256-verified pinned upstream releases, and gh uses GitHub's official apt repository. Rerunning bootstrap upgrades any pinned tool older than its pin.
 
 - Stows 6 config packages: `bash`, `git`, `vim`, `zsh`, `tmux`, `nvim`
 - Sets Zsh as the default login shell
@@ -141,12 +141,14 @@ Parallel bootstrap flow using `winget` and PowerShell modules:
 | `EXTRA_CONFLICT_FILES="path1"` | Extra files to back up before stowing |
 | `BREWFILE_PATH=/path` | Override the macOS Brewfile |
 | `BREW_CLEANUP=1` | Remove unlisted Homebrew packages |
+| `UPGRADE_PACKAGES=1` | Also upgrade already-installed apt, Homebrew, and winget packages |
+| `GIT_FROM_PPA=1` | Ubuntu only: install Git from the [git-core PPA](https://launchpad.net/~git-core/+archive/ubuntu/ppa) |
 
 <details>
 <summary><strong>All SKIP flags</strong></summary>
 
 **Linux/macOS** (`SKIP_<STEP>=1`):
-`PACKAGES` · `MACOS` · `SSH` · `OHMYZSH` · `FONTS` · `EZA` · `NVM` · `BUN` · `NEOVIM` · `ZOXIDE` · `LAZYGIT` · `UV` · `AZURE_CLI` · `AI_TOOLS` · `RUST` · `WSL` · `DELTA` · `EXTRAS` · `EXTRAS_OPS` · `MACOS_DEFAULTS` · `STOW` · `GIT_SIGNING` · `GIT_CREDENTIALS` · `SHELL`
+`PACKAGES` · `MACOS` · `GIT_PPA` · `GH` · `JUST` · `GO` · `FZF` · `CLI_TOOLS` · `SSH` · `OHMYZSH` · `FONTS` · `EZA` · `NVM` · `BUN` · `NEOVIM` · `ZOXIDE` · `LAZYGIT` · `UV` · `AZURE_CLI` · `AI_TOOLS` · `RUST` · `WSL` · `DELTA` · `EXTRAS` · `EXTRAS_OPS` · `MACOS_DEFAULTS` · `STOW` · `GIT_SIGNING` · `GIT_CREDENTIALS` · `SHELL`
 
 **Windows** (`SKIP_<STEP>=1`):
 `PACKAGES` · `GIT_TOOLS` · `NVM` · `AI_TOOLS` · `RUST` · `FONTS` · `EXTRAS` · `PROFILE` · `LINK` (or `STOW`)
@@ -281,7 +283,12 @@ bash scripts/bump-versions.sh
 |---------|---------|
 | `NVM_INSTALLER_SHA256` | nvm installer script |
 | `UV_INSTALLER_SHA256` | uv installer script |
-| `ZOXIDE_INSTALLER_SHA256` | zoxide installer script |
+| `ZOXIDE_TAR_SHA256_{x86_64,arm64}` | zoxide musl tarballs |
+| `FZF_TAR_SHA256_{x86_64,arm64}` | fzf tarballs |
+| `GO_TAR_SHA256_{x86_64,arm64}` | Go tarballs from go.dev |
+| `BAT_DEB_SHA256_{amd64,arm64}` / `FD_DEB_SHA256_*` / `HYPERFINE_DEB_SHA256_*` | bat, fd, and hyperfine .deb packages |
+| `JUST_TAR_SHA256_{x86_64,arm64}` | just tarballs |
+| `GH_APT_KEYRING_SHA256` | GitHub CLI apt repository keyring |
 | `RUSTUP_INSTALLER_SHA256` | rustup installer script |
 | `BUN_INSTALLER_SHA256` | Bun installer script |
 | `HOMEBREW_INSTALLER_SHA256` | Homebrew install script |
@@ -296,6 +303,7 @@ bash scripts/bump-versions.sh
 | `NEOVIM_APPIMAGE_SHA256_{x86_64,arm64}` | Neovim AppImages |
 | `MESLO_*_TTF_SHA256` | MesloLGS NF fonts (4 variants) |
 | `EZA_KEY_FINGERPRINT` | eza apt repo GPG key |
+| `GIT_CORE_PPA_KEY_FINGERPRINT` | git-core PPA GPG key (opt-in) |
 | `OHMYZSH_REF` / `ZSH_*_REF` / `POWERLEVEL10K*_REF` | Pinned git commits |
 
 </details>
@@ -307,7 +315,7 @@ Every push and PR is validated automatically:
 | Workflow | What it checks |
 |----------|---------------|
 | **[Lint](https://github.com/kariha70/dotfiles/actions/workflows/lint.yml)** | ShellCheck · PSScriptAnalyzer · version-pin validation · cross-platform CLI parity |
-| **[Bootstrap](https://github.com/kariha70/dotfiles/actions/workflows/bootstrap.yml)** | Full bootstrap on Ubuntu 22.04, Ubuntu 24.04, Arch Linux, macOS, and Windows · Tool verification · Symlink checks · Idempotency (runs twice) |
+| **[Bootstrap](https://github.com/kariha70/dotfiles/actions/workflows/bootstrap.yml)** | Full bootstrap on Ubuntu 22.04, 24.04, and 26.04, Arch Linux, macOS, and Windows · Tool verification · Symlink checks · Idempotency (runs twice) |
 
 ## 📁 Project Structure
 
@@ -360,7 +368,8 @@ dotfiles/
 │   ├── packages.sh                 # Core apt/pacman packages
 │   ├── ohmyzsh.sh                  # Oh My Zsh + plugins + Powerlevel10k
 │   ├── fonts.sh                    # MesloLGS Nerd Font
-│   ├── eza.sh / zoxide.sh / delta.sh / lazygit.sh
+│   ├── eza.sh / zoxide.sh / delta.sh / lazygit.sh / just.sh
+│   ├── gh.sh / git-ppa.sh / go.sh / fzf.sh / cli-tools.sh
 │   ├── nvm.sh / bun.sh / rust.sh / uv.sh
 │   ├── neovim.sh / extras.sh / extras-ops.sh
 │   ├── azure-cli.sh / ssh.sh / wsl.sh

@@ -71,7 +71,6 @@ fi
 EXTRAS_OPS_PACKAGES=()
 if [ "${DOTFILES_BOOTSTRAP:-0}" != "1" ]; then
     EXTRAS_OPS_PACKAGES=(
-        gh
         direnv
         age
         duf
@@ -83,10 +82,16 @@ fi
 if [ -n "${EXTRA_TOOLS:-}" ]; then
     IFS=' ' read -r -a EXTRA_TOOL_PACKAGES <<< "${EXTRA_TOOLS}"
     for extra_pkg in "${EXTRA_TOOL_PACKAGES[@]}"; do
-        if [ -n "${extra_pkg}" ]; then
-            append_unique EXTRAS_OPS_PACKAGES "$extra_pkg"
-        fi
+        case "$extra_pkg" in
+            ""|gh) ;; # gh comes from install/gh.sh
+            *) append_unique EXTRAS_OPS_PACKAGES "$extra_pkg" ;;
+        esac
     done
+fi
+
+# gh uses GitHub's official apt repository rather than the distro package.
+if [ "${DOTFILES_BOOTSTRAP:-0}" != "1" ]; then
+    bash "$SCRIPT_DIR/gh.sh"
 fi
 
 if [ "${#EXTRAS_OPS_PACKAGES[@]}" -eq 0 ]; then

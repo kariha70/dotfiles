@@ -15,7 +15,7 @@ if is_macos; then
 else
     ensure_local_bin
 
-    if ! command -v herdr >/dev/null 2>&1; then
+    if ! pinned_version_satisfied "${HERDR_VERSION:-}" herdr "$HOME/.local/bin/herdr"; then
         if [ -z "${HERDR_VERSION:-}" ]; then
             echo "HERDR_VERSION is missing. Run scripts/bump-versions.sh."
             exit 1
@@ -35,8 +35,6 @@ else
         download_and_verify "$HERDR_URL" "$HERDR_TMP" "$HERDR_EXPECTED_SHA" "Herdr (${ARCH})"
         install -m 0755 "$HERDR_TMP" "$HOME/.local/bin/herdr"
         echo "Herdr installed."
-    else
-        echo "Herdr is already installed."
     fi
 fi
 

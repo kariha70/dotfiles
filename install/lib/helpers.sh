@@ -263,6 +263,79 @@ version_at_least() {
     [ "$(printf '%s\n%s\n' "$need" "$have" | sort -V | head -n 1)" = "$need" ]
 }
 
+# Print the first dotted version number a command reports via `--version`
+# (`go version` for Go).
+# Usage: command_version <command-or-path>
+command_version() {
+    local cmd="$1" version_arg="--version" output version
+    command -v "$cmd" >/dev/null 2>&1 || return 1
+    if [ "$(basename "$cmd")" = "go" ]; then
+        version_arg="version"
+    fi
+    output="$("$cmd" "$version_arg" 2>/dev/null || true)"
+    version="$(awk '!found && match($0, /[0-9]+\.[0-9]+(\.[0-9]+)?/) { print substr($0, RSTART, RLENGTH); found = 1 }' <<<"$output")"
+    [ -n "$version" ] || return 1
+    printf '%s\n' "$version"
+}
+
+# Return 0 when any candidate command/path reports a version at or above the
+# pinned version. Bumping a pin therefore upgrades existing installs on the next
+# run, while newer user-managed installs are never downgraded.
+# Usage: pinned_version_satisfied <pinned-version> <command-or-path>...
+pinned_version_satisfied() {
+    local pinned candidate installed
+    pinned="$(normalize_version "${1#v}")"
+    shift
+    if [ -z "$pinned" ]; then
+        echo "Missing pinned version for $(basename "${1:-tool}"). Run scripts/bump-versions.sh." >&2
+        return 1
+    fi
+    for candidate in "$@"; do
+        installed="$(command_version "$candidate")" || continue
+        if version_at_least "$installed" "$pinned"; then
+            echo "$(basename "$candidate") ${installed} satisfies pinned version ${pinned}."
+            return 0
+        fi
+        echo "$(basename "$candidate") ${installed} is older than pinned version ${pinned}."
+    done
+    return 1
+}
+
+# Download a pinned upstream .deb, verify it, and install it with apt so its
+# dependencies and package conflicts are resolved.
+# Usage: install_verified_deb <url> <expected_sha> <label>
+install_verified_deb() {
+    local url="$1" expected_sha="$2" label="$3" tmp_dir status=0
+    tmp_dir="$(mktemp -d)"
+    if download_and_verify "$url" "$tmp_dir/package.deb" "$expected_sha" "$label"; then
+        apt_update_once
+        sudo apt-get install -y --no-install-recommends "$tmp_dir/package.deb" || status=$?
+    else
+        status=1
+    fi
+    rm -rf "$tmp_dir"
+    return "$status"
+}
+
+# Install an apt keyring and source list when they differ from the desired
+# state. Sets APT_SOURCE_CHANGED=1 when anything was written.
+# Usage: install_apt_source <verified_keyring> <keyring_dest> <list_file> <source_line>
+install_apt_source() {
+    local keyring_src="$1" keyring_dest="$2" list_file="$3" source_line="$4"
+    APT_SOURCE_CHANGED=0
+    if [ ! -f "$keyring_dest" ] || ! cmp -s "$keyring_src" "$keyring_dest"; then
+        sudo install -d -m 755 "$(dirname "$keyring_dest")"
+        sudo install -m 644 "$keyring_src" "$keyring_dest"
+        APT_SOURCE_CHANGED=1
+    fi
+    if [ ! -f "$list_file" ] || [ "$(cat "$list_file")" != "$source_line" ]; then
+        printf '%s\n' "$source_line" | sudo tee "$list_file" >/dev/null
+        sudo chmod 644 "$list_file"
+        APT_SOURCE_CHANGED=1
+    fi
+    export APT_SOURCE_CHANGED
+}
+
 # Source install/versions.env relative to the calling script's directory.
 # Usage: source_versions "$SCRIPT_DIR"
 source_versions() {

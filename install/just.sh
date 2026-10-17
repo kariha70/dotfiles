@@ -15,12 +15,11 @@ if is_macos; then
     exit 0
 fi
 
-if command -v just >/dev/null 2>&1; then
-    echo "just is already installed."
-    exit 0
-fi
-
 if command -v pacman >/dev/null 2>&1; then
+    if command -v just >/dev/null 2>&1; then
+        echo "just is already installed."
+        exit 0
+    fi
     pacman_install just
     echo "just installed via pacman."
     exit 0
@@ -34,6 +33,10 @@ fi
 if [ -z "${JUST_VERSION:-}" ]; then
     echo "JUST_VERSION is missing. Run scripts/bump-versions.sh to refresh install/versions.env."
     exit 1
+fi
+
+if pinned_version_satisfied "$JUST_VERSION" just /usr/local/bin/just; then
+    exit 0
 fi
 
 JUST_ARCH="$(get_arch)"
@@ -66,4 +69,4 @@ download_and_verify \
 tar xf "$TMP_TAR" -C "$TMP_DIR" just
 sudo install "$TMP_DIR/just" /usr/local/bin/just
 
-echo "just installed successfully."
+echo "just ${JUST_VERSION} installed successfully."

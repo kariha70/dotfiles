@@ -15,18 +15,14 @@ if is_macos; then
     exit 0
 fi
 
-if ! command -v nvim >/dev/null 2>&1; then
-    echo "Neovim not found."
-else
-    current_version="$(normalize_version "$(nvim --version | awk '/^NVIM / {print $2}' | sed 's/^v//')")"
-    if version_at_least "$current_version" "$MINIMUM_VERSION"; then
-        echo "Neovim ${current_version} already satisfies minimum version (${MINIMUM_VERSION})."
-        exit 0
-    fi
-    echo "Neovim ${current_version} is below minimum ${MINIMUM_VERSION}. Upgrading."
-fi
-
 if command -v pacman >/dev/null 2>&1; then
+    if command -v nvim >/dev/null 2>&1; then
+        current_version="$(normalize_version "$(nvim --version | awk '/^NVIM / {print $2}' | sed 's/^v//')")"
+        if version_at_least "$current_version" "$MINIMUM_VERSION"; then
+            echo "Neovim ${current_version} already satisfies minimum version (${MINIMUM_VERSION})."
+            exit 0
+        fi
+    fi
     echo "Installing Neovim from the Arch Linux repositories..."
     pacman_install neovim
     installed_version="$(normalize_version "$(nvim --version | awk '/^NVIM / {print $2}' | sed 's/^v//')")"
@@ -38,17 +34,21 @@ if command -v pacman >/dev/null 2>&1; then
     exit 0
 fi
 
+if [ -z "${NEOVIM_VERSION:-}" ]; then
+    echo "NEOVIM_VERSION is missing. Run scripts/bump-versions.sh to refresh install/versions.env."
+    exit 1
+fi
+
+if pinned_version_satisfied "$NEOVIM_VERSION" nvim /usr/local/bin/nvim; then
+    exit 0
+fi
+
 if ! command -v curl >/dev/null 2>&1; then
     echo "curl is required to install Neovim."
     exit 1
 fi
 
-echo "Installing Neovim from pinned release appimage."
-
-if [ -z "${NEOVIM_VERSION:-}" ]; then
-    echo "NEOVIM_VERSION is missing. Run scripts/bump-versions.sh to refresh install/versions.env."
-    exit 1
-fi
+echo "Installing Neovim ${NEOVIM_VERSION} from pinned release appimage."
 
 ARCH="$(get_arch)"
 if [ -z "$ARCH" ]; then
@@ -87,10 +87,16 @@ sudo install -d "$NEOVIM_INSTALL_DIR"
 sudo cp -a "$TMP_DIR/squashfs-root/." "$NEOVIM_INSTALL_DIR/"
 sudo ln -sfn "$NEOVIM_INSTALL_DIR/usr/bin/nvim" "/usr/local/bin/nvim"
 
-installed_version="$(normalize_version "$(nvim --version | awk '/^NVIM / {print $2}' | sed 's/^v//')")"
-if ! version_at_least "$installed_version" "$MINIMUM_VERSION"; then
-    echo "Neovim upgrade failed; installed version ${installed_version} is below ${MINIMUM_VERSION}."
+# Remove previously extracted releases now that the symlink points elsewhere.
+for old_dir in /usr/local/lib/nvim-*-"${ARCH}"; do
+    if [ -d "$old_dir" ] && [ "$old_dir" != "$NEOVIM_INSTALL_DIR" ]; then
+        sudo rm -rf -- "$old_dir"
+    fi
+done
+
+if ! pinned_version_satisfied "$NEOVIM_VERSION" /usr/local/bin/nvim; then
+    echo "Neovim upgrade failed; /usr/local/bin/nvim does not report ${NEOVIM_VERSION}."
     exit 1
 fi
 
-echo "Neovim upgraded to ${installed_version}."
+echo "Neovim upgraded to ${NEOVIM_VERSION}."

@@ -39,7 +39,12 @@ Every downloaded asset is guarded by a dedicated environment variable:
 |---------|---------|
 | `NVM_INSTALLER_SHA256` | nvm installer script |
 | `UV_INSTALLER_SHA256` | uv installer script |
-| `ZOXIDE_INSTALLER_SHA256` | zoxide installer script |
+| `ZOXIDE_TAR_SHA256_{x86_64,arm64}` | zoxide musl tarballs |
+| `FZF_TAR_SHA256_{x86_64,arm64}` | fzf tarballs |
+| `GO_TAR_SHA256_{x86_64,arm64}` | Go tarballs from go.dev |
+| `BAT_DEB_SHA256_{amd64,arm64}` / `FD_DEB_SHA256_*` / `HYPERFINE_DEB_SHA256_*` | bat, fd, and hyperfine `.deb` packages |
+| `JUST_TAR_SHA256_{x86_64,arm64}` | just tarballs |
+| `GH_APT_KEYRING_SHA256` | GitHub CLI apt repository keyring |
 | `RUSTUP_INSTALLER_SHA256` | rustup installer script |
 | `BUN_INSTALLER_SHA256` | Bun installer script |
 | `HOMEBREW_INSTALLER_SHA256` | Homebrew install script |
@@ -59,6 +64,19 @@ Every downloaded asset is guarded by a dedicated environment variable:
 The **eza** apt repository is added with a GPG key verified against a pinned
 fingerprint stored in the `EZA_KEY_FINGERPRINT` variable. If the key's
 fingerprint does not match, the installer aborts before adding the repository.
+
+The **GitHub CLI** apt repository keyring is pinned by `GH_APT_KEYRING_SHA256`,
+and the opt-in **git-core PPA** (`GIT_FROM_PPA=1`) key is pinned by
+`GIT_CORE_PPA_KEY_FINGERPRINT`, which `bump-versions.sh` cross-checks between
+Launchpad and the Ubuntu keyserver.
+
+## Upgrades on Rerun
+
+Pinned tools are compared against their pin on every run: a missing or older
+install is replaced with the pinned release, while a newer user-managed install
+is left alone. Bumping a pin and rerunning `./bootstrap.sh` therefore upgrades
+existing machines. On Windows, the installed Herdr preview tag is recorded next
+to `herdr.exe` for the same purpose.
 
 ## Pinned Git Commits
 

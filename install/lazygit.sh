@@ -15,12 +15,11 @@ if is_macos; then
     exit 0
 fi
 
-if command -v lazygit &> /dev/null; then
-    echo "lazygit is already installed."
-    exit 0
-fi
-
 if command -v pacman >/dev/null 2>&1; then
+    if command -v lazygit >/dev/null 2>&1; then
+        echo "lazygit is already installed."
+        exit 0
+    fi
     pacman_install lazygit
     echo "lazygit installed via pacman."
     exit 0
@@ -29,6 +28,10 @@ fi
 if [ -z "${LAZYGIT_VERSION:-}" ]; then
     echo "LAZYGIT_VERSION is missing. Run scripts/bump-versions.sh to refresh install/versions.env."
     exit 1
+fi
+
+if pinned_version_satisfied "$LAZYGIT_VERSION" lazygit /usr/local/bin/lazygit; then
+    exit 0
 fi
 
 LAZYGIT_ARCH="$(get_arch)"
@@ -43,4 +46,4 @@ download_and_verify "https://github.com/jesseduffield/lazygit/releases/download/
 tar xf "$TMP_TAR" -C "$TMP_DIR" lazygit
 sudo install "$TMP_DIR/lazygit" /usr/local/bin
 
-echo "lazygit installed successfully."
+echo "lazygit ${LAZYGIT_VERSION} installed successfully."
