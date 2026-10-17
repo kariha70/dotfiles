@@ -302,15 +302,20 @@ install_verified_deb() {
     return "$status"
 }
 
-# Print the mise binary: PATH first, then the ~/.local/bin install, then
-# Homebrew, whose shellenv may not be loaded yet during a fresh macOS bootstrap.
+# Print the mise binary: the pinned ~/.local/bin install (Linux) first, so an
+# older mise earlier on PATH is not used, then PATH, then Homebrew, whose
+# shellenv may not be loaded yet during a fresh macOS bootstrap.
 resolve_mise_bin() {
     local candidate
+    if [ -x "$HOME/.local/bin/mise" ]; then
+        printf '%s\n' "$HOME/.local/bin/mise"
+        return 0
+    fi
     if command -v mise >/dev/null 2>&1; then
         command -v mise
         return 0
     fi
-    for candidate in "$HOME/.local/bin/mise" /opt/homebrew/bin/mise /usr/local/bin/mise; do
+    for candidate in /opt/homebrew/bin/mise /usr/local/bin/mise; do
         if [ -x "$candidate" ]; then
             printf '%s\n' "$candidate"
             return 0
@@ -392,6 +397,10 @@ install_release() {
     if ! download_and_verify "$RELEASE_URL" "$tmp_dir/$RELEASE_ASSET" "$sha" "$tool ($arch)"; then
         rm -rf "$tmp_dir"
         return 1
+    fi
+    if [ "$RELEASE_KIND" = "zip" ] && ! command -v unzip >/dev/null 2>&1 && command -v apt-get >/dev/null 2>&1; then
+        apt_update_once
+        sudo apt-get install -y --no-install-recommends unzip
     fi
     case "$RELEASE_KIND" in
         tar) tar -xf "$tmp_dir/$RELEASE_ASSET" -C "$tmp_dir/files" ;;

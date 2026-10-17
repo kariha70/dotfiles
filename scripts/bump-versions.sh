@@ -318,12 +318,14 @@ for pin in \
     "AZURE_CLI_APT_INSTALLER_SHA256|https://aka.ms/InstallAzureCLIDeb" \
     "GH_APT_KEYRING_SHA256|https://cli.github.com/packages/githubcli-archive-keyring.gpg"; do
     name="${pin%%|*}"
-    emit "${name}=$(fetch_sha "${pin#*|}" "$TMP_DIR/$name")"
+    sha="$(fetch_sha "${pin#*|}" "$TMP_DIR/$name")"
+    emit "${name}=${sha}"
 done
 
 # apt repository signing keys pinned by fingerprint.
 curl "${CURL_ARGS[@]}" "https://raw.githubusercontent.com/eza-community/eza/main/deb.asc" -o "$TMP_DIR/eza.asc"
-emit "EZA_KEY_FINGERPRINT=$(gpg_fingerprint "$TMP_DIR/eza.asc")"
+eza_key_fingerprint="$(gpg_fingerprint "$TMP_DIR/eza.asc")"
+emit "EZA_KEY_FINGERPRINT=${eza_key_fingerprint}"
 
 # The git-core PPA key is cross-checked between Launchpad and the keyserver.
 git_core_ppa_fingerprint="$(curl "${CURL_ARGS[@]}" "https://api.launchpad.net/1.0/~git-core/+archive/ubuntu/ppa" | jq -er '.signing_key_fingerprint')"
@@ -344,7 +346,10 @@ for pin in \
     "POWERLEVEL10K_MEDIA_REF|romkatv/powerlevel10k-media"; do
     name="${pin%%|*}"
     override_var="${name}_OVERRIDE"
-    ref="${!override_var:-$(resolve_git_ref "$name" "${pin#*|}" "${!name:-}")}"
+    ref="${!override_var:-}"
+    if [ -z "$ref" ]; then
+        ref="$(resolve_git_ref "$name" "${pin#*|}" "${!name:-}")"
+    fi
     printf -v "$name" '%s' "$ref"
     refs+=("${name}=${ref}")
 done
@@ -353,7 +358,8 @@ emit "${refs[@]}"
 # MesloLGS NF fonts from the pinned powerlevel10k-media commit.
 fonts=()
 for font in "REGULAR|Regular" "BOLD|Bold" "ITALIC|Italic" "BOLD_ITALIC|Bold%20Italic"; do
-    fonts+=("MESLO_${font%%|*}_TTF_SHA256=$(fetch_sha "https://raw.githubusercontent.com/romkatv/powerlevel10k-media/${POWERLEVEL10K_MEDIA_REF}/MesloLGS%20NF%20${font#*|}.ttf" "$TMP_DIR/meslo-${font%%|*}.ttf")")
+    sha="$(fetch_sha "https://raw.githubusercontent.com/romkatv/powerlevel10k-media/${POWERLEVEL10K_MEDIA_REF}/MesloLGS%20NF%20${font#*|}.ttf" "$TMP_DIR/meslo-${font%%|*}.ttf")"
+    fonts+=("MESLO_${font%%|*}_TTF_SHA256=${sha}")
 done
 emit "${fonts[@]}"
 

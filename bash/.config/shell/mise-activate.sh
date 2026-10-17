@@ -2,11 +2,14 @@
 # Puts the global runtimes from install/mise.sh on PATH and switches to a
 # project's own versions when entering a directory with a mise.toml.
 
+# Same order as resolve_mise_bin in install/lib/helpers.sh.
 MISE_BIN=""
-if command -v mise >/dev/null 2>&1; then
+if [ -x "$HOME/.local/bin/mise" ]; then
+    MISE_BIN="$HOME/.local/bin/mise"
+elif command -v mise >/dev/null 2>&1; then
     MISE_BIN="$(command -v mise)"
 else
-    for candidate in "$HOME/.local/bin/mise" /opt/homebrew/bin/mise /usr/local/bin/mise; do
+    for candidate in /opt/homebrew/bin/mise /usr/local/bin/mise; do
         if [ -x "$candidate" ]; then
             MISE_BIN="$candidate"
             break
