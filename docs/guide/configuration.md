@@ -28,33 +28,28 @@ Use `SKIP_<STEP>=1` to disable individual bootstrap steps.
 
 | Flag | Skips |
 |------|-------|
-| `SKIP_PACKAGES` | Core apt or pacman packages |
 | `SKIP_MACOS` | macOS Homebrew bundle |
+| `SKIP_PACKAGES` | Base apt or pacman packages |
 | `SKIP_GIT_PPA` | Opt-in git-core PPA step |
 | `SKIP_GH` | GitHub CLI from the official apt repository |
-| `SKIP_JUST` | just |
-| `SKIP_FZF` | fzf |
-| `SKIP_CLI_TOOLS` | bat, fd, and hyperfine upstream `.deb` packages |
-| `SKIP_TMUX` | Pinned tmux source build |
 | `SKIP_SSH` | SSH server setup |
 | `SKIP_OHMYZSH` | Oh My Zsh + plugins + Powerlevel10k |
 | `SKIP_FONTS` | MesloLGS Nerd Font installation |
-| `SKIP_EZA` | eza (modern `ls`) |
-| `SKIP_MISE` | mise with the pinned Node.js and Go runtimes |
+| `SKIP_MISE` | mise with the pinned Node.js and Go runtimes and global npm CLIs |
 | `SKIP_BUN` | Bun runtime |
+| `SKIP_RELEASE_TOOLS` | All pinned release tools (just, lazygit, fzf, zoxide, delta, bat, fd, hyperfine, glow, fastfetch, atuin, yazi, superfile) |
+| `SKIP_<TOOL>` | One release tool, e.g. `SKIP_LAZYGIT` or `SKIP_FZF` |
+| `SKIP_TMUX` | Pinned tmux source build |
 | `SKIP_NEOVIM` | Neovim AppImage |
-| `SKIP_ZOXIDE` | zoxide (smart `cd`) |
-| `SKIP_LAZYGIT` | lazygit TUI |
+| `SKIP_EZA` | eza (modern `ls`) |
 | `SKIP_UV` | uv (Python package manager) |
 | `SKIP_AZURE_CLI` | Azure CLI |
-| `SKIP_AI_TOOLS` | Herdr, Codex, Claude Code, and GitHub Copilot CLI |
+| `SKIP_AI_TOOLS` | Herdr, Codex, Claude Code, GitHub Copilot CLI, and Pi |
 | `SKIP_RUST` | Rust toolchain via rustup |
 | `SKIP_WSL` | WSL-specific setup |
-| `SKIP_DELTA` | git-delta pager |
-| `SKIP_EXTRAS` | Extra CLI tools (bat, fd, etc.) |
-| `SKIP_EXTRAS_OPS` | Ops tools (kubectl, helm) |
-| `SKIP_MACOS_DEFAULTS` | macOS system preferences |
+| `SKIP_MACOS_DEFAULTS` | macOS system preferences (also requires `APPLY_MACOS_DEFAULTS=1` to run) |
 | `SKIP_STOW` | Symlink step |
+| `SKIP_GIT_CONFIG` | All local Git configuration below |
 | `SKIP_GIT_SIGNING` | 1Password SSH commit signing |
 | `SKIP_GIT_CREDENTIALS` | GitHub credential helper |
 | `SKIP_SHELL` | Default shell change |

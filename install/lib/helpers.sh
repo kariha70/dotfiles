@@ -2,10 +2,8 @@
 
 # Shared helper functions for installer scripts.
 
-# --- Logging ---------------------------------------------------------------
-
-log_info()  { echo "$*"; }
-log_warn()  { echo "WARNING: $*" >&2; }
+# shellcheck source=releases.sh
+source "$(dirname "${BASH_SOURCE[0]}")/releases.sh"
 
 is_true() {
     case "${1:-}" in
@@ -19,15 +17,6 @@ is_true() {
 : "${APT_UPDATE_SENTINEL:=/tmp/dotfiles_apt_updated_$$}"
 export APT_UPDATE_SENTINEL
 
-# Clean up deprecated/broken third-party apt sources to prevent update failures.
-remove_deprecated_apt_sources() {
-    local charm_list="/etc/apt/sources.list.d/charm.list"
-    if [ -f "$charm_list" ] && grep -q "repo.charm.sh/apt" "$charm_list"; then
-        echo "Removing deprecated Charm apt source (no longer used for Glow)."
-        sudo rm -f "$charm_list"
-    fi
-}
-
 # Run apt-get update only once per script invocation.
 apt_update_impl() {
     local force="${1:-0}"
@@ -39,7 +28,6 @@ apt_update_impl() {
         return 0
     fi
     echo "Updating apt package index..."
-    remove_deprecated_apt_sources
     sudo apt-get update
     export APT_UPDATED=1
     touch "${APT_UPDATE_SENTINEL:-/tmp/dotfiles_apt_updated}"
@@ -85,11 +73,6 @@ is_macos() {
 # Return 0 when running on Linux.
 is_linux() {
     [ "$(platform_uname)" = "Linux" ]
-}
-
-# Ensure ~/.local/bin exists.
-ensure_local_bin() {
-    mkdir -p "$HOME/.local/bin"
 }
 
 # Normalize uname arch to stable tokens used by installers.
@@ -374,6 +357,105 @@ mise_install_npm_tools() {
     # Run from $HOME so a project's mise.toml in the caller's directory neither
     # changes the result nor triggers a trust prompt.
     (cd "$HOME" && MISE_YES=1 "$mise_bin" install)
+}
+
+# Install the pinned release of a tool from install/lib/releases.sh unless a
+# candidate command already reports the pinned version or newer.
+# Usage: install_release <tool>
+install_release() {
+    local tool="$1" arch tmp_dir sha bin found sudo_cmd="" status=0
+    local -a candidates=()
+    arch="$(get_arch)" || return 1
+    release_info "$tool" "$arch" || return 1
+    if [ -z "$RELEASE_VERSION" ]; then
+        echo "Pinned version for $tool is missing. Run scripts/bump-versions.sh." >&2
+        return 1
+    fi
+
+    read -r -a candidates <<<"$RELEASE_COMMANDS"
+    if [ "$RELEASE_KIND" != "deb" ]; then
+        candidates+=("$RELEASE_DEST/${RELEASE_BINS%% *}")
+    fi
+    if pinned_version_satisfied "$RELEASE_VERSION" "${candidates[@]}"; then
+        return 0
+    fi
+
+    echo "Installing $tool $RELEASE_VERSION..."
+    sha="${!RELEASE_SHA_VAR:-}"
+    if [ "$RELEASE_KIND" = "deb" ]; then
+        install_verified_deb "$RELEASE_URL" "$sha" "$tool ($arch)"
+        return
+    fi
+
+    tmp_dir="$(mktemp -d)"
+    mkdir -p "$tmp_dir/files"
+    if ! download_and_verify "$RELEASE_URL" "$tmp_dir/$RELEASE_ASSET" "$sha" "$tool ($arch)"; then
+        rm -rf "$tmp_dir"
+        return 1
+    fi
+    case "$RELEASE_KIND" in
+        tar) tar -xf "$tmp_dir/$RELEASE_ASSET" -C "$tmp_dir/files" ;;
+        zip) unzip -q "$tmp_dir/$RELEASE_ASSET" -d "$tmp_dir/files" ;;
+        bin) mv "$tmp_dir/$RELEASE_ASSET" "$tmp_dir/files/$RELEASE_BINS" ;;
+        *)
+            echo "install_release does not handle $RELEASE_KIND assets ($tool)." >&2
+            rm -rf "$tmp_dir"
+            return 1 ;;
+    esac
+
+    if [ "$RELEASE_DEST" = "/usr/local/bin" ]; then
+        sudo_cmd="sudo"
+    else
+        mkdir -p "$RELEASE_DEST"
+    fi
+    for bin in $RELEASE_BINS; do
+        found="$(find "$tmp_dir/files" -type f -name "$bin" | head -n 1)"
+        if [ -z "$found" ]; then
+            echo "$bin not found in the $tool release asset." >&2
+            status=1
+            break
+        fi
+        $sudo_cmd install -m 0755 "$found" "$RELEASE_DEST/$bin"
+    done
+    rm -rf "$tmp_dir"
+    [ "$status" -eq 0 ] && echo "$tool $RELEASE_VERSION installed to $RELEASE_DEST."
+    return "$status"
+}
+
+# Load Homebrew's environment when brew is installed but not yet on PATH.
+load_brew_shellenv() {
+    local brew_bin
+    command -v brew >/dev/null 2>&1 && return 0
+    for brew_bin in /opt/homebrew/bin/brew /usr/local/bin/brew; do
+        if [ -x "$brew_bin" ]; then
+            eval "$("$brew_bin" shellenv)"
+            return 0
+        fi
+    done
+    return 1
+}
+
+# Download an armored apt signing key, require that it holds exactly the
+# expected primary key, and write it dearmored for `signed-by=`.
+# Usage: fetch_apt_key <url> <expected-fingerprint> <output.gpg>
+fetch_apt_key() {
+    local url="$1" expected_fp="$2" output="$3" armored actual_fps
+    armored="$(mktemp)"
+    if ! curl -fLsS "$url" -o "$armored"; then
+        rm -f "$armored"
+        return 1
+    fi
+    actual_fps="$(gpg --batch --with-colons --import-options show-only --import "$armored" 2>/dev/null |
+        awk -F: '/^pub:/ { want = 1; next } want && /^fpr:/ { print $10; want = 0 }')"
+    if [ -z "$expected_fp" ] || [ "$actual_fps" != "$expected_fp" ]; then
+        echo "Fingerprint mismatch for apt signing key from $url." >&2
+        echo "Expected: ${expected_fp:-<missing pin>}" >&2
+        echo "Actual:   ${actual_fps:-<none>}" >&2
+        rm -f "$armored"
+        return 1
+    fi
+    gpg --batch --yes --dearmor -o "$output" "$armored"
+    rm -f "$armored"
 }
 
 # Install an apt keyring and source list when they differ from the desired

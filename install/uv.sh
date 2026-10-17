@@ -10,7 +10,9 @@ source_versions "$SCRIPT_DIR"
 
 echo "Installing uv..."
 
-if command -v uv &> /dev/null; then
+if is_macos; then
+    echo "macOS detected. uv is managed via Homebrew (install/Brewfile)."
+elif command -v uv &> /dev/null; then
     echo "uv is already installed."
 elif command -v pacman >/dev/null 2>&1; then
     pacman_install uv

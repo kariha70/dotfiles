@@ -7,6 +7,11 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 # shellcheck source=lib/helpers.sh
 source "$SCRIPT_DIR/lib/helpers.sh"
 
+if ! is_wsl; then
+    echo "Not running on WSL. Skipping WSL configuration."
+    exit 0
+fi
+
 echo "Configuring WSL specific settings..."
 
 # 1. Configure Git Credential Manager

@@ -7,221 +7,92 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 # shellcheck source=lib/helpers.sh
 source "$SCRIPT_DIR/lib/helpers.sh"
 
-echo "Installing packages..."
-
 if is_macos; then
     echo "macOS detected. Package installation is handled by install/macos.sh."
     exit 0
 fi
 
-# Debian/Ubuntu packages
-if command -v apt-get &> /dev/null; then
-    echo "Detected apt-get. Updating and installing packages..."
+# Stable base tools from the distro. Fast-moving tools with pins in
+# versions.env come from their own installers (release-tools.sh, gh.sh, ...)
+# so bumping a pin upgrades them. tmux stays here as a fallback for the pinned
+# source build (install/tmux.sh).
+PACKAGES=(
+    curl git vim stow htop jq zsh fontconfig ripgrep btop tmux unzip
+    shellcheck gnupg wakeonlan
+)
+
+# Installed when the distro provides them. EXTRA_TOOLS="pkg1 pkg2" adds more.
+OPTIONAL_PACKAGES=(
+    dust procs gping httpie miller xh bottom tealdeer direnv age duf kubectl helm
+)
+if [ -n "${EXTRA_TOOLS:-}" ]; then
+    read -r -a extra_tools <<<"$EXTRA_TOOLS"
+    OPTIONAL_PACKAGES+=("${extra_tools[@]}")
+fi
+
+if command -v apt-get >/dev/null 2>&1; then
+    echo "Installing apt packages..."
     apt_update_once
-
-    # List of packages to install. Tools with pins in versions.env (fzf, bat,
-    # fd, hyperfine, just, gh, ...) come from their dedicated installers so
-    # bumping a pin upgrades them; only stable base tools come from the distro.
-    # tmux stays here as a fallback for the pinned source build (install/tmux.sh).
-    PACKAGES=(
-        curl
-        git
-        vim
-        stow
-        htop
-        jq
-        build-essential
-        zsh
-        fontconfig
-        ripgrep
-        btop
-        tmux
-        unzip
-        shellcheck
-        gnupg
-        wakeonlan
-    )
-    PROCS_APT_AVAILABLE=0
-
-    add_first_available() {
-        local label="$1"
-        shift
-        for pkg in "$@"; do
-            if apt_package_available "$pkg"; then
-                append_unique PACKAGES "$pkg"
-                return 0
-            fi
-        done
-        echo "Skipping $label (apt package not available on this distro)"
-    }
-
-    add_optional_package() {
-        local pkg="$1" label="${2:-$1}"
-        add_first_available "$label" "$pkg"
-    }
-
-    # Optional modern CLI tools when available on this distro
-    add_first_available "dust" du-dust dust   # package name varies by distro
-    if apt_package_available procs; then
-        append_unique PACKAGES procs
-        PROCS_APT_AVAILABLE=1
-    else
-        echo "procs not available via apt."
-    fi
-    add_optional_package gping gping
-    add_optional_package httpie "HTTPie"
-    add_optional_package miller "Miller (mlr)"
-    add_optional_package xh xh
-    add_optional_package bottom bottom
-    add_optional_package tealdeer "tealdeer (tldr)"
-    add_optional_package direnv direnv
-    add_optional_package age age
-    add_optional_package duf duf
-    add_optional_package kubectl kubectl
-    add_optional_package helm helm
-
-    if [ -n "${EXTRA_TOOLS:-}" ]; then
-        IFS=' ' read -r -a EXTRA_TOOL_PACKAGES <<< "${EXTRA_TOOLS}"
-        for extra_pkg in "${EXTRA_TOOL_PACKAGES[@]}"; do
-            case "$extra_pkg" in
-                ""|gh) ;; # gh comes from install/gh.sh
-                *) add_optional_package "$extra_pkg" "$extra_pkg" ;;
-            esac
-        done
-    fi
-
-    # Add openssh-server if not on WSL
+    PACKAGES+=(build-essential)
     if is_wsl; then
-        add_optional_package wslu wslu
+        OPTIONAL_PACKAGES+=(wslu)
     else
-        append_unique PACKAGES openssh-server
+        PACKAGES+=(openssh-server)
     fi
-    
-    # Filter already-installed packages for faster reruns.
-    MISSING_PACKAGES=()
-    while IFS= read -r pkg; do
-        [ -n "$pkg" ] || continue
-        MISSING_PACKAGES+=("$pkg")
-    done < <(filter_missing_packages "${PACKAGES[@]}")
 
+    for pkg in "${OPTIONAL_PACKAGES[@]}"; do
+        case "$pkg" in
+            gh) continue ;; # install/gh.sh uses GitHub's apt repository
+            dust) apt_package_available dust || pkg="du-dust" ;; # older Ubuntu name
+        esac
+        if apt_package_available "$pkg"; then
+            append_unique PACKAGES "$pkg"
+        else
+            echo "Skipping $pkg (not available from apt)."
+        fi
+    done
+
+    # UPGRADE_PACKAGES=1 also upgrades packages that are already installed.
     if is_true "${UPGRADE_PACKAGES:-0}"; then
-        echo "UPGRADE_PACKAGES set. Installing or upgrading all requested packages."
-        sudo apt-get install -y --no-install-recommends "${PACKAGES[@]}"
-    elif [ "${#MISSING_PACKAGES[@]}" -gt 0 ]; then
-        sudo apt-get install -y --no-install-recommends "${MISSING_PACKAGES[@]}"
+        INSTALL_PACKAGES=("${PACKAGES[@]}")
+    else
+        INSTALL_PACKAGES=()
+        while IFS= read -r pkg; do
+            INSTALL_PACKAGES+=("$pkg")
+        done < <(filter_missing_packages "${PACKAGES[@]}")
+    fi
+    if [ "${#INSTALL_PACKAGES[@]}" -gt 0 ]; then
+        sudo apt-get install -y --no-install-recommends "${INSTALL_PACKAGES[@]}"
     else
         echo "All requested packages already installed."
     fi
 
-    # Fallback for procs is opt-in because compiling it dominates bootstrap time.
-    if ! command -v procs >/dev/null 2>&1 && [ "$PROCS_APT_AVAILABLE" -eq 0 ]; then
-        if [ "${INSTALL_PROCS_FROM_SOURCE:-0}" != "1" ]; then
-            echo "Skipping procs source build. Set INSTALL_PROCS_FROM_SOURCE=1 to enable the cargo fallback."
-        else
-            echo "Attempting procs install via cargo fallback..."
-
-            if ! command -v cargo >/dev/null 2>&1; then
-                if apt_package_available cargo; then
-                    apt_update_once
-                    sudo apt-get install -y cargo
-                else
-                    echo "Skipping procs fallback (cargo package not available)."
-                fi
-            fi
-
-            if command -v cargo >/dev/null 2>&1; then
-                ensure_local_bin
-
-                if cargo install --locked --root "$HOME/.local" procs; then
-                    echo "procs installed via cargo fallback."
-                else
-                    echo "procs cargo fallback failed; continuing without procs."
-                fi
-            fi
-        fi
-    fi
-
-    # Ensure libsecret credential helper for Git on non-WSL installs
-    if ! is_wsl; then
-        if ! command -v git-credential-libsecret >/dev/null 2>&1; then
-            if ! sudo apt-get install -y git-credential-libsecret 2>/dev/null; then
-                echo "git-credential-libsecret package not available; attempting to build from git contrib."
+    # libsecret credential helper for Git on native Linux. Older Ubuntu releases
+    # ship only its source with Git, so build it there.
+    if ! is_wsl && ! command -v git-credential-libsecret >/dev/null 2>&1; then
+        if ! sudo apt-get install -y git-credential-libsecret 2>/dev/null; then
+            HELPER_SRC="/usr/share/doc/git/contrib/credential/libsecret"
+            if [ -f "$HELPER_SRC/Makefile" ]; then
+                echo "Building git-credential-libsecret from Git's contrib sources..."
                 sudo apt-get install -y libsecret-1-0 libsecret-1-dev
-                HELPER_SRC="/usr/share/doc/git/contrib/credential/libsecret"
-                if [ -d "$HELPER_SRC" ]; then
-                    (cd "$HELPER_SRC" && sudo make && sudo install git-credential-libsecret /usr/local/bin/)
-                else
-                    echo "libsecret helper source not found at $HELPER_SRC; skipping helper build."
-                fi
+                (cd "$HELPER_SRC" && sudo make && sudo install git-credential-libsecret /usr/local/bin/)
+            else
+                echo "git-credential-libsecret is not available; skipping."
             fi
         fi
     fi
 elif command -v pacman >/dev/null 2>&1; then
-    echo "Detected pacman. Updating and installing Arch Linux packages..."
+    echo "Installing pacman packages..."
+    PACKAGES+=(base-devel openssh libsecret)
     pacman_update_once
-
-    PACKAGES=(
-        curl
-        git
-        vim
-        stow
-        htop
-        jq
-        base-devel
-        zsh
-        fontconfig
-        fzf
-        bat
-        ripgrep
-        fd
-        btop
-        tmux
-        unzip
-        shellcheck
-        gnupg
-        wakeonlan
-        openssh
-        libsecret
-    )
-
-    add_arch_optional_package() {
-        local pkg="$1" label="${2:-$1}"
+    for pkg in "${OPTIONAL_PACKAGES[@]}"; do
+        [ "$pkg" = "gh" ] && pkg="github-cli"
         if pacman_package_available "$pkg"; then
             append_unique PACKAGES "$pkg"
         else
-            echo "Skipping $label (pacman package not available)."
+            echo "Skipping $pkg (not available from pacman)."
         fi
-    }
-
-    add_arch_optional_package dust dust
-    add_arch_optional_package procs procs
-    add_arch_optional_package gping gping
-    add_arch_optional_package hyperfine hyperfine
-    add_arch_optional_package httpie "HTTPie"
-    add_arch_optional_package just just
-    add_arch_optional_package miller "Miller (mlr)"
-    add_arch_optional_package xh xh
-    add_arch_optional_package bottom bottom
-    add_arch_optional_package tealdeer "tealdeer (tldr)"
-    add_arch_optional_package github-cli "GitHub CLI (gh)"
-    add_arch_optional_package direnv direnv
-    add_arch_optional_package age age
-    add_arch_optional_package duf duf
-    add_arch_optional_package kubectl kubectl
-    add_arch_optional_package helm helm
-
-    if [ -n "${EXTRA_TOOLS:-}" ]; then
-        IFS=' ' read -r -a EXTRA_TOOL_PACKAGES <<< "${EXTRA_TOOLS}"
-        for extra_pkg in "${EXTRA_TOOL_PACKAGES[@]}"; do
-            [ -n "$extra_pkg" ] || continue
-            case "$extra_pkg" in
-                gh) arch_pkg="github-cli" ;;
-                *) arch_pkg="$extra_pkg" ;;
-            esac
-            add_arch_optional_package "$arch_pkg" "$extra_pkg"
-        done
-    fi
-
+    done
     pacman_install "${PACKAGES[@]}"
 else
     echo "Package manager not supported in this script yet. Please install 'stow' manually."

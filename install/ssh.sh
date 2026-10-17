@@ -3,12 +3,16 @@
 set -e
 set -o pipefail
 
-echo "Configuring SSH Server..."
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+# shellcheck source=lib/helpers.sh
+source "$SCRIPT_DIR/lib/helpers.sh"
 
-if [ "$(uname -s)" = "Darwin" ]; then
-    echo "macOS detected. Skipping SSH server configuration."
+if is_macos || is_wsl; then
+    echo "macOS or WSL detected. Skipping SSH server configuration."
     exit 0
 fi
+
+echo "Configuring SSH Server..."
 
 # Check if systemctl is available (systemd)
 if command -v systemctl &> /dev/null; then

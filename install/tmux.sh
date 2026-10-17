@@ -46,15 +46,11 @@ apt_update_once
 sudo apt-get install -y --no-install-recommends \
     build-essential pkg-config bison libevent-dev libncurses-dev
 
+release_info tmux any
 TMP_DIR="$(mktemp -d)"
 trap 'rm -rf "$TMP_DIR"' EXIT
-TMUX_ARCHIVE="tmux-${TMUX_VERSION}.tar.gz"
-download_and_verify \
-    "https://github.com/tmux/tmux/releases/download/${TMUX_VERSION}/${TMUX_ARCHIVE}" \
-    "$TMP_DIR/$TMUX_ARCHIVE" \
-    "${TMUX_TAR_SHA256:-}" \
-    "tmux source tarball"
-tar xzf "$TMP_DIR/$TMUX_ARCHIVE" -C "$TMP_DIR"
+download_and_verify "$RELEASE_URL" "$TMP_DIR/$RELEASE_ASSET" "${!RELEASE_SHA_VAR:-}" "tmux source tarball"
+tar xzf "$TMP_DIR/$RELEASE_ASSET" -C "$TMP_DIR"
 
 (
     cd "$TMP_DIR/tmux-${TMUX_VERSION}"

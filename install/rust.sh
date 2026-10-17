@@ -9,49 +9,29 @@ source "$SCRIPT_DIR/lib/helpers.sh"
 source_versions "$SCRIPT_DIR"
 
 RUSTUP_INSTALLER_URL="${RUSTUP_INSTALLER_URL:-https://sh.rustup.rs}"
-RUSTUP_INSTALLER_SHA="${RUSTUP_INSTALLER_SHA256:-}"
 CARGO_BIN_DIR="$HOME/.cargo/bin"
 
-load_brew_shellenv() {
-    if command -v brew >/dev/null 2>&1; then
-        return 0
-    fi
-
-    if [ -x "/opt/homebrew/bin/brew" ]; then
-        eval "$(/opt/homebrew/bin/brew shellenv)"
-    elif [ -x "/usr/local/bin/brew" ]; then
-        eval "$(/usr/local/bin/brew shellenv)"
-    fi
+# Put a directory at the front of PATH once.
+prepend_path() {
+    case ":$PATH:" in
+        *":$1:"*) ;;
+        *) export PATH="$1:$PATH" ;;
+    esac
 }
 
-ensure_cargo_path() {
-    if [ -d "$CARGO_BIN_DIR" ]; then
-        case ":$PATH:" in
-            *":$CARGO_BIN_DIR:"*) ;;
-            *) export PATH="$CARGO_BIN_DIR:$PATH" ;;
-        esac
-    fi
-}
-
-ensure_cargo_path
-
-if ! command -v rustup >/dev/null 2>&1 && command -v pacman >/dev/null 2>&1; then
-    echo "Installing rustup from the Arch Linux repositories..."
-    pacman_install rustup
-fi
+echo "Installing Rust..."
+prepend_path "$CARGO_BIN_DIR"
 
 if is_macos; then
-    load_brew_shellenv
-
-    if command -v brew >/dev/null 2>&1; then
+    # Homebrew's rustup formula is keg-only (install/Brewfile).
+    if load_brew_shellenv; then
         BREW_RUSTUP_PREFIX="$(brew --prefix rustup 2>/dev/null || true)"
-        if [ -n "$BREW_RUSTUP_PREFIX" ] && [ -d "$BREW_RUSTUP_PREFIX/bin" ]; then
-            case ":$PATH:" in
-                *":$BREW_RUSTUP_PREFIX/bin:"*) ;;
-                *) export PATH="$BREW_RUSTUP_PREFIX/bin:$PATH" ;;
-            esac
+        if [ -d "$BREW_RUSTUP_PREFIX/bin" ]; then
+            prepend_path "$BREW_RUSTUP_PREFIX/bin"
         fi
     fi
+elif ! command -v rustup >/dev/null 2>&1 && command -v pacman >/dev/null 2>&1; then
+    pacman_install rustup
 fi
 
 if command -v rustup >/dev/null 2>&1; then
@@ -63,14 +43,8 @@ else
     echo "Installing rustup..."
     INSTALLER_PATH="$(mktemp /tmp/rustup-install.XXXXXX.sh)"
     trap 'rm -f "$INSTALLER_PATH"' EXIT
-    download_and_verify "$RUSTUP_INSTALLER_URL" "$INSTALLER_PATH" "$RUSTUP_INSTALLER_SHA" "rustup installer"
+    download_and_verify "$RUSTUP_INSTALLER_URL" "$INSTALLER_PATH" "${RUSTUP_INSTALLER_SHA256:-}" "rustup installer"
     sh "$INSTALLER_PATH" -y --no-modify-path --default-toolchain stable
-fi
-
-ensure_cargo_path
-
-if ! command -v rustup >/dev/null 2>&1 && [ -x "$CARGO_BIN_DIR/rustup" ]; then
-    export PATH="$CARGO_BIN_DIR:$PATH"
 fi
 
 if ! rustup show active-toolchain >/dev/null 2>&1; then
@@ -79,8 +53,6 @@ if ! rustup show active-toolchain >/dev/null 2>&1; then
 else
     echo "Rust toolchain already configured."
 fi
-
-ensure_cargo_path
 
 if ! command -v cargo >/dev/null 2>&1 || ! command -v rustc >/dev/null 2>&1; then
     echo "Rust installation finished, but cargo/rustc were not found on PATH."
