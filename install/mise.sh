@@ -19,13 +19,15 @@ done
 
 MISE_BIN="$HOME/.local/bin/mise"
 
+# Use global defaults only: ignore any project mise.toml in the caller's directory.
+cd "$HOME"
+
 if is_macos; then
     # Homebrew installs mise from install/Brewfile.
-    if ! command -v mise >/dev/null 2>&1; then
+    if ! MISE_BIN="$(resolve_mise_bin)"; then
         echo "mise not found. Run install/macos.sh (Homebrew bundle) first."
         exit 1
     fi
-    MISE_BIN="$(command -v mise)"
 elif command -v pacman >/dev/null 2>&1; then
     if ! command -v mise >/dev/null 2>&1; then
         pacman_install mise

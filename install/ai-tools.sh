@@ -56,7 +56,7 @@ EOF_TOOLS
 fi
 
 MISE_BIN="$(resolve_mise_bin)"
-eval "$("$MISE_BIN" env -s bash)"
+eval "$(cd "$HOME" && "$MISE_BIN" env -s bash)"
 for command_name in codex claude copilot pi; do
     if ! command -v "$command_name" >/dev/null 2>&1; then
         echo "AI tool installation completed, but '$command_name' is not on PATH."

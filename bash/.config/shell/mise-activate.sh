@@ -2,12 +2,17 @@
 # Puts the global runtimes from install/mise.sh on PATH and switches to a
 # project's own versions when entering a directory with a mise.toml.
 
+MISE_BIN=""
 if command -v mise >/dev/null 2>&1; then
     MISE_BIN="$(command -v mise)"
-elif [ -x "$HOME/.local/bin/mise" ]; then
-    MISE_BIN="$HOME/.local/bin/mise"
 else
-    MISE_BIN=""
+    for candidate in "$HOME/.local/bin/mise" /opt/homebrew/bin/mise /usr/local/bin/mise; do
+        if [ -x "$candidate" ]; then
+            MISE_BIN="$candidate"
+            break
+        fi
+    done
+    unset candidate
 fi
 
 if [ -n "$MISE_BIN" ]; then

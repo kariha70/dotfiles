@@ -319,15 +319,21 @@ install_verified_deb() {
     return "$status"
 }
 
-# Print the mise binary (PATH first, then the ~/.local/bin install).
+# Print the mise binary: PATH first, then the ~/.local/bin install, then
+# Homebrew, whose shellenv may not be loaded yet during a fresh macOS bootstrap.
 resolve_mise_bin() {
+    local candidate
     if command -v mise >/dev/null 2>&1; then
         command -v mise
-    elif [ -x "$HOME/.local/bin/mise" ]; then
-        printf '%s\n' "$HOME/.local/bin/mise"
-    else
-        return 1
+        return 0
     fi
+    for candidate in "$HOME/.local/bin/mise" /opt/homebrew/bin/mise /usr/local/bin/mise; do
+        if [ -x "$candidate" ]; then
+            printf '%s\n' "$candidate"
+            return 0
+        fi
+    done
+    return 1
 }
 
 # Declare npm CLIs as mise tools in a generated conf.d file and install them.
@@ -365,7 +371,9 @@ mise_install_npm_tools() {
     else
         mv "$tmp" "$conf_dir/$conf_name.toml"
     fi
-    MISE_YES=1 "$mise_bin" install
+    # Run from $HOME so a project's mise.toml in the caller's directory neither
+    # changes the result nor triggers a trust prompt.
+    (cd "$HOME" && MISE_YES=1 "$mise_bin" install)
 }
 
 # Install an apt keyring and source list when they differ from the desired
