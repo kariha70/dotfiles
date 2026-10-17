@@ -90,10 +90,10 @@ release_info() {
             RELEASE_ASSET="fastfetch-linux-${deb/arm64/aarch64}.deb" ;;
         atuin)
             RELEASE_REPO="atuinsh/atuin" RELEASE_KIND="tar" RELEASE_DEST="$HOME/.local/bin"
-            RELEASE_ASSET="atuin-$gnu-unknown-linux-gnu.tar.gz" ;;
+            RELEASE_ASSET="atuin-$gnu-unknown-linux-musl.tar.gz" ;;
         yazi)
             RELEASE_REPO="sxyazi/yazi" RELEASE_KIND="zip" RELEASE_DEST="$HOME/.local/bin" RELEASE_BINS="yazi ya"
-            RELEASE_ASSET="yazi-$gnu-unknown-linux-gnu.zip" ;;
+            RELEASE_ASSET="yazi-$gnu-unknown-linux-musl.zip" ;;
         superfile)
             RELEASE_REPO="yorukot/superfile" RELEASE_KIND="tar" RELEASE_DEST="$HOME/.local/bin"
             RELEASE_BINS="spf" RELEASE_COMMANDS="spf"

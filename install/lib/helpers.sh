@@ -418,8 +418,14 @@ install_release() {
         $sudo_cmd install -m 0755 "$found" "$RELEASE_DEST/$bin"
     done
     rm -rf "$tmp_dir"
-    [ "$status" -eq 0 ] && echo "$tool $RELEASE_VERSION installed to $RELEASE_DEST."
-    return "$status"
+    [ "$status" -eq 0 ] || return "$status"
+
+    # Catch binaries that cannot run here, e.g. builds needing a newer glibc.
+    if ! pinned_version_satisfied "$RELEASE_VERSION" "$RELEASE_DEST/${RELEASE_BINS%% *}" >/dev/null; then
+        echo "$tool $RELEASE_VERSION was installed to $RELEASE_DEST but does not run on this system." >&2
+        return 1
+    fi
+    echo "$tool $RELEASE_VERSION installed to $RELEASE_DEST."
 }
 
 # Load Homebrew's environment when brew is installed but not yet on PATH.
