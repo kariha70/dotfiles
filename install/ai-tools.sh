@@ -11,7 +11,7 @@ source_versions "$SCRIPT_DIR"
 echo "Installing AI coding tools (Herdr, Codex, Claude Code, GitHub Copilot, Pi)..."
 
 if is_macos; then
-    echo "macOS detected. Homebrew manages AI coding tools except GitHub Copilot CLI, which is installed via npm."
+    echo "macOS detected. Homebrew manages AI coding tools except GitHub Copilot CLI, which mise installs from npm."
 else
     ensure_local_bin
 
@@ -38,64 +38,30 @@ else
     fi
 fi
 
-# Use the Node.js runtime that install/mise.sh set as the global default.
-MISE_BIN="$(command -v mise || true)"
-if [ -z "$MISE_BIN" ] && [ -x "$HOME/.local/bin/mise" ]; then
-    MISE_BIN="$HOME/.local/bin/mise"
-fi
-if [ -n "$MISE_BIN" ]; then
-    eval "$("$MISE_BIN" env -s bash)"
+# The npm-based CLIs are mise tools, so they survive Node.js version changes
+# and need no `npm install -g`. Claude Code's install script fetches its native
+# binary, so it is allowed to run. On macOS, Homebrew provides Codex, Claude
+# Code, and Pi (install/Brewfile); only GitHub Copilot CLI comes from npm.
+if is_macos; then
+    mise_install_npm_tools ai-tools <<'EOF_TOOLS'
+@github/copilot
+EOF_TOOLS
+else
+    mise_install_npm_tools ai-tools <<'EOF_TOOLS'
+@openai/codex
+@anthropic-ai/claude-code allow-builds
+@github/copilot
+@earendil-works/pi-coding-agent
+EOF_TOOLS
 fi
 
-if ! command -v npm >/dev/null 2>&1; then
-    echo "npm is required to install Codex, Claude Code, GitHub Copilot CLI, and Pi."
-    echo "Run install/mise.sh first, then rerun this installer."
-    exit 1
-fi
-
-install_npm_cli() {
-    local command_name="$1" package_name="$2" label="$3" verify_package="${4:-false}"
-    if command -v "$command_name" >/dev/null 2>&1 \
-        && { [ "$verify_package" != "true" ] \
-            || npm list --global --depth=0 "$package_name" >/dev/null 2>&1; }; then
-        echo "$label is already installed."
-        return 0
-    fi
-
-    echo "Installing $label..."
-    npm_config_ignore_scripts=false npm install --global "$package_name"
-    command -v "$command_name" >/dev/null 2>&1 || {
-        echo "$label installation completed, but '$command_name' is not on PATH."
+MISE_BIN="$(resolve_mise_bin)"
+eval "$("$MISE_BIN" env -s bash)"
+for command_name in codex claude copilot pi; do
+    if ! command -v "$command_name" >/dev/null 2>&1; then
+        echo "AI tool installation completed, but '$command_name' is not on PATH."
         exit 1
-    }
-}
-
-install_npm_cli codex @openai/codex "Codex CLI"
-install_npm_cli claude @anthropic-ai/claude-code "Claude Code"
-install_npm_cli copilot @github/copilot "GitHub Copilot CLI" true
-
-install_pi() {
-    local package_name="@earendil-works/pi-coding-agent"
-
-    if is_macos && command -v pi >/dev/null 2>&1; then
-        echo "Pi Coding Agent is already installed via Homebrew."
-        return 0
     fi
-
-    if command -v pi >/dev/null 2>&1 \
-        && npm list --global --depth=0 "$package_name" >/dev/null 2>&1; then
-        echo "Pi Coding Agent is already installed."
-        return 0
-    fi
-
-    echo "Installing Pi Coding Agent..."
-    npm_config_ignore_scripts=true npm install --global "$package_name"
-    command -v pi >/dev/null 2>&1 || {
-        echo "Pi Coding Agent installation completed, but 'pi' is not on PATH."
-        exit 1
-    }
-}
-
-install_pi
+done
 
 echo "AI coding tools installation complete."

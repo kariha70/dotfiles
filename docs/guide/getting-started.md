@@ -51,5 +51,6 @@ A few tools require one extra step after bootstrap completes.
 |------|--------|
 | **Powerlevel10k** | The config wizard runs automatically on first Zsh launch. If it doesn't, run `p10k configure`. |
 | **Node.js / Go** | Pinned versions are installed as mise global defaults. Pin a project with `mise use node@22` (writes `mise.toml`). |
+| **Global npm CLIs** | Add packages to `install/npm-globals.txt` instead of `npm install -g`; mise installs them on every machine and keeps them across Node.js upgrades. Coming from nvm, run `scripts/import-npm-globals.sh` once per machine. |
 | **Rust** | Restart your shell, then verify with `rustc --version` |
 | **Remote SSH** | Install **MesloLGS NF** on your *local* machine for proper icon rendering when connecting to remote hosts |

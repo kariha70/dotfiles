@@ -59,4 +59,7 @@ fi
 export MISE_YES=1
 "$MISE_BIN" use --global "node@${NODE_VERSION}" "go@${GO_VERSION}"
 
+# Extra global npm CLIs shared across machines (see install/npm-globals.txt).
+mise_install_npm_tools npm-globals <"$SCRIPT_DIR/npm-globals.txt"
+
 echo "mise runtimes ready: $("$MISE_BIN" exec -- node --version), $("$MISE_BIN" exec -- go version | awk '{print $3}')."

@@ -1,0 +1,11 @@
+# Global npm CLIs installed on every machine as mise tools (install/mise.sh).
+# They live outside any single Node.js version, so changing NODE_VERSION or
+# setting up another machine reinstalls them automatically; no `npm install -g`.
+#
+# One package per line. Append `allow-builds` when the package needs its own
+# install scripts (mise skips them by default), e.g.:
+#   @angular/cli
+#   some-native-tool allow-builds
+#
+# AI coding CLIs are declared in install/ai-tools.sh. To copy packages from an
+# existing nvm setup, run scripts/import-npm-globals.sh once per machine.

@@ -406,7 +406,7 @@ See [`AGENTS.md`](AGENTS.md) for repo conventions, coding style, and testing exp
 ## 📝 Post-Install Notes
 
 - **Powerlevel10k** — the config wizard runs on first Zsh launch; if not, run `p10k configure`
-- **Node.js / Go** — the pinned versions are global defaults; pin a project with `mise use node@22` (writes `mise.toml`). Migrating from nvm: remove `~/.nvm` once you no longer need it, and reinstall any extra global npm packages
+- **Node.js / Go** — the pinned versions are global defaults; pin a project with `mise use node@22` (writes `mise.toml`). Global npm CLIs are mise tools that survive Node.js changes: list extra ones in `install/npm-globals.txt` (shared across machines) instead of running `npm install -g`. Migrating from nvm: run `scripts/import-npm-globals.sh` once per machine to copy existing globals into that list, then remove `~/.nvm`
 - **Rust** — restart your shell, then verify with `rustc --version`
 - **Remote SSH** — install **MesloLGS NF** on your *local* machine for proper icon rendering
 

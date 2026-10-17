@@ -77,6 +77,19 @@ Use `SKIP_<STEP>=1` to disable individual bootstrap steps.
 Skipping `STOW` / `LINK` means your config files won't be updated. Only skip this if you manage symlinks manually.
 :::
 
+## Global npm CLIs
+
+Global npm packages are installed as [mise npm tools](https://mise.jdx.dev/dev-tools/backends/npm.html),
+each in its own directory, so they survive Node.js version changes and are
+reinstalled automatically on every machine. Do not use `npm install -g`.
+
+- **AI coding CLIs** (Codex, Claude Code, Copilot, Pi) are declared in `install/ai-tools.sh`.
+- **Everything else** goes in `install/npm-globals.txt`, one package per line.
+  Append `allow-builds` when a package needs its own install scripts, which mise
+  skips by default.
+- **Migrating from nvm:** run `scripts/import-npm-globals.sh` once per machine to
+  copy the existing global packages into the list, review it, and commit.
+
 ## Git Identity
 
 The `.gitconfig` includes `~/.gitconfig.local` for machine-specific overrides (this file is not tracked by git).
