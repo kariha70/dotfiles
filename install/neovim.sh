@@ -83,13 +83,19 @@ chmod +x "$NEOVIM_ARCHIVE"
 )
 
 NEOVIM_INSTALL_DIR="/usr/local/lib/nvim-${NEOVIM_VERSION}-${ARCH}"
+PREVIOUS_INSTALL_DIR=""
+if [ -L /usr/local/bin/nvim ]; then
+    PREVIOUS_INSTALL_DIR="$(readlink -f /usr/local/bin/nvim || true)"
+    PREVIOUS_INSTALL_DIR="${PREVIOUS_INSTALL_DIR%/usr/bin/nvim}"
+fi
 sudo install -d "$NEOVIM_INSTALL_DIR"
 sudo cp -a "$TMP_DIR/squashfs-root/." "$NEOVIM_INSTALL_DIR/"
 sudo ln -sfn "$NEOVIM_INSTALL_DIR/usr/bin/nvim" "/usr/local/bin/nvim"
 
-# Remove previously extracted releases now that the symlink points elsewhere.
+# Remove older extracted releases, but keep the one being replaced: running
+# Neovim sessions still load runtime files from their $VIMRUNTIME.
 for old_dir in /usr/local/lib/nvim-*-"${ARCH}"; do
-    if [ -d "$old_dir" ] && [ "$old_dir" != "$NEOVIM_INSTALL_DIR" ]; then
+    if [ -d "$old_dir" ] && [ "$old_dir" != "$NEOVIM_INSTALL_DIR" ] && [ "$old_dir" != "$PREVIOUS_INSTALL_DIR" ]; then
         sudo rm -rf -- "$old_dir"
     fi
 done

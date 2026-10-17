@@ -59,16 +59,16 @@ jobs:
         run: |
           source install/lib/helpers.sh
           source install/versions.env
-          pinned_version_satisfied "$GO_VERSION" /usr/local/go/bin/go
-          pinned_version_satisfied "$FZF_VERSION" /usr/local/bin/fzf
-          pinned_version_satisfied "$BAT_VERSION" /usr/bin/bat
-          pinned_version_satisfied "$FD_VERSION" /usr/bin/fd
-          pinned_version_satisfied "$HYPERFINE_VERSION" /usr/bin/hyperfine
-          pinned_version_satisfied "$JUST_VERSION" /usr/local/bin/just
-          pinned_version_satisfied "$DELTA_VERSION" /usr/bin/delta
-          pinned_version_satisfied "$ZOXIDE_VERSION" "$HOME/.local/bin/zoxide"
-          pinned_version_satisfied "$LAZYGIT_VERSION" /usr/local/bin/lazygit
-          pinned_version_satisfied "$NEOVIM_VERSION" /usr/local/bin/nvim
+          pinned_version_satisfied "$GO_VERSION" go /usr/local/go/bin/go
+          pinned_version_satisfied "$FZF_VERSION" fzf /usr/local/bin/fzf
+          pinned_version_satisfied "$BAT_VERSION" bat batcat
+          pinned_version_satisfied "$FD_VERSION" fd fdfind
+          pinned_version_satisfied "$HYPERFINE_VERSION" hyperfine
+          pinned_version_satisfied "$JUST_VERSION" just /usr/local/bin/just
+          pinned_version_satisfied "$DELTA_VERSION" delta
+          pinned_version_satisfied "$ZOXIDE_VERSION" zoxide "$HOME/.local/bin/zoxide"
+          pinned_version_satisfied "$LAZYGIT_VERSION" lazygit /usr/local/bin/lazygit
+          pinned_version_satisfied "$NEOVIM_VERSION" nvim /usr/local/bin/nvim
           apt-cache policy gh | grep -q 'cli.github.com'
 
       - name: Verify stow symlinks

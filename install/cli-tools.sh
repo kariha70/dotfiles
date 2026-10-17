@@ -39,9 +39,10 @@ esac
 # The upstream packages replace Ubuntu's renamed variants: bat ships `bat`
 # instead of `batcat`, and fd conflicts with fd-find while still providing
 # an `fdfind` symlink for existing aliases.
-# Usage: install_sharkdp_deb <command> <repo> <version> <sha-var-prefix>
+# Usage: install_sharkdp_deb <command> <repo> <version> <sha-var-prefix> [alternate-command...]
 install_sharkdp_deb() {
     local command_name="$1" repo="$2" version="$3" sha_prefix="$4"
+    shift 4
     local sha_var expected_sha
 
     if [ -z "$version" ]; then
@@ -49,7 +50,8 @@ install_sharkdp_deb() {
         exit 1
     fi
 
-    if pinned_version_satisfied "$version" "$command_name"; then
+    # Ubuntu's own packages expose bat and fd as batcat and fdfind.
+    if pinned_version_satisfied "$version" "$command_name" "$@"; then
         return 0
     fi
 
@@ -62,8 +64,8 @@ install_sharkdp_deb() {
         "$command_name deb (${DEB_ARCH})"
 }
 
-install_sharkdp_deb bat bat "${BAT_VERSION:-}" BAT_DEB_SHA256
-install_sharkdp_deb fd fd "${FD_VERSION:-}" FD_DEB_SHA256
+install_sharkdp_deb bat bat "${BAT_VERSION:-}" BAT_DEB_SHA256 batcat
+install_sharkdp_deb fd fd "${FD_VERSION:-}" FD_DEB_SHA256 fdfind
 install_sharkdp_deb hyperfine hyperfine "${HYPERFINE_VERSION:-}" HYPERFINE_DEB_SHA256
 
 echo "Upstream CLI tool installation complete."

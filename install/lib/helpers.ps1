@@ -569,14 +569,16 @@ function Update-WithWinget {
 
     if ($result.ExitCode -eq 0) {
         Write-Step "Upgraded $Name (or it was already current)."
-    } elseif ($result.ExitCode -eq $updateNotApplicable) {
+        return $true
+    }
+    if ($result.ExitCode -eq $updateNotApplicable) {
         Write-Step "$Name is already up to date."
-    } else {
-        $details = ($result.Output | Out-String).Trim()
-        Write-Warning "Could not upgrade $Name (id: $Id). Exit code: $($result.ExitCode). Output: $details"
+        return $true
     }
 
-    return $true
+    $details = ($result.Output | Out-String).Trim()
+    Write-Warning "Could not upgrade $Name (id: $Id). Exit code: $($result.ExitCode). Output: $details"
+    return $false
 }
 
 function Install-WithWinget {
@@ -596,7 +598,13 @@ function Install-WithWinget {
     $displayName = if ([string]::IsNullOrWhiteSpace($Name)) { $Id } else { $Name }
     if (Test-WingetPackageInstalled -Id $Id) {
         if (Test-EnvFlag -Name "UPGRADE_PACKAGES") {
-            return (Update-WithWinget -Id $Id -Name $displayName -Source $Source)
+            if (Update-WithWinget -Id $Id -Name $displayName -Source $Source) {
+                return $true
+            }
+            if ($Optional) {
+                return $false
+            }
+            throw "Failed to upgrade required package $displayName (id: $Id)."
         }
         Write-Step "$displayName is already installed."
         return $true

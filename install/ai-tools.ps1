@@ -70,10 +70,13 @@ if ($herdrCommand -and -not (Test-PathEquivalent -Left $herdrCommand.Source -Rig
         Assert-Sha256 -Path $tempFile -ExpectedHash $expectedSha -Label "Herdr (Windows x86_64)"
 
         # A running herdr.exe cannot be overwritten, but it can be renamed.
+        # Unique backup names keep a still-running older copy from blocking
+        # this upgrade; backups no longer in use are cleaned up best-effort.
+        Get-ChildItem -LiteralPath $installDir -Filter "herdr.exe.*.old" -ErrorAction SilentlyContinue |
+            Remove-Item -Force -ErrorAction SilentlyContinue
         if (Test-Path -LiteralPath $destination) {
-            $staleExecutable = "$destination.old"
-            Remove-Item -LiteralPath $staleExecutable -Force -ErrorAction SilentlyContinue
-            Move-Item -LiteralPath $destination -Destination $staleExecutable -Force
+            $staleExecutable = "$destination.$([System.Guid]::NewGuid().ToString('N')).old"
+            Move-Item -LiteralPath $destination -Destination $staleExecutable
         }
 
         if ($assetName.EndsWith(".zip", [System.StringComparison]::OrdinalIgnoreCase)) {
