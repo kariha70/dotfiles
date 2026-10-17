@@ -1,7 +1,6 @@
 # Core shell + dotfiles dependencies
 brew "atuin"
 brew "bash"
-brew "azure-cli"
 brew "bat"
 brew "bottom"
 brew "bun"
@@ -47,6 +46,9 @@ brew "uv"
 brew "xh"
 brew "yazi"
 brew "zoxide"
+
+# CLI tools distributed as casks
+cask "azure-cli"
 
 # macOS GUI apps
 cask "ghostty"
