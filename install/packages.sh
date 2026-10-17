@@ -22,6 +22,7 @@ if command -v apt-get &> /dev/null; then
     # List of packages to install. Tools with pins in versions.env (Go, fzf,
     # bat, fd, hyperfine, just, gh, ...) come from their dedicated installers so
     # bumping a pin upgrades them; only stable base tools come from the distro.
+    # tmux stays here as a fallback for the pinned source build (install/tmux.sh).
     PACKAGES=(
         curl
         git

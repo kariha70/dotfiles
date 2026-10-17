@@ -41,10 +41,10 @@ source $ZSH/oh-my-zsh.sh
 
 # FZF Configuration
 # Use fd (faster than find) for fzf
-if command -v fdfind &> /dev/null; then
-    FD_CMD="fdfind"
-elif command -v fd &> /dev/null; then
+if command -v fd &> /dev/null; then
     FD_CMD="fd"
+elif command -v fdfind &> /dev/null; then
+    FD_CMD="fdfind"
 else
     FD_CMD="find"
 fi
@@ -55,10 +55,10 @@ if [ "$FD_CMD" != "find" ]; then
 fi
 
 # Use bat for previews
-if command -v batcat &> /dev/null; then
-    BAT_CMD="batcat"
-elif command -v bat &> /dev/null; then
+if command -v bat &> /dev/null; then
     BAT_CMD="bat"
+elif command -v batcat &> /dev/null; then
+    BAT_CMD="batcat"
 fi
 
 if [ -n "$BAT_CMD" ]; then

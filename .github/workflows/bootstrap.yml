@@ -69,6 +69,7 @@ jobs:
           pinned_version_satisfied "$ZOXIDE_VERSION" zoxide "$HOME/.local/bin/zoxide"
           pinned_version_satisfied "$LAZYGIT_VERSION" lazygit /usr/local/bin/lazygit
           pinned_version_satisfied "$NEOVIM_VERSION" nvim /usr/local/bin/nvim
+          pinned_version_satisfied "$TMUX_VERSION" tmux /usr/local/bin/tmux
           apt-cache policy gh | grep -q 'cli.github.com'
 
       - name: Verify stow symlinks

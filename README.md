@@ -79,7 +79,7 @@ Restart your shell and you're done. ✨
 <details>
 <summary><strong>🐧 Linux (Ubuntu 22.04+ and Arch Linux)</strong></summary>
 
-Bootstrap uses `apt` on Ubuntu and `pacman` on Arch Linux. Arch-native packages come from the signed official repositories. On Ubuntu, base tools come from apt, while fast-moving tools (Go, fzf, bat, fd, hyperfine, just, delta, zoxide, lazygit, Neovim, …) use SHA256-verified pinned upstream releases, and gh uses GitHub's official apt repository. Rerunning bootstrap upgrades any pinned tool older than its pin.
+Bootstrap uses `apt` on Ubuntu and `pacman` on Arch Linux. Arch-native packages come from the signed official repositories. On Ubuntu, base tools come from apt, while fast-moving tools (Go, fzf, bat, fd, hyperfine, tmux, just, delta, zoxide, lazygit, Neovim, …) use SHA256-verified pinned upstream releases, and gh uses GitHub's official apt repository. Rerunning bootstrap upgrades any pinned tool older than its pin.
 
 - Stows 6 config packages: `bash`, `git`, `vim`, `zsh`, `tmux`, `nvim`
 - Sets Zsh as the default login shell
@@ -148,7 +148,7 @@ Parallel bootstrap flow using `winget` and PowerShell modules:
 <summary><strong>All SKIP flags</strong></summary>
 
 **Linux/macOS** (`SKIP_<STEP>=1`):
-`PACKAGES` · `MACOS` · `GIT_PPA` · `GH` · `JUST` · `GO` · `FZF` · `CLI_TOOLS` · `SSH` · `OHMYZSH` · `FONTS` · `EZA` · `NVM` · `BUN` · `NEOVIM` · `ZOXIDE` · `LAZYGIT` · `UV` · `AZURE_CLI` · `AI_TOOLS` · `RUST` · `WSL` · `DELTA` · `EXTRAS` · `EXTRAS_OPS` · `MACOS_DEFAULTS` · `STOW` · `GIT_SIGNING` · `GIT_CREDENTIALS` · `SHELL`
+`PACKAGES` · `MACOS` · `GIT_PPA` · `GH` · `JUST` · `GO` · `FZF` · `CLI_TOOLS` · `TMUX` · `SSH` · `OHMYZSH` · `FONTS` · `EZA` · `NVM` · `BUN` · `NEOVIM` · `ZOXIDE` · `LAZYGIT` · `UV` · `AZURE_CLI` · `AI_TOOLS` · `RUST` · `WSL` · `DELTA` · `EXTRAS` · `EXTRAS_OPS` · `MACOS_DEFAULTS` · `STOW` · `GIT_SIGNING` · `GIT_CREDENTIALS` · `SHELL`
 
 **Windows** (`SKIP_<STEP>=1`):
 `PACKAGES` · `GIT_TOOLS` · `NVM` · `AI_TOOLS` · `RUST` · `FONTS` · `EXTRAS` · `PROFILE` · `LINK` (or `STOW`)
@@ -288,6 +288,7 @@ bash scripts/bump-versions.sh
 | `GO_TAR_SHA256_{x86_64,arm64}` | Go tarballs from go.dev |
 | `BAT_DEB_SHA256_{amd64,arm64}` / `FD_DEB_SHA256_*` / `HYPERFINE_DEB_SHA256_*` | bat, fd, and hyperfine .deb packages |
 | `JUST_TAR_SHA256_{x86_64,arm64}` | just tarballs |
+| `TMUX_TAR_SHA256` | tmux source tarball (built into `/usr/local`) |
 | `GH_APT_KEYRING_SHA256` | GitHub CLI apt repository keyring |
 | `RUSTUP_INSTALLER_SHA256` | rustup installer script |
 | `BUN_INSTALLER_SHA256` | Bun installer script |
@@ -369,7 +370,7 @@ dotfiles/
 │   ├── ohmyzsh.sh                  # Oh My Zsh + plugins + Powerlevel10k
 │   ├── fonts.sh                    # MesloLGS Nerd Font
 │   ├── eza.sh / zoxide.sh / delta.sh / lazygit.sh / just.sh
-│   ├── gh.sh / git-ppa.sh / go.sh / fzf.sh / cli-tools.sh
+│   ├── gh.sh / git-ppa.sh / go.sh / fzf.sh / cli-tools.sh / tmux.sh
 │   ├── nvm.sh / bun.sh / rust.sh / uv.sh
 │   ├── neovim.sh / extras.sh / extras-ops.sh
 │   ├── azure-cli.sh / ssh.sh / wsl.sh

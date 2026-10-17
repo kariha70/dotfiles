@@ -44,6 +44,7 @@ Every downloaded asset is guarded by a dedicated environment variable:
 | `GO_TAR_SHA256_{x86_64,arm64}` | Go tarballs from go.dev |
 | `BAT_DEB_SHA256_{amd64,arm64}` / `FD_DEB_SHA256_*` / `HYPERFINE_DEB_SHA256_*` | bat, fd, and hyperfine `.deb` packages |
 | `JUST_TAR_SHA256_{x86_64,arm64}` | just tarballs |
+| `TMUX_TAR_SHA256` | tmux source tarball (built into `/usr/local`) |
 | `GH_APT_KEYRING_SHA256` | GitHub CLI apt repository keyring |
 | `RUSTUP_INSTALLER_SHA256` | rustup installer script |
 | `BUN_INSTALLER_SHA256` | Bun installer script |

@@ -48,10 +48,10 @@ if command -v gh &> /dev/null; then
 fi
 
 # FZF Configuration
-if command -v fdfind &> /dev/null; then
-    FD_CMD="fdfind"
-elif command -v fd &> /dev/null; then
+if command -v fd &> /dev/null; then
     FD_CMD="fd"
+elif command -v fdfind &> /dev/null; then
+    FD_CMD="fdfind"
 fi
 
 if [ -n "${FD_CMD:-}" ]; then

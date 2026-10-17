@@ -36,6 +36,7 @@ Use `SKIP_<STEP>=1` to disable individual bootstrap steps.
 | `SKIP_GO` | Go from the official go.dev tarball |
 | `SKIP_FZF` | fzf |
 | `SKIP_CLI_TOOLS` | bat, fd, and hyperfine upstream `.deb` packages |
+| `SKIP_TMUX` | Pinned tmux source build |
 | `SKIP_SSH` | SSH server setup |
 | `SKIP_OHMYZSH` | Oh My Zsh + plugins + Powerlevel10k |
 | `SKIP_FONTS` | MesloLGS Nerd Font installation |

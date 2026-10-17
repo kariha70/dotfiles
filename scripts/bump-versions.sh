@@ -300,6 +300,14 @@ read -r bat_version bat_sha_amd64 bat_sha_arm64 <<<"$bat_pin"
 read -r fd_version fd_sha_amd64 fd_sha_arm64 <<<"$fd_pin"
 read -r hyperfine_version hyperfine_sha_amd64 hyperfine_sha_arm64 <<<"$hyperfine_pin"
 
+# tmux (source tarball; upstream publishes no binaries)
+tmux_tag="${TMUX_VERSION_OVERRIDE:-$(latest_tag "tmux/tmux")}"
+if [ -z "$tmux_tag" ] || [ "$tmux_tag" = "null" ]; then
+    echo "Could not determine latest tmux release tag."
+    exit 1
+fi
+tmux_sha=$(fetch_sha "https://github.com/tmux/tmux/releases/download/${tmux_tag}/tmux-${tmux_tag}.tar.gz" "$TMP_DIR/tmux.tar.gz")
+
 # Go (official tarballs from go.dev)
 go_version="${GO_VERSION_OVERRIDE:-}"
 if [ -z "$go_version" ]; then
@@ -489,6 +497,9 @@ FD_DEB_SHA256_arm64=${fd_sha_arm64}
 HYPERFINE_VERSION=${hyperfine_version}
 HYPERFINE_DEB_SHA256_amd64=${hyperfine_sha_amd64}
 HYPERFINE_DEB_SHA256_arm64=${hyperfine_sha_arm64}
+
+TMUX_VERSION=${tmux_tag}
+TMUX_TAR_SHA256=${tmux_sha}
 
 GO_VERSION=${go_version}
 GO_TAR_SHA256_x86_64=${go_sha_x86}

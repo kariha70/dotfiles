@@ -31,7 +31,7 @@ herdr integration install copilot
 
 ::: info Linux package behaviour
 Ubuntu uses apt for stable base packages and SHA256-verified, pinned upstream
-releases for fast-moving tools (Go, fzf, bat, fd, hyperfine, just, delta,
+releases for fast-moving tools (Go, fzf, bat, fd, hyperfine, tmux, just, delta,
 zoxide, lazygit, Neovim, and the extras). gh comes from GitHub's official apt
 repository, and Git can optionally come from the git-core PPA
 (`GIT_FROM_PPA=1`). Arch Linux uses signed packages from the official pacman

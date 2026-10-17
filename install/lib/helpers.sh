@@ -264,16 +264,18 @@ version_at_least() {
 }
 
 # Print the first dotted version number a command reports via `--version`
-# (`go version` for Go).
+# (`go version` for Go, `tmux -V` for tmux).
 # Usage: command_version <command-or-path>
 command_version() {
     local cmd="$1" version_arg="--version" output version
     command -v "$cmd" >/dev/null 2>&1 || return 1
-    if [ "$(basename "$cmd")" = "go" ]; then
-        version_arg="version"
-    fi
+    case "$(basename "$cmd")" in
+        go) version_arg="version" ;;
+        tmux) version_arg="-V" ;;
+    esac
     output="$("$cmd" "$version_arg" 2>/dev/null || true)"
-    version="$(awk '!found && match($0, /[0-9]+\.[0-9]+(\.[0-9]+)?/) { print substr($0, RSTART, RLENGTH); found = 1 }' <<<"$output")"
+    # An optional letter suffix keeps releases like tmux 3.6a comparable.
+    version="$(awk '!found && match($0, /[0-9]+\.[0-9]+(\.[0-9]+)?[a-z]?/) { print substr($0, RSTART, RLENGTH); found = 1 }' <<<"$output")"
     [ -n "$version" ] || return 1
     printf '%s\n' "$version"
 }
