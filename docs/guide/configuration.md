@@ -33,7 +33,6 @@ Use `SKIP_<STEP>=1` to disable individual bootstrap steps.
 | `SKIP_GIT_PPA` | Opt-in git-core PPA step |
 | `SKIP_GH` | GitHub CLI from the official apt repository |
 | `SKIP_JUST` | just |
-| `SKIP_GO` | Go from the official go.dev tarball |
 | `SKIP_FZF` | fzf |
 | `SKIP_CLI_TOOLS` | bat, fd, and hyperfine upstream `.deb` packages |
 | `SKIP_TMUX` | Pinned tmux source build |
@@ -41,7 +40,7 @@ Use `SKIP_<STEP>=1` to disable individual bootstrap steps.
 | `SKIP_OHMYZSH` | Oh My Zsh + plugins + Powerlevel10k |
 | `SKIP_FONTS` | MesloLGS Nerd Font installation |
 | `SKIP_EZA` | eza (modern `ls`) |
-| `SKIP_NVM` | Node Version Manager |
+| `SKIP_MISE` | mise with the pinned Node.js and Go runtimes |
 | `SKIP_BUN` | Bun runtime |
 | `SKIP_NEOVIM` | Neovim AppImage |
 | `SKIP_ZOXIDE` | zoxide (smart `cd`) |

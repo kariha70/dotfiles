@@ -32,7 +32,7 @@ Restart your shell and you're done. ✨
 The bootstrap script is **idempotent** — safe to re-run at any time. It performs the following:
 
 - Installs 30+ modern CLI tools (eza, ripgrep, bat, fzf, lazygit, delta, etc.)
-- Sets up development runtimes (Node.js via nvm, Go, Rust via rustup, Python via uv, Bun)
+- Sets up development runtimes (Node.js and Go via mise, Rust via rustup, Python via uv, Bun)
 - Installs and configures **Zsh** with Oh My Zsh, Powerlevel10k, and plugins (Linux/macOS)
 - Configures **PowerShell 7** with Starship prompt and PSReadLine (Windows)
 - Symlinks dotfiles into `$HOME` using GNU Stow (Linux/macOS) or PowerShell junctions (Windows)
@@ -50,6 +50,6 @@ A few tools require one extra step after bootstrap completes.
 | Tool | Action |
 |------|--------|
 | **Powerlevel10k** | The config wizard runs automatically on first Zsh launch. If it doesn't, run `p10k configure`. |
-| **Node.js** | After bootstrap, install a version: `nvm install --lts && nvm use --lts` |
+| **Node.js / Go** | Pinned versions are installed as mise global defaults. Pin a project with `mise use node@22` (writes `mise.toml`). |
 | **Rust** | Restart your shell, then verify with `rustc --version` |
 | **Remote SSH** | Install **MesloLGS NF** on your *local* machine for proper icon rendering when connecting to remote hosts |

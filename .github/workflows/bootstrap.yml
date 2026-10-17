@@ -30,8 +30,8 @@ jobs:
       - name: Verify tools installed
         run: |
           echo "Checking installed tools..."
-          export NVM_DIR="$HOME/.nvm"
-          source "$HOME/.config/shell/nvm-lazy-load.sh"
+          export PATH="$HOME/.local/bin:$PATH"
+          eval "$(mise env -s bash)"
           command -v zsh
           command -v eza
           command -v bat || command -v batcat
@@ -51,6 +51,7 @@ jobs:
           command -v stow
           command -v just
           command -v go
+          command -v node
           command -v gh
           command -v hyperfine
           echo "All tool checks passed."
@@ -59,7 +60,11 @@ jobs:
         run: |
           source install/lib/helpers.sh
           source install/versions.env
-          pinned_version_satisfied "$GO_VERSION" go /usr/local/go/bin/go
+          export PATH="$HOME/.local/bin:$PATH"
+          eval "$(mise env -s bash)"
+          pinned_version_satisfied "$MISE_VERSION" mise
+          pinned_version_satisfied "$GO_VERSION" "$(mise which go)"
+          pinned_version_satisfied "$NODE_VERSION" "$(mise which node)"
           pinned_version_satisfied "$FZF_VERSION" fzf /usr/local/bin/fzf
           pinned_version_satisfied "$BAT_VERSION" bat batcat
           pinned_version_satisfied "$FD_VERSION" fd fdfind
@@ -125,8 +130,8 @@ jobs:
       - name: Verify Homebrew packages
         run: |
           echo "Checking installed tools..."
-          export NVM_DIR="$HOME/.nvm"
-          source "$HOME/.config/shell/nvm-lazy-load.sh"
+          export PATH="$HOME/.local/bin:$PATH"
+          eval "$(mise env -s bash)"
           command -v zsh
           command -v eza
           command -v bat
@@ -146,6 +151,8 @@ jobs:
           command -v stow
           command -v just
           command -v go
+          command -v node
+          command -v mise
           echo "All tool checks passed."
 
       - name: Verify stow symlinks

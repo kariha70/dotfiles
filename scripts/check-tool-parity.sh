@@ -4,7 +4,7 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 LINUX_PACKAGES=("$ROOT_DIR"/install/*.sh)
-MACOS_PACKAGES=("$ROOT_DIR/install/Brewfile" "$ROOT_DIR/install/ai-tools.sh")
+MACOS_PACKAGES=("$ROOT_DIR/install/Brewfile" "$ROOT_DIR/install/ai-tools.sh" "$ROOT_DIR/install/mise.sh")
 WINDOWS_PACKAGES=("$ROOT_DIR"/install/*.ps1)
 
 fail() {
@@ -35,7 +35,8 @@ tool_declarations=(
     'fzf|FZF_VERSION|brew "fzf"|junegunn.fzf'
     'gh|GH_APT_KEYRING_SHA256|brew "gh"|GitHub.cli'
     'glow|GLOW_VERSION|brew "glow"|charmbracelet.glow'
-    'go|GO_VERSION|brew "go"|GoLang.Go'
+    'go|go@|go@|GoLang.Go'
+    'node|node@|node@|CoreyButler.NVMforWindows'
     'gping|add_optional_package gping gping|brew "gping"|orf.gping'
     'helm|add_optional_package helm helm|brew "helm"|Helm.Helm'
     'herdr|HERDR_VERSION|brew "herdr"|HERDR_WINDOWS_PREVIEW_TAG'

@@ -57,9 +57,9 @@ Restart your shell and you're done. ✨
 
 | Runtime | Linux/macOS | Windows |
 |---------|-------------|---------|
-| **Node.js** | [nvm](https://github.com/nvm-sh/nvm) with lazy-loading | [nvm-windows](https://github.com/coreybutler/nvm-windows) via winget |
+| **Node.js** | [mise](https://mise.jdx.dev/) (pinned LTS; per-project via `mise.toml`) | [nvm-windows](https://github.com/coreybutler/nvm-windows) via winget |
 | **Bun** | Official installer / Homebrew | winget |
-| **Go** | go.dev tarball (Ubuntu) / pacman / Homebrew | winget |
+| **Go** | [mise](https://mise.jdx.dev/) (pinned; per-project via `mise.toml`) | winget |
 | **Rust** | [rustup](https://rustup.rs/) + stable toolchain | rustup via winget |
 | **Python** | [uv](https://github.com/astral-sh/uv) | winget |
 
@@ -72,14 +72,14 @@ Restart your shell and you're done. ✨
 | **History** | Atuin (synced, searchable) | Atuin + PSReadLine |
 | **Completions** | kubectl, gh (cached daily) | PSFzf, Terminal-Icons |
 | **Plugins** | autosuggestions, syntax-highlighting, fzf, web-search, extract | PSFzf, Terminal-Icons |
-| **Module loading** | NVM lazy-loaded for instant startup | Modules deferred to first idle |
+| **Module loading** | mise activation (no Node.js startup cost) | Modules deferred to first idle |
 
 ## 🖥️ Platform Details
 
 <details>
 <summary><strong>🐧 Linux (Ubuntu 22.04+ and Arch Linux)</strong></summary>
 
-Bootstrap uses `apt` on Ubuntu and `pacman` on Arch Linux. Arch-native packages come from the signed official repositories. On Ubuntu, base tools come from apt, while fast-moving tools (Go, fzf, bat, fd, hyperfine, tmux, just, delta, zoxide, lazygit, Neovim, …) use SHA256-verified pinned upstream releases, and gh uses GitHub's official apt repository. Rerunning bootstrap upgrades any pinned tool older than its pin.
+Bootstrap uses `apt` on Ubuntu and `pacman` on Arch Linux. Arch-native packages come from the signed official repositories. On Ubuntu, base tools come from apt, while fast-moving tools (fzf, bat, fd, hyperfine, tmux, just, delta, zoxide, lazygit, Neovim, …) use SHA256-verified pinned upstream releases, and gh uses GitHub's official apt repository. Rerunning bootstrap upgrades any pinned tool older than its pin.
 
 - Stows 6 config packages: `bash`, `git`, `vim`, `zsh`, `tmux`, `nvim`
 - Sets Zsh as the default login shell
@@ -148,7 +148,7 @@ Parallel bootstrap flow using `winget` and PowerShell modules:
 <summary><strong>All SKIP flags</strong></summary>
 
 **Linux/macOS** (`SKIP_<STEP>=1`):
-`PACKAGES` · `MACOS` · `GIT_PPA` · `GH` · `JUST` · `GO` · `FZF` · `CLI_TOOLS` · `TMUX` · `SSH` · `OHMYZSH` · `FONTS` · `EZA` · `NVM` · `BUN` · `NEOVIM` · `ZOXIDE` · `LAZYGIT` · `UV` · `AZURE_CLI` · `AI_TOOLS` · `RUST` · `WSL` · `DELTA` · `EXTRAS` · `EXTRAS_OPS` · `MACOS_DEFAULTS` · `STOW` · `GIT_SIGNING` · `GIT_CREDENTIALS` · `SHELL`
+`PACKAGES` · `MACOS` · `GIT_PPA` · `GH` · `JUST` · `FZF` · `CLI_TOOLS` · `TMUX` · `SSH` · `OHMYZSH` · `FONTS` · `EZA` · `MISE` · `BUN` · `NEOVIM` · `ZOXIDE` · `LAZYGIT` · `UV` · `AZURE_CLI` · `AI_TOOLS` · `RUST` · `WSL` · `DELTA` · `EXTRAS` · `EXTRAS_OPS` · `MACOS_DEFAULTS` · `STOW` · `GIT_SIGNING` · `GIT_CREDENTIALS` · `SHELL`
 
 **Windows** (`SKIP_<STEP>=1`):
 `PACKAGES` · `GIT_TOOLS` · `NVM` · `AI_TOOLS` · `RUST` · `FONTS` · `EXTRAS` · `PROFILE` · `LINK` (or `STOW`)
@@ -281,11 +281,10 @@ bash scripts/bump-versions.sh
 
 | Env var | Secures |
 |---------|---------|
-| `NVM_INSTALLER_SHA256` | nvm installer script |
+| `MISE_BINARY_SHA256_{x86_64,arm64}` | mise binaries (Node.js and Go downloads are verified by mise) |
 | `UV_INSTALLER_SHA256` | uv installer script |
 | `ZOXIDE_TAR_SHA256_{x86_64,arm64}` | zoxide musl tarballs |
 | `FZF_TAR_SHA256_{x86_64,arm64}` | fzf tarballs |
-| `GO_TAR_SHA256_{x86_64,arm64}` | Go tarballs from go.dev |
 | `BAT_DEB_SHA256_{amd64,arm64}` / `FD_DEB_SHA256_*` / `HYPERFINE_DEB_SHA256_*` | bat, fd, and hyperfine .deb packages |
 | `JUST_TAR_SHA256_{x86_64,arm64}` | just tarballs |
 | `TMUX_TAR_SHA256` | tmux source tarball (built into `/usr/local`) |
@@ -329,7 +328,7 @@ dotfiles/
 │   ├── .bashrc
 │   ├── .bash_aliases               # Shared aliases (also sourced by Zsh)
 │   └── .config/shell/
-│       └── nvm-lazy-load.sh        # NVM lazy loading for instant startup
+│       └── mise-activate.sh        # mise runtime activation (bash + zsh)
 │
 ├── zsh/                            # Zsh config (stowed → ~/)
 │   ├── .zshrc                      # Oh My Zsh, Powerlevel10k, plugins
@@ -370,8 +369,8 @@ dotfiles/
 │   ├── ohmyzsh.sh                  # Oh My Zsh + plugins + Powerlevel10k
 │   ├── fonts.sh                    # MesloLGS Nerd Font
 │   ├── eza.sh / zoxide.sh / delta.sh / lazygit.sh / just.sh
-│   ├── gh.sh / git-ppa.sh / go.sh / fzf.sh / cli-tools.sh / tmux.sh
-│   ├── nvm.sh / bun.sh / rust.sh / uv.sh
+│   ├── gh.sh / git-ppa.sh / fzf.sh / cli-tools.sh / tmux.sh
+│   ├── mise.sh / bun.sh / rust.sh / uv.sh
 │   ├── neovim.sh / extras.sh / extras-ops.sh
 │   ├── azure-cli.sh / ssh.sh / wsl.sh
 │   └── *.ps1                       # Windows equivalents (winget-based)
@@ -407,7 +406,7 @@ See [`AGENTS.md`](AGENTS.md) for repo conventions, coding style, and testing exp
 ## 📝 Post-Install Notes
 
 - **Powerlevel10k** — the config wizard runs on first Zsh launch; if not, run `p10k configure`
-- **Node.js** — after bootstrap, run `nvm install --lts && nvm use --lts`
+- **Node.js / Go** — the pinned versions are global defaults; pin a project with `mise use node@22` (writes `mise.toml`). Migrating from nvm: remove `~/.nvm` once you no longer need it, and reinstall any extra global npm packages
 - **Rust** — restart your shell, then verify with `rustc --version`
 - **Remote SSH** — install **MesloLGS NF** on your *local* machine for proper icon rendering
 

@@ -46,7 +46,7 @@ nvim/.config/nvim/    → ~/.config/nvim/
 
 ### Shared Shell Logic
 
-Bash and Zsh both source `~/.bash_aliases` and `~/.config/shell/nvm-lazy-load.sh`, so alias and shell helper changes apply to both shells. Shell-specific logic stays in `.bashrc` / `.zshrc`.
+Bash and Zsh both source `~/.bash_aliases` and `~/.config/shell/mise-activate.sh`, so alias and shell helper changes apply to both shells. Shell-specific logic stays in `.bashrc` / `.zshrc`.
 
 ### Installer Orchestration
 

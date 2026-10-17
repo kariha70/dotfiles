@@ -19,8 +19,8 @@ if command -v apt-get &> /dev/null; then
     echo "Detected apt-get. Updating and installing packages..."
     apt_update_once
 
-    # List of packages to install. Tools with pins in versions.env (Go, fzf,
-    # bat, fd, hyperfine, just, gh, ...) come from their dedicated installers so
+    # List of packages to install. Tools with pins in versions.env (fzf, bat,
+    # fd, hyperfine, just, gh, ...) come from their dedicated installers so
     # bumping a pin upgrades them; only stable base tools come from the distro.
     # tmux stays here as a fallback for the pinned source build (install/tmux.sh).
     PACKAGES=(
@@ -163,7 +163,6 @@ elif command -v pacman >/dev/null 2>&1; then
     PACKAGES=(
         curl
         git
-        go
         vim
         stow
         htop

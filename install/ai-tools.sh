@@ -38,18 +38,18 @@ else
     fi
 fi
 
-export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
-if [ -s "$NVM_DIR/nvm.sh" ]; then
-    # shellcheck source=/dev/null
-    \. "$NVM_DIR/nvm.sh"
-    if ! nvm use default >/dev/null 2>&1; then
-        echo "Could not activate the nvm default alias; checking for npm on the current PATH."
-    fi
+# Use the Node.js runtime that install/mise.sh set as the global default.
+MISE_BIN="$(command -v mise || true)"
+if [ -z "$MISE_BIN" ] && [ -x "$HOME/.local/bin/mise" ]; then
+    MISE_BIN="$HOME/.local/bin/mise"
+fi
+if [ -n "$MISE_BIN" ]; then
+    eval "$("$MISE_BIN" env -s bash)"
 fi
 
 if ! command -v npm >/dev/null 2>&1; then
     echo "npm is required to install Codex, Claude Code, GitHub Copilot CLI, and Pi."
-    echo "Run install/nvm.sh first, then rerun this installer."
+    echo "Run install/mise.sh first, then rerun this installer."
     exit 1
 fi
 

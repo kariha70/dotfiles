@@ -26,7 +26,7 @@ features:
     details: GitHub Actions runs ShellCheck, PSScriptAnalyzer, and full bootstrap tests on Ubuntu 22.04/24.04, macOS, and Windows.
   - icon: ⚡
     title: Instant Shell Startup
-    details: NVM lazy-loading, cached completions, and deferred module loading keep your shell snappy — no 500ms startup tax.
+    details: Fast mise activation, cached completions, and deferred module loading keep your shell snappy — no 500ms startup tax.
   - icon: 🔧
     title: GNU Stow + Modular Installers
     details: Clean symlink management with 6 stow packages and 20+ independent, re-runnable installer scripts.

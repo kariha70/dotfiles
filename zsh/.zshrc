@@ -127,11 +127,10 @@ if command -v zoxide &> /dev/null; then
     eval "$(zoxide init zsh)" || true
 fi
 
-# NVM Lazy Load
-export NVM_DIR="$HOME/.nvm"
-NVM_LAZY_LOAD="${NVM_LAZY_LOAD:-$HOME/.config/shell/nvm-lazy-load.sh}"
-if [ -f "$NVM_LAZY_LOAD" ]; then
-    . "$NVM_LAZY_LOAD"
+# mise: Node.js and Go runtimes (global defaults + per-project mise.toml)
+MISE_ACTIVATE="${MISE_ACTIVATE:-$HOME/.config/shell/mise-activate.sh}"
+if [ -f "$MISE_ACTIVATE" ]; then
+    . "$MISE_ACTIVATE"
 fi
 
 # Yazi Shell Wrapper (allows changing directory on exit)
