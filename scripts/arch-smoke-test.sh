@@ -34,7 +34,6 @@ export DOTFILES_IS_WSL=0
 
 bash "$ROOT_DIR/bootstrap.sh"
 
-export NVM_DIR="$HOME/.nvm"
 export PATH="$HOME/.local/bin:$HOME/.cargo/bin:$PATH"
 
 shellcheck \
@@ -43,12 +42,11 @@ shellcheck \
     "$ROOT_DIR/install/lib/helpers.sh" \
     "$ROOT_DIR"/scripts/*.sh
 
-# shellcheck source=/dev/null
-source "$HOME/.config/shell/nvm-lazy-load.sh"
+eval "$(mise env -s bash)"
 
 for tool in \
     zsh eza bat fzf rg fd zoxide nvim lazygit delta glow atuin fastfetch yazi \
-    spf az herdr codex claude copilot pi tmux stow just go bun bunx uv rustup cargo rustc; do
+    spf az herdr codex claude copilot pi tmux stow just go node mise bun bunx uv rustup cargo rustc; do
     if ! command -v "$tool" >/dev/null 2>&1; then
         echo "Missing expected command after Arch bootstrap: $tool"
         exit 1

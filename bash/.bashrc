@@ -59,11 +59,10 @@ if [ -n "${FD_CMD:-}" ]; then
     export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
 fi
 
-# NVM Lazy Load
-export NVM_DIR="$HOME/.nvm"
-NVM_LAZY_LOAD="${NVM_LAZY_LOAD:-$HOME/.config/shell/nvm-lazy-load.sh}"
-if [ -f "$NVM_LAZY_LOAD" ]; then
-    . "$NVM_LAZY_LOAD"
+# mise: Node.js and Go runtimes (global defaults + per-project mise.toml)
+MISE_ACTIVATE="${MISE_ACTIVATE:-$HOME/.config/shell/mise-activate.sh}"
+if [ -f "$MISE_ACTIVATE" ]; then
+    . "$MISE_ACTIVATE"
 fi
 
 # Atuin environment (if installed)

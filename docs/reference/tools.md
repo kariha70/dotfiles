@@ -31,7 +31,7 @@ herdr integration install copilot
 
 ::: info Linux package behaviour
 Ubuntu uses apt for stable base packages and SHA256-verified, pinned upstream
-releases for fast-moving tools (Go, fzf, bat, fd, hyperfine, tmux, just, delta,
+releases for fast-moving tools (fzf, bat, fd, hyperfine, tmux, just, delta,
 zoxide, lazygit, Neovim, and the extras). gh comes from GitHub's official apt
 repository, and Git can optionally come from the git-core PPA
 (`GIT_FROM_PPA=1`). Arch Linux uses signed packages from the official pacman
@@ -44,9 +44,9 @@ package exists; enable it with `INSTALL_PROCS_FROM_SOURCE=1`.
 
 | Runtime | Linux / macOS | Windows |
 |---------|---------------|---------|
-| **Node.js** | [nvm](https://github.com/nvm-sh/nvm) with lazy-loading | [nvm-windows](https://github.com/coreybutler/nvm-windows) via winget |
+| **Node.js** | [mise](https://mise.jdx.dev/) (pinned LTS; per-project via `mise.toml`) | [nvm-windows](https://github.com/coreybutler/nvm-windows) via winget |
 | **Bun** | Official installer / Homebrew | winget |
-| **Go** | go.dev tarball (Ubuntu) / pacman / Homebrew | winget |
+| **Go** | [mise](https://mise.jdx.dev/) (pinned; per-project via `mise.toml`) | winget |
 | **Rust** | [rustup](https://rustup.rs/) + stable toolchain | rustup via winget |
 | **Python** | [uv](https://github.com/astral-sh/uv) | winget |
 
@@ -59,4 +59,4 @@ package exists; enable it with `INSTALL_PROCS_FROM_SOURCE=1`.
 | **History** | Atuin (synced, searchable) | Atuin + PSReadLine |
 | **Completions** | kubectl, gh (cached daily) | PSFzf, Terminal-Icons |
 | **Plugins** | autosuggestions, syntax-highlighting, fzf, web-search, extract | PSFzf, Terminal-Icons |
-| **Module loading** | NVM lazy-loaded for instant startup | Modules deferred to first idle |
+| **Module loading** | mise activation (no Node.js startup cost) | Modules deferred to first idle |

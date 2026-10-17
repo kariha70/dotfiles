@@ -33,7 +33,6 @@ Use `SKIP_<STEP>=1` to disable individual bootstrap steps.
 | `SKIP_GIT_PPA` | Opt-in git-core PPA step |
 | `SKIP_GH` | GitHub CLI from the official apt repository |
 | `SKIP_JUST` | just |
-| `SKIP_GO` | Go from the official go.dev tarball |
 | `SKIP_FZF` | fzf |
 | `SKIP_CLI_TOOLS` | bat, fd, and hyperfine upstream `.deb` packages |
 | `SKIP_TMUX` | Pinned tmux source build |
@@ -41,7 +40,7 @@ Use `SKIP_<STEP>=1` to disable individual bootstrap steps.
 | `SKIP_OHMYZSH` | Oh My Zsh + plugins + Powerlevel10k |
 | `SKIP_FONTS` | MesloLGS Nerd Font installation |
 | `SKIP_EZA` | eza (modern `ls`) |
-| `SKIP_NVM` | Node Version Manager |
+| `SKIP_MISE` | mise with the pinned Node.js and Go runtimes |
 | `SKIP_BUN` | Bun runtime |
 | `SKIP_NEOVIM` | Neovim AppImage |
 | `SKIP_ZOXIDE` | zoxide (smart `cd`) |
@@ -77,6 +76,19 @@ Use `SKIP_<STEP>=1` to disable individual bootstrap steps.
 ::: warning
 Skipping `STOW` / `LINK` means your config files won't be updated. Only skip this if you manage symlinks manually.
 :::
+
+## Global npm CLIs
+
+Global npm packages are installed as [mise npm tools](https://mise.jdx.dev/dev-tools/backends/npm.html),
+each in its own directory, so they survive Node.js version changes and are
+reinstalled automatically on every machine. Do not use `npm install -g`.
+
+- **AI coding CLIs** (Codex, Claude Code, Copilot, Pi) are declared in `install/ai-tools.sh`.
+- **Everything else** goes in `install/npm-globals.txt`, one package per line.
+  Append `allow-builds` when a package needs its own install scripts, which mise
+  skips by default.
+- **Migrating from nvm:** run `scripts/import-npm-globals.sh` once per machine to
+  copy the existing global packages into the list, review it, and commit.
 
 ## Git Identity
 

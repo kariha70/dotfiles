@@ -90,18 +90,17 @@ else
     maybe_run FONTS "$DOTFILES_DIR/install/fonts.sh"
 fi
 
-# 6. Install nvm
-maybe_run NVM "$DOTFILES_DIR/install/nvm.sh"
+# 6. Install mise with the pinned Node.js and Go runtimes
+maybe_run MISE "$DOTFILES_DIR/install/mise.sh"
 
 # 6b. Install bun
 maybe_run BUN "$DOTFILES_DIR/install/bun.sh"
 
 # 7-14. Package installers
 if "$IS_MAC"; then
-    echo "macOS detected. Azure CLI, Neovim, Go, fzf, bat, fd, hyperfine, tmux, eza, zoxide, lazygit, uv, git-delta, extras, operations extras, and rustup are managed via Homebrew."
+    echo "macOS detected. Azure CLI, Neovim, mise, fzf, bat, fd, hyperfine, tmux, eza, zoxide, lazygit, uv, git-delta, extras, operations extras, and rustup are managed via Homebrew."
 else
-    # 6c. Install pinned Go, fzf, bat/fd/hyperfine, and tmux releases
-    maybe_run GO "$DOTFILES_DIR/install/go.sh"
+    # 6c. Install pinned fzf, bat/fd/hyperfine, and tmux releases
     maybe_run FZF "$DOTFILES_DIR/install/fzf.sh"
     maybe_run CLI_TOOLS "$DOTFILES_DIR/install/cli-tools.sh"
     maybe_run TMUX "$DOTFILES_DIR/install/tmux.sh"
