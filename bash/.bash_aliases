@@ -13,7 +13,7 @@ else
     alias l='ls -CF'
 fi
 
-# bat and fd are installed under their upstream names (install/cli-tools.sh);
+# bat and fd are installed under their upstream names (install/release-tools.sh);
 # Ubuntu's own packages call them batcat and fdfind, so fall back to those.
 if command -v bat &> /dev/null; then
     BAT_BIN="bat"

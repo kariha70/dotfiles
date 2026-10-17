@@ -36,45 +36,25 @@ fi
 
 # shellcheck source=/dev/null
 source "$ENV_FILE"
+# shellcheck source=../install/lib/releases.sh
+source "$ROOT_DIR/install/lib/releases.sh"
 
-sha_pins=(
-    MISE_BINARY_SHA256_x86_64
-    MISE_BINARY_SHA256_arm64
-    NEOVIM_APPIMAGE_SHA256_x86_64
-    NEOVIM_APPIMAGE_SHA256_arm64
-    LAZYGIT_TAR_SHA256_x86_64
-    LAZYGIT_TAR_SHA256_arm64
-    JUST_TAR_SHA256_x86_64
-    JUST_TAR_SHA256_arm64
-    DELTA_DEB_SHA256_amd64
-    DELTA_DEB_SHA256_arm64
-    ZOXIDE_TAR_SHA256_x86_64
-    ZOXIDE_TAR_SHA256_arm64
-    FZF_TAR_SHA256_x86_64
-    FZF_TAR_SHA256_arm64
-    BAT_DEB_SHA256_amd64
-    BAT_DEB_SHA256_arm64
-    FD_DEB_SHA256_amd64
-    FD_DEB_SHA256_arm64
-    HYPERFINE_DEB_SHA256_amd64
-    HYPERFINE_DEB_SHA256_arm64
-    TMUX_TAR_SHA256
-    GLOW_DEB_SHA256_amd64
-    GLOW_DEB_SHA256_arm64
-    FASTFETCH_DEB_SHA256_linux_amd64
-    FASTFETCH_DEB_SHA256_linux_aarch64
-    YAZI_ZIP_SHA256_x86_64_unknown_linux_gnu
-    YAZI_ZIP_SHA256_aarch64_unknown_linux_gnu
-    ATUIN_TAR_SHA256_x86_64_unknown_linux_gnu
-    ATUIN_TAR_SHA256_aarch64_unknown_linux_gnu
-    SUPERFILE_TAR_SHA256_amd64
-    SUPERFILE_TAR_SHA256_arm64
+# Every pinned release needs a version and a checksum per architecture.
+sha_pins=()
+version_pins=(NODE_VERSION GO_VERSION HERDR_WINDOWS_PREVIEW_TAG HERDR_WINDOWS_ASSET)
+for tool in "${PINNED_RELEASES[@]}"; do
+    upper="$(printf '%s' "$tool" | tr '[:lower:]' '[:upper:]')"
+    version_pins+=("${upper}_VERSION")
+    for arch in $(release_arches "$tool"); do
+        sha_pins+=("${upper}_SHA256_${arch}")
+    done
+done
+
+sha_pins+=(
+    HERDR_WINDOWS_BINARY_SHA256_x86_64
     RUSTUP_INSTALLER_SHA256
     UV_INSTALLER_SHA256
     BUN_INSTALLER_SHA256
-    HERDR_BINARY_SHA256_x86_64
-    HERDR_BINARY_SHA256_arm64
-    HERDR_WINDOWS_BINARY_SHA256_x86_64
     HOMEBREW_INSTALLER_SHA256
     AZURE_CLI_APT_INSTALLER_SHA256
     GH_APT_KEYRING_SHA256
@@ -92,30 +72,6 @@ git_pins=(
     POWERLEVEL10K_MEDIA_REF
 )
 
-version_pins=(
-    MISE_VERSION
-    NODE_VERSION
-    NEOVIM_VERSION
-    LAZYGIT_VERSION
-    JUST_VERSION
-    DELTA_VERSION
-    ZOXIDE_VERSION
-    FZF_VERSION
-    BAT_VERSION
-    FD_VERSION
-    HYPERFINE_VERSION
-    TMUX_VERSION
-    GO_VERSION
-    GLOW_VERSION
-    FASTFETCH_VERSION
-    YAZI_VERSION
-    SUPERFILE_VERSION
-    ATUIN_VERSION
-    HERDR_VERSION
-    HERDR_WINDOWS_PREVIEW_TAG
-    HERDR_WINDOWS_ASSET
-)
-
 for name in "${sha_pins[@]}"; do
     value="${!name:-}"
     [[ "$value" =~ ^[a-f0-9]{64}$ ]] || fail "$name must be a lowercase SHA256 digest"
@@ -128,6 +84,10 @@ done
 
 for name in "${version_pins[@]}"; do
     [ -n "${!name:-}" ] || fail "$name is missing"
+    case "$name" in
+        HERDR_WINDOWS_*) ;;
+        *) [[ "${!name}" != v* ]] || fail "$name must not start with \"v\"" ;;
+    esac
 done
 
 case "$HERDR_WINDOWS_ASSET" in

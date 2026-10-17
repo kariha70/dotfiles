@@ -43,38 +43,16 @@ if pinned_version_satisfied "$NEOVIM_VERSION" nvim /usr/local/bin/nvim; then
     exit 0
 fi
 
-if ! command -v curl >/dev/null 2>&1; then
-    echo "curl is required to install Neovim."
-    exit 1
-fi
-
 echo "Installing Neovim ${NEOVIM_VERSION} from pinned release appimage."
 
 ARCH="$(get_arch)"
-if [ -z "$ARCH" ]; then
-    echo "Unsupported architecture for Neovim installer."
-    exit 1
-fi
-
-if [ "$ARCH" != "x86_64" ] && [ "$ARCH" != "arm64" ]; then
-    echo "Neovim installer currently supports x86_64 and arm64 only."
-    exit 1
-fi
-
-EXPECTED_VAR="NEOVIM_APPIMAGE_SHA256_${ARCH}"
-EXPECTED_SHA="${!EXPECTED_VAR:-}"
-if [ -z "$EXPECTED_SHA" ]; then
-    echo "Missing checksum for Neovim appimage. Run scripts/bump-versions.sh to refresh install/versions.env."
-    exit 1
-fi
+release_info neovim "$ARCH"
 
 TMP_DIR="$(mktemp -d)"
 trap 'rm -rf "$TMP_DIR"' EXIT
 
-NEOVIM_ARCHIVE="$TMP_DIR/nvim-${ARCH}.appimage"
-NEOVIM_URL="https://github.com/neovim/neovim/releases/download/${NEOVIM_VERSION}/nvim-linux-${ARCH}.appimage"
-
-download_and_verify "$NEOVIM_URL" "$NEOVIM_ARCHIVE" "$EXPECTED_SHA" "Neovim appimage (${ARCH})"
+NEOVIM_ARCHIVE="$TMP_DIR/$RELEASE_ASSET"
+download_and_verify "$RELEASE_URL" "$NEOVIM_ARCHIVE" "${!RELEASE_SHA_VAR:-}" "Neovim appimage (${ARCH})"
 
 chmod +x "$NEOVIM_ARCHIVE"
 (

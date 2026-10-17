@@ -48,16 +48,8 @@ APT_SOURCE="deb [signed-by=$KEYRING] https://ppa.launchpadcontent.net/git-core/p
 TMP_DIR="$(mktemp -d)"
 trap 'rm -rf "$TMP_DIR"' EXIT
 
-curl -fLsS "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x${EXPECTED_FP}" -o "$TMP_DIR/git-core.asc"
-ACTUAL_FPS="$(gpg --batch --with-colons --import-options show-only --import "$TMP_DIR/git-core.asc" 2>/dev/null | awk -F: '/^pub:/ { want = 1; next } want && /^fpr:/ { print $10; want = 0 }')"
-if [ "$ACTUAL_FPS" != "$EXPECTED_FP" ]; then
-    echo "Fingerprint mismatch for the git-core PPA signing key."
-    echo "Expected: $EXPECTED_FP"
-    echo "Actual:   ${ACTUAL_FPS:-<none>}"
-    echo "Refusing to add the repository."
-    exit 1
-fi
-gpg --batch --yes --dearmor -o "$TMP_DIR/git-core.gpg" "$TMP_DIR/git-core.asc"
+fetch_apt_key "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x${EXPECTED_FP}" \
+    "$EXPECTED_FP" "$TMP_DIR/git-core.gpg"
 
 install_apt_source "$TMP_DIR/git-core.gpg" "$KEYRING" "$SOURCE_FILE" "$APT_SOURCE"
 if [ "$APT_SOURCE_CHANGED" = "1" ]; then

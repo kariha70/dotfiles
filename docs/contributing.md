@@ -50,7 +50,7 @@ Each top-level directory (e.g. `bash/`, `git/`, `zsh/`) mirrors the structure of
 
 ### Filenames
 
-- Lowercase with hyphens (e.g. `extras-ops.sh`, `bump-versions.sh`).
+- Lowercase with hyphens (e.g. `release-tools.sh`, `bump-versions.sh`).
 
 ### Installer rules
 

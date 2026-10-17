@@ -4,200 +4,66 @@ set -e
 set -o pipefail
 
 DOTFILES_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+# shellcheck source=install/lib/helpers.sh
+source "$DOTFILES_DIR/install/lib/helpers.sh"
 
-# Shared helpers
-HELPERS="$DOTFILES_DIR/install/lib/helpers.sh"
-# shellcheck source=/dev/null
-source "$HELPERS"
-
-# Shared apt update sentinel for this bootstrap run
+# Run apt/pacman index updates at most once per bootstrap.
 export APT_UPDATE_SENTINEL="${APT_UPDATE_SENTINEL:-/tmp/dotfiles_apt_updated_$$}"
 export PACMAN_UPDATE_SENTINEL="${PACMAN_UPDATE_SENTINEL:-/tmp/dotfiles_pacman_updated_$$}"
 rm -f "$APT_UPDATE_SENTINEL" "$PACMAN_UPDATE_SENTINEL" 2>/dev/null || true
 export DOTFILES_BOOTSTRAP=1
 
-IS_WSL=false
-if is_wsl; then
-    IS_WSL=true
-fi
+# Installers run in this order. Each one decides for itself whether it applies
+# to the current platform (macOS, Ubuntu, Arch, WSL). Skip one with
+# SKIP_<STEP>=1; ONLY_STOW=1 skips them all.
+INSTALL_STEPS=(
+    MACOS:macos                   # Homebrew bundle (macOS)
+    PACKAGES:packages             # apt/pacman base packages (Linux)
+    GIT_PPA:git-ppa               # opt-in Git from ppa:git-core/ppa (GIT_FROM_PPA=1)
+    GH:gh                         # GitHub CLI from GitHub's apt repository
+    SSH:ssh                       # SSH server (native Linux)
+    OHMYZSH:ohmyzsh               # Oh My Zsh, plugins, Powerlevel10k
+    FONTS:fonts                   # MesloLGS NF
+    MISE:mise                     # mise with Node.js, Go, and global npm CLIs
+    BUN:bun
+    RELEASE_TOOLS:release-tools   # pinned CLI releases (install/lib/releases.sh)
+    TMUX:tmux                     # pinned tmux source build
+    NEOVIM:neovim
+    EZA:eza
+    UV:uv
+    AZURE_CLI:azure-cli
+    AI_TOOLS:ai-tools             # Herdr, Codex, Claude Code, Copilot, Pi
+    RUST:rust
+    WSL:wsl                       # WSL integration
+    MACOS_DEFAULTS:macos-defaults # opt-in (APPLY_MACOS_DEFAULTS=1)
+)
 
-IS_MAC=false
-if is_macos; then
-    IS_MAC=true
-fi
+# Configuration packages stowed into $HOME.
+STOW_DIRS=(bash git vim zsh tmux nvim)
 
-echo "Bootstrapping dotfiles from $DOTFILES_DIR..."
+# Paths that may exist as real files before the first stow; they are backed up.
+# Add more with EXTRA_CONFLICT_FILES="path1 path2".
+CONFLICT_FILES=(
+    .bashrc .bash_aliases .config/shell .gitconfig .gitignore_global
+    export_ssh.sh import_ssh.sh .vimrc .zshrc .zlogin .tmux.conf .config/nvim
+)
 
-is_true() {
-    case "${1:-}" in
-        1|true|TRUE|yes|YES|y|Y|on|ON) return 0 ;;
-        *) return 1 ;;
-    esac
-}
-
-ONLY_STOW="${ONLY_STOW:-0}"
-
-maybe_run() {
-    local name="$1" script="$2"
-    local skip_var="SKIP_${name}"
-    if is_true "$ONLY_STOW"; then
+run_step() {
+    local name="$1" script="$DOTFILES_DIR/install/$2.sh" skip_var="SKIP_$1"
+    if is_true "${ONLY_STOW:-0}"; then
         echo "ONLY_STOW set. Skipping $name."
-        return 0
-    fi
-    if is_true "${!skip_var:-0}"; then
+    elif is_true "${!skip_var:-0}"; then
         echo "Skipping $name (via $skip_var)."
-        return 0
-    fi
-    if [ -f "$script" ]; then
+    else
+        echo "==> $name"
         bash "$script"
     fi
 }
 
-# 1. Install dependencies
-if "$IS_MAC"; then
-    maybe_run MACOS "$DOTFILES_DIR/install/macos.sh"
-else
-    maybe_run PACKAGES "$DOTFILES_DIR/install/packages.sh"
-fi
-
-# 1b. Optional newer Git from the Ubuntu Git Maintainers PPA (GIT_FROM_PPA=1)
-maybe_run GIT_PPA "$DOTFILES_DIR/install/git-ppa.sh"
-
-# 1c. GitHub CLI from GitHub's official apt repository
-maybe_run GH "$DOTFILES_DIR/install/gh.sh"
-
-# 1d. Install pinned just release
-maybe_run JUST "$DOTFILES_DIR/install/just.sh"
-
-# 2. Setup SSH
-# Skip SSH setup on WSL as it's usually not needed or handled differently
-if "$IS_WSL"; then
-    echo "WSL detected. Skipping SSH server setup."
-elif "$IS_MAC"; then
-    echo "macOS detected. Skipping SSH server setup."
-else
-    maybe_run SSH "$DOTFILES_DIR/install/ssh.sh"
-fi
-
-# 3. Install Oh My Zsh
-maybe_run OHMYZSH "$DOTFILES_DIR/install/ohmyzsh.sh"
-
-# 4. Install Fonts
-# Skip font installation on WSL as it should be done on the Windows host
-if "$IS_WSL"; then
-    echo "WSL detected. Skipping font installation (install on Windows host instead)."
-else
-    maybe_run FONTS "$DOTFILES_DIR/install/fonts.sh"
-fi
-
-# 6. Install mise with the pinned Node.js and Go runtimes
-maybe_run MISE "$DOTFILES_DIR/install/mise.sh"
-
-# 6b. Install bun
-maybe_run BUN "$DOTFILES_DIR/install/bun.sh"
-
-# 7-14. Package installers
-if "$IS_MAC"; then
-    echo "macOS detected. Azure CLI, Neovim, mise, fzf, bat, fd, hyperfine, tmux, eza, zoxide, lazygit, uv, git-delta, extras, operations extras, and rustup are managed via Homebrew."
-else
-    # 6c. Install pinned fzf, bat/fd/hyperfine, and tmux releases
-    maybe_run FZF "$DOTFILES_DIR/install/fzf.sh"
-    maybe_run CLI_TOOLS "$DOTFILES_DIR/install/cli-tools.sh"
-    maybe_run TMUX "$DOTFILES_DIR/install/tmux.sh"
-
-    # 7. Install pinned Neovim release
-    maybe_run NEOVIM "$DOTFILES_DIR/install/neovim.sh"
-
-    # 8. Install eza
-    maybe_run EZA "$DOTFILES_DIR/install/eza.sh"
-
-    # 9. Install zoxide
-    maybe_run ZOXIDE "$DOTFILES_DIR/install/zoxide.sh"
-
-    # 10. Install lazygit
-    maybe_run LAZYGIT "$DOTFILES_DIR/install/lazygit.sh"
-
-    # 11. Install uv
-    maybe_run UV "$DOTFILES_DIR/install/uv.sh"
-
-    # 12. Install git-delta
-    maybe_run DELTA "$DOTFILES_DIR/install/delta.sh"
-
-    # 13. Install Extras (Glow, Atuin, Fastfetch, Yazi, superfile)
-    maybe_run EXTRAS "$DOTFILES_DIR/install/extras.sh"
-
-    # 14. Install Operations Extras (GH, direnv, age, kubectl, helm, duf, plus optional EXTRA_TOOLS)
-    if [ -n "${EXTRA_TOOLS:-}" ]; then
-        maybe_run EXTRAS_OPS "$DOTFILES_DIR/install/extras-ops.sh"
-    else
-        echo "No EXTRA_TOOLS requested. Skipping operations extras installer."
-    fi
-
-    # 15. Install Azure CLI
-    maybe_run AZURE_CLI "$DOTFILES_DIR/install/azure-cli.sh"
-fi
-
-# 16. Install AI coding tools
-maybe_run AI_TOOLS "$DOTFILES_DIR/install/ai-tools.sh"
-
-# 17. Install Rust
-maybe_run RUST "$DOTFILES_DIR/install/rust.sh"
-
-# Ensure shared VS Code user data directories exist on Unix systems.
-mkdir -p "$HOME/.code-data/kariha70" "$HOME/.code-data/michag"
-
-# 18. WSL Specific Configuration
-if "$IS_WSL"; then
-    maybe_run WSL "$DOTFILES_DIR/install/wsl.sh"
-fi
-
-# 19. macOS system defaults (optional — skipped by default)
-if "$IS_MAC" && is_true "${APPLY_MACOS_DEFAULTS:-0}"; then
-    maybe_run MACOS_DEFAULTS "$DOTFILES_DIR/install/macos-defaults.sh"
-fi
-
-# 14. Run Stow
-# We want to stow directories that contain config files.
-# We exclude 'install' and '.git' and the script itself.
-STOW_DIRS=(
-    bash
-    git
-    vim
-    zsh
-    tmux
-    nvim
-)
-
-# Pre-stow cleanup: back up real files and replace dangling links left behind
-# when this repository moves.
-DEFAULT_CONFLICT_FILES=(
-    ".bashrc"
-    ".bash_aliases"
-    ".config/shell"
-    ".gitconfig"
-    ".gitignore_global"
-    "export_ssh.sh"
-    "import_ssh.sh"
-    ".vimrc"
-    ".zshrc"
-    ".zlogin"
-    ".tmux.conf"
-    ".config/nvim"
-)
-
-CONFLICT_FILES=("${DEFAULT_CONFLICT_FILES[@]}")
-if [ -n "${EXTRA_CONFLICT_FILES:-}" ]; then
-    IFS=' ' read -r -a EXTRA_FILES <<< "${EXTRA_CONFLICT_FILES}"
-    CONFLICT_FILES+=("${EXTRA_FILES[@]}")
-fi
-
-TIMESTAMP=$(date +%Y%m%d_%H%M%S)
-
+# Return 0 when a dangling link points at a stow package path, e.g. after the
+# repository moved.
 is_stale_stow_link() {
-    local target="$1"
-    local relative_path="$2"
-    local link_target package
-
+    local target="$1" relative_path="$2" link_target package
     link_target="$(readlink "$target")" || return 1
     for package in "${STOW_DIRS[@]}"; do
         if [ -e "$DOTFILES_DIR/$package/$relative_path" ]; then
@@ -209,84 +75,46 @@ is_stale_stow_link() {
     return 1
 }
 
-if is_true "${SKIP_STOW:-0}"; then
-    echo "Skipping stow (via SKIP_STOW)."
-else
+stow_configs() {
+    local file target timestamp extra_files=()
+    timestamp="$(date +%Y%m%d_%H%M%S)"
+    if [ -n "${EXTRA_CONFLICT_FILES:-}" ]; then
+        read -r -a extra_files <<<"$EXTRA_CONFLICT_FILES"
+    fi
+
     echo "Checking for existing config files..."
-    for file in "${CONFLICT_FILES[@]}"; do
+    for file in "${CONFLICT_FILES[@]}" "${extra_files[@]}"; do
         target="$HOME/$file"
         if [ -L "$target" ] && [ ! -e "$target" ] && is_stale_stow_link "$target" "$file"; then
             echo "  Removing stale symlink $file -> $(readlink "$target")"
             rm -- "$target"
         elif [ -e "$target" ] && [ ! -L "$target" ]; then
-            echo "  Backing up existing $file to $target.backup.$TIMESTAMP"
-            mv "$target" "$target.backup.$TIMESTAMP"
+            echo "  Backing up existing $file to $target.backup.$timestamp"
+            mv "$target" "$target.backup.$timestamp"
         fi
     done
 
     echo "Stowing configurations..."
     stow -v -R -t "$HOME" -d "$DOTFILES_DIR" "${STOW_DIRS[@]}"
+}
+
+echo "Bootstrapping dotfiles from $DOTFILES_DIR..."
+
+for step in "${INSTALL_STEPS[@]}"; do
+    run_step "${step%%:*}" "${step#*:}"
+done
+
+# Shared VS Code user data directories.
+mkdir -p "$HOME/.code-data/kariha70" "$HOME/.code-data/michag"
+
+if is_true "${SKIP_STOW:-0}"; then
+    echo "Skipping stow (via SKIP_STOW)."
+else
+    stow_configs
 fi
 
-# 14. Configure Git commit signing (platform-specific)
-if ! is_true "${SKIP_GIT_SIGNING:-0}"; then
-    GIT_LOCAL="$HOME/.gitconfig.local"
-    if "$IS_MAC"; then
-        OP_SSH_SIGN="/Applications/1Password.app/Contents/MacOS/op-ssh-sign"
-    else
-        OP_SSH_SIGN="/opt/1Password/op-ssh-sign"
-    fi
-    if [ -x "$OP_SSH_SIGN" ]; then
-        if [ "$(git config --file "$GIT_LOCAL" --get gpg.format 2>/dev/null)" = "ssh" ] \
-            && [ "$(git config --file "$GIT_LOCAL" --get gpg.ssh.program 2>/dev/null)" = "$OP_SSH_SIGN" ] \
-            && [ "$(git config --file "$GIT_LOCAL" --get commit.gpgsign 2>/dev/null)" = "true" ]; then
-            echo "Git SSH commit signing already configured."
-        else
-            echo "Configuring Git SSH commit signing via 1Password..."
-            git config --file "$GIT_LOCAL" gpg.format ssh
-            git config --file "$GIT_LOCAL" gpg.ssh.program "$OP_SSH_SIGN"
-            git config --file "$GIT_LOCAL" commit.gpgsign true
-        fi
-    else
-        echo "1Password SSH signer not found at $OP_SSH_SIGN; skipping Git signing config."
-    fi
-fi
-
-# Configure GitHub credential helper for GitHub/Gist when `gh` is available.
-if ! is_true "${SKIP_GIT_CREDENTIALS:-0}"; then
-    GIT_LOCAL="$HOME/.gitconfig.local"
-    if command -v gh >/dev/null 2>&1; then
-        git config --file "$GIT_LOCAL" --unset-all 'credential.https://github.com.helper' || true
-        git config --file "$GIT_LOCAL" 'credential.https://github.com.helper' '!gh auth git-credential'
-        git config --file "$GIT_LOCAL" --unset-all 'credential.https://gist.github.com.helper' || true
-        git config --file "$GIT_LOCAL" 'credential.https://gist.github.com.helper' '!gh auth git-credential'
-    else
-        echo "GitHub CLI (gh) not found; skipping GitHub credential helper config."
-    fi
-fi
-
-# 15. Set Zsh as default shell
-if ! is_true "${SKIP_SHELL:-0}" && command -v zsh >/dev/null; then
-    SHELL_PATH="$(command -v zsh)"
-    if "$IS_MAC" && [ -r /etc/shells ] && ! grep -Fxq "$SHELL_PATH" /etc/shells; then
-        if grep -Fxq "/bin/zsh" /etc/shells; then
-            echo "Detected Homebrew zsh not listed in /etc/shells; using /bin/zsh for chsh."
-            SHELL_PATH="/bin/zsh"
-        else
-            echo "Skipping default shell change: $SHELL_PATH is not listed in /etc/shells."
-            SHELL_PATH=""
-        fi
-    fi
-
-    if [ -z "$SHELL_PATH" ]; then
-        :
-    elif [ "$SHELL" != "$SHELL_PATH" ]; then
-        echo "Changing default shell to zsh..."
-        # chsh usually requires a password, so we let it run interactively
-        chsh -s "$SHELL_PATH"
-    else
-        echo "Zsh is already the default shell."
-    fi
-fi
+# These run even with ONLY_STOW: they only adjust local configuration.
+is_true "${SKIP_GIT_CONFIG:-0}" || bash "$DOTFILES_DIR/install/git-config.sh"
+is_true "${SKIP_SHELL:-0}" || bash "$DOTFILES_DIR/install/default-shell.sh"
 
 echo "Dotfiles bootstrap complete!"

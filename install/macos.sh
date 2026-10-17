@@ -9,12 +9,6 @@ source "$SCRIPT_DIR/lib/helpers.sh"
 
 MINIMUM_NEOVIM_VERSION="0.11.2"
 
-is_true() {
-    case "${1:-}" in
-        1|true|TRUE|yes|YES|y|Y|on|ON) return 0 ;;
-        *) return 1 ;;
-    esac
-}
 
 KUBECTL_PATH="/usr/local/bin/kubectl"
 KUBECTL_BACKUP=""
@@ -57,16 +51,6 @@ if ! is_macos; then
     exit 0
 fi
 
-load_brew_shellenv() {
-    if command -v brew >/dev/null 2>&1; then
-        return 0
-    fi
-    if [ -x "/opt/homebrew/bin/brew" ]; then
-        eval "$(/opt/homebrew/bin/brew shellenv)"
-    elif [ -x "/usr/local/bin/brew" ]; then
-        eval "$(/usr/local/bin/brew shellenv)"
-    fi
-}
 
 install_homebrew_if_missing() {
     local installer_url installer_sha installer_path
@@ -111,10 +95,10 @@ install_homebrew_if_missing() {
     rm -f "$installer_path"
 }
 
-load_brew_shellenv
+load_brew_shellenv || true
 install_homebrew_if_missing
 if ! command -v brew >/dev/null 2>&1; then
-    load_brew_shellenv
+    load_brew_shellenv || true
 fi
 
 if ! command -v brew >/dev/null 2>&1; then

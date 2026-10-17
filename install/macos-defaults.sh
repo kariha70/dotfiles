@@ -12,6 +12,11 @@ if ! is_macos; then
     exit 0
 fi
 
+if ! is_true "${APPLY_MACOS_DEFAULTS:-0}"; then
+    echo "macOS defaults are opt-in. Set APPLY_MACOS_DEFAULTS=1 to apply them."
+    exit 0
+fi
+
 echo "Applying macOS system defaults..."
 
 # Close System Settings to prevent it from overriding changes.

@@ -35,9 +35,8 @@ releases for fast-moving tools (fzf, bat, fd, hyperfine, tmux, just, delta,
 zoxide, lazygit, Neovim, and the extras). gh comes from GitHub's official apt
 repository, and Git can optionally come from the git-core PPA
 (`GIT_FROM_PPA=1`). Arch Linux uses signed packages from the official pacman
-repositories when available. The
-optional **procs** source fallback is available on apt systems when no distro
-package exists; enable it with `INSTALL_PROCS_FROM_SOURCE=1`.
+repositories when available. Optional
+packages such as **procs** are skipped when the distro does not provide them.
 :::
 
 ## Development Runtimes

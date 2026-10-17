@@ -148,7 +148,9 @@ Parallel bootstrap flow using `winget` and PowerShell modules:
 <summary><strong>All SKIP flags</strong></summary>
 
 **Linux/macOS** (`SKIP_<STEP>=1`):
-`PACKAGES` · `MACOS` · `GIT_PPA` · `GH` · `JUST` · `FZF` · `CLI_TOOLS` · `TMUX` · `SSH` · `OHMYZSH` · `FONTS` · `EZA` · `MISE` · `BUN` · `NEOVIM` · `ZOXIDE` · `LAZYGIT` · `UV` · `AZURE_CLI` · `AI_TOOLS` · `RUST` · `WSL` · `DELTA` · `EXTRAS` · `EXTRAS_OPS` · `MACOS_DEFAULTS` · `STOW` · `GIT_SIGNING` · `GIT_CREDENTIALS` · `SHELL`
+`MACOS` · `PACKAGES` · `GIT_PPA` · `GH` · `SSH` · `OHMYZSH` · `FONTS` · `MISE` · `BUN` · `RELEASE_TOOLS` · `TMUX` · `NEOVIM` · `EZA` · `UV` · `AZURE_CLI` · `AI_TOOLS` · `RUST` · `WSL` · `MACOS_DEFAULTS` · `STOW` · `GIT_CONFIG` · `GIT_SIGNING` · `GIT_CREDENTIALS` · `SHELL`
+
+Individual release tools: `SKIP_<TOOL>=1`, e.g. `SKIP_LAZYGIT`, `SKIP_FZF` (see `RELEASE_TOOLS` in `install/lib/releases.sh`).
 
 **Windows** (`SKIP_<STEP>=1`):
 `PACKAGES` · `GIT_TOOLS` · `NVM` · `AI_TOOLS` · `RUST` · `FONTS` · `EXTRAS` · `PROFILE` · `LINK` (or `STOW`)
@@ -281,26 +283,10 @@ bash scripts/bump-versions.sh
 
 | Env var | Secures |
 |---------|---------|
-| `MISE_BINARY_SHA256_{x86_64,arm64}` | mise binaries (Node.js and Go downloads are verified by mise) |
-| `UV_INSTALLER_SHA256` | uv installer script |
-| `ZOXIDE_TAR_SHA256_{x86_64,arm64}` | zoxide musl tarballs |
-| `FZF_TAR_SHA256_{x86_64,arm64}` | fzf tarballs |
-| `BAT_DEB_SHA256_{amd64,arm64}` / `FD_DEB_SHA256_*` / `HYPERFINE_DEB_SHA256_*` | bat, fd, and hyperfine .deb packages |
-| `JUST_TAR_SHA256_{x86_64,arm64}` | just tarballs |
-| `TMUX_TAR_SHA256` | tmux source tarball (built into `/usr/local`) |
+| `<TOOL>_VERSION` + `<TOOL>_SHA256_{x86_64,arm64}` | Pinned release assets listed in `install/lib/releases.sh`: just, lazygit, fzf, zoxide, delta, bat, fd, hyperfine, glow, fastfetch, atuin, yazi, superfile, herdr, mise, Neovim (tmux uses `TMUX_SHA256_any` for its source tarball) |
+| `NODE_VERSION` / `GO_VERSION` | Runtimes installed by mise, which verifies their upstream checksums |
+| `RUSTUP_INSTALLER_SHA256` / `UV_INSTALLER_SHA256` / `BUN_INSTALLER_SHA256` / `HOMEBREW_INSTALLER_SHA256` / `AZURE_CLI_APT_INSTALLER_SHA256` | Installer scripts |
 | `GH_APT_KEYRING_SHA256` | GitHub CLI apt repository keyring |
-| `RUSTUP_INSTALLER_SHA256` | rustup installer script |
-| `BUN_INSTALLER_SHA256` | Bun installer script |
-| `HOMEBREW_INSTALLER_SHA256` | Homebrew install script |
-| `AZURE_CLI_APT_INSTALLER_SHA256` | Azure CLI apt installer |
-| `LAZYGIT_TAR_SHA256_{x86_64,arm64}` | lazygit tarballs |
-| `DELTA_DEB_SHA256_{amd64,arm64}` | git-delta .deb packages |
-| `GLOW_DEB_SHA256_{amd64,arm64}` | Glow .deb packages |
-| `FASTFETCH_DEB_SHA256_{linux_amd64,linux_aarch64}` | Fastfetch .deb packages |
-| `YAZI_ZIP_SHA256_{x86_64,aarch64}_unknown_linux_gnu` | Yazi prebuilt zips |
-| `ATUIN_TAR_SHA256_{x86_64,aarch64}_unknown_linux_gnu` | Atuin prebuilt tarballs |
-| `SUPERFILE_TAR_SHA256_{amd64,arm64}` | superfile prebuilt tarballs |
-| `NEOVIM_APPIMAGE_SHA256_{x86_64,arm64}` | Neovim AppImages |
 | `MESLO_*_TTF_SHA256` | MesloLGS NF fonts (4 variants) |
 | `EZA_KEY_FINGERPRINT` | eza apt repo GPG key |
 | `GIT_CORE_PPA_KEY_FINGERPRINT` | git-core PPA GPG key (opt-in) |
@@ -359,25 +345,30 @@ dotfiles/
 │
 ├── install/                        # Modular installers
 │   ├── lib/
-│   │   ├── helpers.sh              # Bash: platform detection, SHA256, downloads
+│   │   ├── helpers.sh              # Bash: platform detection, downloads, install_release
+│   │   ├── releases.sh             # Pinned release assets (URLs + pin names)
 │   │   └── helpers.ps1             # PowerShell: winget wrapper, link helpers
 │   ├── versions.env                # Pinned versions + SHA256 checksums
 │   ├── versions.ps1                # PowerShell version definitions
 │   ├── Brewfile                    # macOS Homebrew manifest
+│   ├── npm-globals.txt             # Global npm CLIs installed via mise
 │   ├── macos.sh / macos-defaults.sh
-│   ├── packages.sh                 # Core apt/pacman packages
-│   ├── ohmyzsh.sh                  # Oh My Zsh + plugins + Powerlevel10k
-│   ├── fonts.sh                    # MesloLGS Nerd Font
-│   ├── eza.sh / zoxide.sh / delta.sh / lazygit.sh / just.sh
-│   ├── gh.sh / git-ppa.sh / fzf.sh / cli-tools.sh / tmux.sh
-│   ├── mise.sh / bun.sh / rust.sh / uv.sh
-│   ├── neovim.sh / extras.sh / extras-ops.sh
+│   ├── packages.sh                 # Base apt/pacman packages
+│   ├── release-tools.sh            # Pinned CLI releases (just, lazygit, fzf, bat, ...)
+│   ├── ohmyzsh.sh / fonts.sh
+│   ├── gh.sh / git-ppa.sh / eza.sh / tmux.sh / neovim.sh
+│   ├── mise.sh / bun.sh / rust.sh / uv.sh / ai-tools.sh
 │   ├── azure-cli.sh / ssh.sh / wsl.sh
+│   ├── git-config.sh / default-shell.sh
 │   └── *.ps1                       # Windows equivalents (winget-based)
 │
 ├── scripts/
 │   ├── bump-versions.sh            # Update versions + checksums
 │   ├── bump-versions.ps1           # Sync PS versions from env
+│   ├── check-version-pins.sh       # Validate pins (CI)
+│   ├── check-tool-parity.sh        # Cross-platform tool list check (CI)
+│   ├── check-installed-versions.sh # Installed tools match pins (CI)
+│   ├── import-npm-globals.sh       # Copy nvm globals into npm-globals.txt
 │   └── arch-smoke-test.sh          # Arch bootstrap + idempotency test
 │
 ├── .github/

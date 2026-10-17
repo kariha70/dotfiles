@@ -17,43 +17,20 @@ for pin in MISE_VERSION NODE_VERSION GO_VERSION; do
     fi
 done
 
-MISE_BIN="$HOME/.local/bin/mise"
-
 # Use global defaults only: ignore any project mise.toml in the caller's directory.
 cd "$HOME"
 
 if is_macos; then
-    # Homebrew installs mise from install/Brewfile.
-    if ! MISE_BIN="$(resolve_mise_bin)"; then
-        echo "mise not found. Run install/macos.sh (Homebrew bundle) first."
-        exit 1
-    fi
+    : # Homebrew installs mise from install/Brewfile.
 elif command -v pacman >/dev/null 2>&1; then
-    if ! command -v mise >/dev/null 2>&1; then
-        pacman_install mise
-    fi
-    MISE_BIN="$(command -v mise)"
-elif ! pinned_version_satisfied "$MISE_VERSION" "$MISE_BIN"; then
-    ARCH="$(get_arch)"
-    case "$ARCH" in
-        x86_64) MISE_ARCH="x64" ;;
-        arm64) MISE_ARCH="arm64" ;;
-    esac
+    command -v mise >/dev/null 2>&1 || pacman_install mise
+else
+    install_release mise
+fi
 
-    EXPECTED_VAR="MISE_BINARY_SHA256_${ARCH}"
-    EXPECTED_MISE_SHA="${!EXPECTED_VAR:-}"
-    MISE_ASSET="mise-v${MISE_VERSION}-linux-${MISE_ARCH}"
-
-    TMP_MISE="$(mktemp /tmp/mise.XXXXXX)"
-    trap 'rm -f "$TMP_MISE"' EXIT
-    download_and_verify \
-        "https://github.com/jdx/mise/releases/download/v${MISE_VERSION}/${MISE_ASSET}" \
-        "$TMP_MISE" \
-        "$EXPECTED_MISE_SHA" \
-        "mise (${ARCH})"
-    ensure_local_bin
-    install -m 0755 "$TMP_MISE" "$MISE_BIN"
-    echo "mise ${MISE_VERSION} installed to $MISE_BIN."
+if ! MISE_BIN="$(resolve_mise_bin)"; then
+    echo "mise not found. On macOS, run install/macos.sh (Homebrew bundle) first."
+    exit 1
 fi
 
 # Pinned global defaults; a project's own mise.toml overrides them per directory.

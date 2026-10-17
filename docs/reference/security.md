@@ -37,26 +37,10 @@ Every downloaded asset is guarded by a dedicated environment variable:
 
 | Env var | Secures |
 |---------|---------|
-| `MISE_BINARY_SHA256_{x86_64,arm64}` | mise binaries (Node.js and Go downloads are verified by mise) |
-| `UV_INSTALLER_SHA256` | uv installer script |
-| `ZOXIDE_TAR_SHA256_{x86_64,arm64}` | zoxide musl tarballs |
-| `FZF_TAR_SHA256_{x86_64,arm64}` | fzf tarballs |
-| `BAT_DEB_SHA256_{amd64,arm64}` / `FD_DEB_SHA256_*` / `HYPERFINE_DEB_SHA256_*` | bat, fd, and hyperfine `.deb` packages |
-| `JUST_TAR_SHA256_{x86_64,arm64}` | just tarballs |
-| `TMUX_TAR_SHA256` | tmux source tarball (built into `/usr/local`) |
+| `<TOOL>_VERSION` + `<TOOL>_SHA256_{x86_64,arm64}` | Pinned release assets listed in `install/lib/releases.sh`: just, lazygit, fzf, zoxide, delta, bat, fd, hyperfine, glow, fastfetch, atuin, yazi, superfile, herdr, mise, Neovim (tmux uses `TMUX_SHA256_any` for its source tarball) |
+| `NODE_VERSION` / `GO_VERSION` | Runtimes installed by mise, which verifies their upstream checksums |
+| `RUSTUP_INSTALLER_SHA256` / `UV_INSTALLER_SHA256` / `BUN_INSTALLER_SHA256` / `HOMEBREW_INSTALLER_SHA256` / `AZURE_CLI_APT_INSTALLER_SHA256` | Installer scripts |
 | `GH_APT_KEYRING_SHA256` | GitHub CLI apt repository keyring |
-| `RUSTUP_INSTALLER_SHA256` | rustup installer script |
-| `BUN_INSTALLER_SHA256` | Bun installer script |
-| `HOMEBREW_INSTALLER_SHA256` | Homebrew install script |
-| `AZURE_CLI_APT_INSTALLER_SHA256` | Azure CLI apt installer |
-| `LAZYGIT_TAR_SHA256_{x86_64,arm64}` | lazygit tarballs |
-| `DELTA_DEB_SHA256_{amd64,arm64}` | git-delta `.deb` packages |
-| `GLOW_DEB_SHA256_{amd64,arm64}` | Glow `.deb` packages |
-| `FASTFETCH_DEB_SHA256_{linux_amd64,linux_aarch64}` | Fastfetch `.deb` packages |
-| `YAZI_ZIP_SHA256_{x86_64,aarch64}_unknown_linux_gnu` | Yazi prebuilt zips |
-| `ATUIN_TAR_SHA256_{x86_64,aarch64}_unknown_linux_gnu` | Atuin prebuilt tarballs |
-| `SUPERFILE_TAR_SHA256_{amd64,arm64}` | superfile prebuilt tarballs |
-| `NEOVIM_APPIMAGE_SHA256_{x86_64,arm64}` | Neovim AppImages |
 | `MESLO_*_TTF_SHA256` | MesloLGS NF fonts (4 variants) |
 
 ## GPG Key Verification

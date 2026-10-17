@@ -32,44 +32,13 @@ if command -v apt-get &> /dev/null; then
     fi
 
     KEYRING="/etc/apt/keyrings/gierens.gpg"
-    SOURCE_FILE="/etc/apt/sources.list.d/gierens.list"
-    APT_SOURCE="deb [signed-by=$KEYRING] https://deb.gierens.de stable main"
-    EXPECTED_FP="${EZA_KEY_FINGERPRINT:?EZA_KEY_FINGERPRINT not set - run scripts/bump-versions.sh}"
-    INSTALLED_FP=""
-    if [ -f "$KEYRING" ]; then
-        INSTALLED_FP="$(gpg --batch --with-colons --show-keys "$KEYRING" 2>/dev/null | awk -F: '/^fpr:/ { print $10; exit }')"
-    fi
-
-    REPO_ADDED=false
-    if [ "$INSTALLED_FP" != "$EXPECTED_FP" ] || [ ! -f "$SOURCE_FILE" ] || [ "$(cat "$SOURCE_FILE")" != "$APT_SOURCE" ]; then
-        KEY_URL="https://raw.githubusercontent.com/eza-community/eza/main/deb.asc"
-        TMP_KEY="$(mktemp /tmp/eza-key.XXXXXX.asc)"
-        TMP_KEYRING="$(mktemp /tmp/eza-keyring.XXXXXX.gpg)"
-        trap 'rm -f "$TMP_KEY" "$TMP_KEYRING"' EXIT
-
-        curl -fLsS "$KEY_URL" -o "$TMP_KEY"
-        ACTUAL_FP="$(gpg --batch --with-colons --import-options show-only --import "$TMP_KEY" 2>/dev/null | awk -F: '/^fpr:/ { print $10; exit }')"
-        if [ -z "$ACTUAL_FP" ] || [ "$ACTUAL_FP" != "$EXPECTED_FP" ]; then
-            echo "Fingerprint mismatch for eza apt repo key."
-            echo "Expected: $EXPECTED_FP"
-            echo "Actual:   ${ACTUAL_FP:-<none>}"
-            echo "Refusing to add the repository."
-            exit 1
-        fi
-
-        gpg --batch --yes --dearmor -o "$TMP_KEYRING" "$TMP_KEY"
-        sudo install -d -m 755 /etc/apt/keyrings
-        sudo install -m 644 "$TMP_KEYRING" "$KEYRING"
-        printf '%s\n' "$APT_SOURCE" | sudo tee "$SOURCE_FILE" >/dev/null
-        sudo chmod 644 "$SOURCE_FILE"
-
-        rm -f "$TMP_KEY" "$TMP_KEYRING"
-        trap - EXIT
-        REPO_ADDED=true
-    fi
-    
-    # Update and install
-    if [ "$REPO_ADDED" = true ]; then
+    TMP_KEYRING="$(mktemp /tmp/eza-keyring.XXXXXX.gpg)"
+    trap 'rm -f "$TMP_KEYRING"' EXIT
+    fetch_apt_key "https://raw.githubusercontent.com/eza-community/eza/main/deb.asc" \
+        "${EZA_KEY_FINGERPRINT:-}" "$TMP_KEYRING"
+    install_apt_source "$TMP_KEYRING" "$KEYRING" /etc/apt/sources.list.d/gierens.list \
+        "deb [signed-by=$KEYRING] https://deb.gierens.de stable main"
+    if [ "$APT_SOURCE_CHANGED" = "1" ]; then
         apt_update_force
     else
         apt_update_once

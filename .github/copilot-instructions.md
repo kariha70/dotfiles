@@ -50,7 +50,7 @@ Bash and Zsh both source `~/.bash_aliases` and `~/.config/shell/mise-activate.sh
 
 ### Installer Orchestration
 
-`bootstrap.sh` calls installers via `maybe_run STEP_NAME path/to/script.sh`, which checks `SKIP_<STEP>` env vars automatically. Individual installers can be run standalone. macOS system defaults (`install/macos-defaults.sh`) are opt-in — require `APPLY_MACOS_DEFAULTS=1`.
+`bootstrap.sh` runs the installers listed in `INSTALL_STEPS` in order; `run_step` checks `SKIP_<STEP>` env vars automatically. Each installer decides for itself whether it applies to the current platform (macOS, Ubuntu, Arch, WSL), so bootstrap has no platform branches. Individual installers can be run standalone. After stowing, `install/git-config.sh` and `install/default-shell.sh` adjust local configuration. macOS system defaults (`install/macos-defaults.sh`) are opt-in — require `APPLY_MACOS_DEFAULTS=1`.
 
 ### Git Config Hierarchy
 
@@ -77,19 +77,9 @@ source "$SCRIPT_DIR/lib/helpers.sh"        # always hard-source, never condition
 source_versions "$SCRIPT_DIR"              # loads install/versions.env
 
 if is_macos; then echo "Managed via Homebrew"; exit 0; fi
-if command -v tool &> /dev/null; then echo "Already installed"; exit 0; fi
-
-ARCH="$(get_arch)"                         # x86_64 or arm64
-# Some tools use different arch names (e.g. amd64 instead of x86_64).
-# Map with a case statement when needed: x86_64→amd64, arm64→arm64.
-SHA_VAR="TOOL_SHA256_${ARCH}"
-EXPECTED_SHA="${!SHA_VAR:-}"               # indirect expansion for arch-specific lookup
-
-TMP_DIR="$(mktemp -d)"
-trap 'rm -rf "$TMP_DIR"' EXIT
-
-download_and_verify "$URL" "$TMP_DIR/file" "$EXPECTED_SHA" "tool-name"
 ```
+
+Tools distributed as GitHub release assets are not given their own installer. Add them to `install/lib/releases.sh` instead and install them with `install_release <tool>` (or list them in `RELEASE_TOOLS` so `install/release-tools.sh` installs them). `install_release` downloads, verifies, extracts, and installs the asset, and skips it when a candidate command already reports the pinned version.
 
 ### helpers.sh Functions
 
@@ -106,20 +96,23 @@ download_and_verify "$URL" "$TMP_DIR/file" "$EXPECTED_SHA" "tool-name"
 | `verify_sha256`, `sha256_file` | Checksum verification primitives |
 | `source_versions "$SCRIPT_DIR"` | Load `versions.env` (replaces inline sourcing) |
 | `normalize_version`, `version_at_least` | Parse and compare semver strings |
-| `ensure_local_bin` | Create `~/.local/bin` if missing |
+| `command_version`, `pinned_version_satisfied` | Read a command's version and compare it with a pin |
+| `release_info`, `install_release` | Describe and install a pinned release from `releases.sh` |
+| `install_verified_deb` | Install a verified `.deb` |
+| `fetch_apt_key`, `install_apt_source` | Verify an apt signing key and add its repository |
+| `resolve_mise_bin`, `mise_install_npm_tools` | Locate mise and install npm CLIs as mise tools |
+| `load_brew_shellenv` | Load Homebrew's environment when brew is not on PATH |
 | `append_unique` | Add to array without duplicates |
-| `log_info`, `log_warn` | Structured logging |
 
 ### Version Pinning
 
-All versions and SHA256 checksums live in `install/versions.env` (Linux) and `install/versions.ps1` (Windows). Arch suffixes in variable names vary by tool — some use `x86_64`/`arm64`, others use `amd64`/`arm64`, and some use full target triples (e.g., `x86_64_unknown_linux_gnu`). Match the convention already used in `versions.env` for the tool. Git-pinned repos use `_REF` suffix (commit hashes). Run `scripts/bump-versions.sh` to auto-fetch latest releases and compute checksums.
+All versions and SHA256 checksums live in `install/versions.env` (Linux) and `install/versions.ps1` (Windows). Release assets use uniform names: `<TOOL>_VERSION` (without a leading `v`) and `<TOOL>_SHA256_<arch>` with `x86_64`/`arm64` (or `any`). Git-pinned repos use the `_REF` suffix (commit hashes). Run `scripts/bump-versions.sh` to fetch the latest releases and compute checksums; it reads URLs from `install/lib/releases.sh`.
 
 ### Adding a New Installer
 
-1. Create `install/newapp.sh` following the pattern above
-2. Add version/SHA fetch logic to `scripts/bump-versions.sh`
-3. Run `scripts/bump-versions.sh` to populate both version pin files
-4. Hook into `bootstrap.sh` with `maybe_run NEWAPP "$DOTFILES_DIR/install/newapp.sh"`
+1. For a GitHub release asset, add a `release_info` entry in `install/lib/releases.sh` and add the tool to `RELEASE_TOOLS` (or call `install_release` from a dedicated installer). `bump-versions.sh` and `check-version-pins.sh` pick it up automatically.
+2. Otherwise, create `install/newapp.sh` following the pattern above, add its pins to `scripts/bump-versions.sh`, and add an entry to `INSTALL_STEPS` in `bootstrap.sh`.
+3. Run `scripts/bump-versions.sh` to populate both version pin files.
 
 ### Adding a New Stow Package
 
