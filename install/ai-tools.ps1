@@ -22,11 +22,26 @@ foreach ($pkg in $aiPackages) {
     Install-WithWinget -Id $pkg.Id -Name $pkg.Name | Out-Null
 }
 
-if (Test-CommandExist -Name "herdr") {
-    Write-Step "Herdr is already installed."
+$versions = Get-VersionsMap
+$previewTag = [string]$versions["HERDR_WINDOWS_PREVIEW_TAG"]
+$installDir = Join-Path -Path $env:LOCALAPPDATA -ChildPath "Programs\Herdr\bin"
+$destination = Join-Path -Path $installDir -ChildPath "herdr.exe"
+# Records the installed preview tag so bumping the pin upgrades Herdr on rerun.
+$versionMarker = Join-Path -Path $installDir -ChildPath "herdr.dotfiles-version"
+$installedTag = ""
+if (Test-Path -LiteralPath $versionMarker) {
+    $markerContent = Get-Content -LiteralPath $versionMarker -Raw
+    if ($markerContent) {
+        $installedTag = $markerContent.Trim()
+    }
+}
+$herdrCommand = Get-Command -Name "herdr" -ErrorAction SilentlyContinue
+
+if ($herdrCommand -and -not (Test-PathEquivalent -Left $herdrCommand.Source -Right $destination)) {
+    Write-Step "Herdr is already installed outside dotfiles management: $($herdrCommand.Source)"
+} elseif ((Test-Path -LiteralPath $destination) -and $installedTag -eq $previewTag) {
+    Write-Step "Herdr $previewTag is already installed."
 } else {
-    $versions = Get-VersionsMap
-    $previewTag = [string]$versions["HERDR_WINDOWS_PREVIEW_TAG"]
     $assetName = [string]$versions["HERDR_WINDOWS_ASSET"]
     $expectedSha = [string]$versions["HERDR_WINDOWS_BINARY_SHA256_x86_64"]
 
@@ -46,8 +61,6 @@ if (Test-CommandExist -Name "herdr") {
     }
 
     $assetUrl = "https://github.com/herdrdev/herdr/releases/download/$previewTag/$assetName"
-    $installDir = Join-Path -Path $env:LOCALAPPDATA -ChildPath "Programs\Herdr\bin"
-    $destination = Join-Path -Path $installDir -ChildPath "herdr.exe"
     $tempRoot = Join-Path -Path $env:TEMP -ChildPath ("herdr-" + [System.Guid]::NewGuid().ToString("N"))
     $tempFile = "$tempRoot$([System.IO.Path]::GetExtension($assetName))"
 
@@ -55,6 +68,16 @@ if (Test-CommandExist -Name "herdr") {
         Ensure-Directory -Path $installDir
         Invoke-DownloadFile -Url $assetUrl -Destination $tempFile
         Assert-Sha256 -Path $tempFile -ExpectedHash $expectedSha -Label "Herdr (Windows x86_64)"
+
+        # A running herdr.exe cannot be overwritten, but it can be renamed.
+        # Unique backup names keep a still-running older copy from blocking
+        # this upgrade; backups no longer in use are cleaned up best-effort.
+        Get-ChildItem -LiteralPath $installDir -Filter "herdr.exe.*.old" -ErrorAction SilentlyContinue |
+            Remove-Item -Force -ErrorAction SilentlyContinue
+        if (Test-Path -LiteralPath $destination) {
+            $staleExecutable = "$destination.$([System.Guid]::NewGuid().ToString('N')).old"
+            Move-Item -LiteralPath $destination -Destination $staleExecutable
+        }
 
         if ($assetName.EndsWith(".zip", [System.StringComparison]::OrdinalIgnoreCase)) {
             Expand-Archive -LiteralPath $tempFile -DestinationPath $tempRoot
@@ -82,7 +105,8 @@ if (Test-CommandExist -Name "herdr") {
     }
 
     & $destination --version | Out-Null
-    Write-Step "Herdr installed."
+    Set-Content -LiteralPath $versionMarker -Value $previewTag -Encoding utf8NoBOM
+    Write-Step "Herdr $previewTag installed."
 }
 
 Write-Step "AI coding tools installation complete."

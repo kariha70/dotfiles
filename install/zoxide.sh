@@ -15,34 +15,50 @@ if is_macos; then
     exit 0
 fi
 
-if command -v zoxide &> /dev/null; then
-    echo "zoxide is already installed."
-    exit 0
-fi
-
-# Prefer apt on Debian/Ubuntu (keeps updates via apt upgrade)
-if command -v apt-get &> /dev/null; then
-    if apt_package_available zoxide; then
-        apt_update_once
-        sudo apt-get install -y --no-install-recommends zoxide
-        echo "zoxide installed via apt."
+if command -v pacman >/dev/null 2>&1; then
+    if command -v zoxide >/dev/null 2>&1; then
+        echo "zoxide is already installed."
         exit 0
     fi
-    echo "zoxide not available via apt, falling back to upstream installer."
-fi
-
-if command -v pacman >/dev/null 2>&1; then
     pacman_install zoxide
     echo "zoxide installed via pacman."
     exit 0
 fi
 
-# Fallback: install zoxide to ~/.local/bin with checksum enforcement
-INSTALLER_PATH="$(mktemp /tmp/zoxide-install.XXXXXX.sh)"
-trap 'rm -f "$INSTALLER_PATH"' EXIT
-curl -fLsS https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh -o "$INSTALLER_PATH"
-EXPECTED_ZOXIDE_SHA="${ZOXIDE_INSTALLER_SHA256:-}"
-verify_sha256 "$INSTALLER_PATH" "$EXPECTED_ZOXIDE_SHA" "zoxide installer"
-bash "$INSTALLER_PATH"
+if [ -z "${ZOXIDE_VERSION:-}" ]; then
+    echo "ZOXIDE_VERSION is missing. Run scripts/bump-versions.sh to refresh install/versions.env."
+    exit 1
+fi
 
-echo "zoxide installed."
+ZOXIDE_BIN="$HOME/.local/bin/zoxide"
+if pinned_version_satisfied "$ZOXIDE_VERSION" zoxide "$ZOXIDE_BIN"; then
+    exit 0
+fi
+
+ZOXIDE_ARCH="$(get_arch)"
+case "$ZOXIDE_ARCH" in
+    x86_64)
+        ZOXIDE_TARGET="x86_64-unknown-linux-musl"
+        ;;
+    arm64)
+        ZOXIDE_TARGET="aarch64-unknown-linux-musl"
+        ;;
+esac
+
+EXPECTED_VAR="ZOXIDE_TAR_SHA256_${ZOXIDE_ARCH}"
+EXPECTED_ZOXIDE_SHA="${!EXPECTED_VAR:-}"
+ZOXIDE_ARCHIVE="zoxide-${ZOXIDE_VERSION}-${ZOXIDE_TARGET}.tar.gz"
+
+TMP_DIR="$(mktemp -d)"
+trap 'rm -rf "$TMP_DIR"' EXIT
+download_and_verify \
+    "https://github.com/ajeetdsouza/zoxide/releases/download/v${ZOXIDE_VERSION}/${ZOXIDE_ARCHIVE}" \
+    "$TMP_DIR/$ZOXIDE_ARCHIVE" \
+    "$EXPECTED_ZOXIDE_SHA" \
+    "zoxide tarball (${ZOXIDE_ARCH})"
+tar xf "$TMP_DIR/$ZOXIDE_ARCHIVE" -C "$TMP_DIR" zoxide
+
+ensure_local_bin
+install -m 0755 "$TMP_DIR/zoxide" "$ZOXIDE_BIN"
+
+echo "zoxide ${ZOXIDE_VERSION} installed to $ZOXIDE_BIN."

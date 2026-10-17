@@ -17,7 +17,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-22.04, ubuntu-24.04]
+        os: [ubuntu-22.04, ubuntu-24.04, ubuntu-26.04]
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
@@ -51,7 +51,26 @@ jobs:
           command -v stow
           command -v just
           command -v go
+          command -v gh
+          command -v hyperfine
           echo "All tool checks passed."
+
+      - name: Verify pinned upstream versions
+        run: |
+          source install/lib/helpers.sh
+          source install/versions.env
+          pinned_version_satisfied "$GO_VERSION" go /usr/local/go/bin/go
+          pinned_version_satisfied "$FZF_VERSION" fzf /usr/local/bin/fzf
+          pinned_version_satisfied "$BAT_VERSION" bat batcat
+          pinned_version_satisfied "$FD_VERSION" fd fdfind
+          pinned_version_satisfied "$HYPERFINE_VERSION" hyperfine
+          pinned_version_satisfied "$JUST_VERSION" just /usr/local/bin/just
+          pinned_version_satisfied "$DELTA_VERSION" delta
+          pinned_version_satisfied "$ZOXIDE_VERSION" zoxide "$HOME/.local/bin/zoxide"
+          pinned_version_satisfied "$LAZYGIT_VERSION" lazygit /usr/local/bin/lazygit
+          pinned_version_satisfied "$NEOVIM_VERSION" nvim /usr/local/bin/nvim
+          pinned_version_satisfied "$TMUX_VERSION" tmux /usr/local/bin/tmux
+          apt-cache policy gh | grep -q 'cli.github.com'
 
       - name: Verify stow symlinks
         run: |

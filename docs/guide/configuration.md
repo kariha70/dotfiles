@@ -13,6 +13,8 @@ Customize the bootstrap behavior with environment variables, skip flags, and loc
 | `EXTRA_CONFLICT_FILES="path1"` | Extra files to back up before stowing |
 | `BREWFILE_PATH=/path` | Override the macOS Brewfile location |
 | `BREW_CLEANUP=1` | Remove unlisted Homebrew packages after install |
+| `UPGRADE_PACKAGES=1` | Also upgrade already-installed apt, Homebrew, and winget packages (pinned tools always upgrade to their pin) |
+| `GIT_FROM_PPA=1` | Ubuntu only: install Git from the git-core PPA instead of the distro package |
 
 ::: tip Stow-only mode
 Run `ONLY_STOW=1 ./bootstrap.sh` to re-link configs without re-running any installers. Useful after editing a dotfile.
@@ -28,6 +30,13 @@ Use `SKIP_<STEP>=1` to disable individual bootstrap steps.
 |------|-------|
 | `SKIP_PACKAGES` | Core apt or pacman packages |
 | `SKIP_MACOS` | macOS Homebrew bundle |
+| `SKIP_GIT_PPA` | Opt-in git-core PPA step |
+| `SKIP_GH` | GitHub CLI from the official apt repository |
+| `SKIP_JUST` | just |
+| `SKIP_GO` | Go from the official go.dev tarball |
+| `SKIP_FZF` | fzf |
+| `SKIP_CLI_TOOLS` | bat, fd, and hyperfine upstream `.deb` packages |
+| `SKIP_TMUX` | Pinned tmux source build |
 | `SKIP_SSH` | SSH server setup |
 | `SKIP_OHMYZSH` | Oh My Zsh + plugins + Powerlevel10k |
 | `SKIP_FONTS` | MesloLGS Nerd Font installation |

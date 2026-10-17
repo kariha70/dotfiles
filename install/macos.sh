@@ -193,8 +193,15 @@ else
 fi
 
 echo "Installing macOS packages from Brewfile..."
+BREW_BUNDLE_ARGS=(--file "$BREWFILE_PATH")
+if is_true "${UPGRADE_PACKAGES:-0}"; then
+    echo "UPGRADE_PACKAGES set. Upgrading outdated Brewfile packages."
+else
+    BREW_BUNDLE_ARGS+=(--no-upgrade)
+fi
+
 backup_docker_kubectl
-if ! run_brew bundle --file "$BREWFILE_PATH" --no-upgrade; then
+if ! run_brew bundle "${BREW_BUNDLE_ARGS[@]}"; then
     restore_docker_kubectl
     echo "Homebrew bundle failed. If this is a kubectl conflict, run:"
     echo "  brew link --overwrite kubernetes-cli"

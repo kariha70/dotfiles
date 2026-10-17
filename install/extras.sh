@@ -81,8 +81,10 @@ ensure_local_bin
 TMP_DIR="$(mktemp -d)"
 trap 'rm -rf "$TMP_DIR"' EXIT
 
+# Each tool is (re)installed when missing or older than its pin in versions.env.
+
 # 1. Glow (Markdown reader)
-if ! command -v glow &> /dev/null; then
+if ! pinned_version_satisfied "${GLOW_VERSION:-}" glow; then
     echo "Installing Glow..."
     if [ -z "${GLOW_VERSION:-}" ]; then
         echo "GLOW_VERSION is missing. Run scripts/bump-versions.sh."
@@ -96,12 +98,10 @@ if ! command -v glow &> /dev/null; then
     download_and_verify "$GLOW_URL" "$GLOW_DEB" "$GLOW_EXPECTED_SHA" "Glow (${GLOW_ARCH})"
     apt_update_once
     sudo apt-get install -y "$GLOW_DEB"
-else
-    echo "Glow is already installed."
 fi
 
 # 2. Atuin (Shell history)
-if ! command -v atuin &> /dev/null; then
+if ! pinned_version_satisfied "${ATUIN_VERSION:-}" atuin "$HOME/.local/bin/atuin"; then
     echo "Installing Atuin..."
     if [ -z "${ATUIN_VERSION:-}" ]; then
         echo "ATUIN_VERSION is missing. Run scripts/bump-versions.sh."
@@ -120,38 +120,27 @@ if ! command -v atuin &> /dev/null; then
     fi
     install -m 0755 "$ATUIN_BIN" "$HOME/.local/bin/atuin"
     echo "Atuin installed."
-else
-    echo "Atuin is already installed."
 fi
 
 # 3. Fastfetch
-if ! command -v fastfetch &> /dev/null; then
+if ! pinned_version_satisfied "${FASTFETCH_VERSION:-}" fastfetch; then
     echo "Installing Fastfetch..."
-    # Try apt first when the package exists on this distro.
-    if command -v apt-get >/dev/null 2>&1 && apt_package_available fastfetch; then
-        apt_update_once
-        sudo apt-get install -y --no-install-recommends fastfetch
-        echo "Fastfetch installed via apt."
+    if [ -z "${FASTFETCH_VERSION:-}" ]; then
+        echo "FASTFETCH_VERSION is missing. Run scripts/bump-versions.sh."
+        exit 1
+    fi
+    if ! command -v apt-get >/dev/null 2>&1; then
+        echo "Fastfetch release packages require apt; skipping."
     else
-        # Fallback to GitHub release (with checksum enforcement)
-        echo "Fastfetch not in apt, downloading from GitHub..."
-        if [ -z "${FASTFETCH_VERSION:-}" ]; then
-            echo "FASTFETCH_VERSION is missing. Run scripts/bump-versions.sh."
-            exit 1
-        fi
         FF_SHA_VAR="FASTFETCH_DEB_SHA256_$(var_for_arch "$FASTFETCH_ARCH")"
         FF_EXPECTED="${!FF_SHA_VAR:-}"
         FF_URL="https://github.com/fastfetch-cli/fastfetch/releases/download/${FASTFETCH_VERSION}/fastfetch-${FASTFETCH_ARCH}.deb"
-        FF_DEB="$TMP_DIR/fastfetch.deb"
-        download_and_verify "$FF_URL" "$FF_DEB" "$FF_EXPECTED" "Fastfetch ($FASTFETCH_ARCH)"
-        sudo dpkg -i "$FF_DEB"
+        install_verified_deb "$FF_URL" "$FF_EXPECTED" "Fastfetch ($FASTFETCH_ARCH)"
     fi
-else
-    echo "Fastfetch is already installed."
 fi
 
 # 4. Yazi (File manager)
-if ! command -v yazi &> /dev/null; then
+if ! pinned_version_satisfied "${YAZI_VERSION:-}" yazi "$HOME/.local/bin/yazi"; then
     echo "Installing Yazi..."
     if [ -z "${YAZI_VERSION:-}" ]; then
         echo "YAZI_VERSION is missing. Run scripts/bump-versions.sh."
@@ -168,17 +157,15 @@ if ! command -v yazi &> /dev/null; then
         echo "Yazi directory not found in extracted archive."
         exit 1
     fi
-    mv "$YAZI_DIR/yazi" "$HOME/.local/bin/"
+    install -m 0755 "$YAZI_DIR/yazi" "$HOME/.local/bin/yazi"
     if [ -f "$YAZI_DIR/ya" ]; then
-        mv "$YAZI_DIR/ya" "$HOME/.local/bin/"
+        install -m 0755 "$YAZI_DIR/ya" "$HOME/.local/bin/ya"
     fi
     echo "Yazi installed."
-else
-    echo "Yazi is already installed."
 fi
 
 # 5. superfile (File manager)
-if ! command -v spf &> /dev/null; then
+if ! pinned_version_satisfied "${SUPERFILE_VERSION:-}" spf "$HOME/.local/bin/spf"; then
     echo "Installing superfile..."
     if [ -z "${SUPERFILE_VERSION:-}" ]; then
         echo "SUPERFILE_VERSION is missing. Run scripts/bump-versions.sh."
@@ -199,8 +186,6 @@ if ! command -v spf &> /dev/null; then
     fi
     install -m 0755 "$SUPERFILE_BIN" "$HOME/.local/bin/spf"
     echo "superfile installed."
-else
-    echo "superfile is already installed."
 fi
 
 echo "Extras installation complete."

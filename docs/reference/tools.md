@@ -30,8 +30,12 @@ herdr integration install copilot
 ```
 
 ::: info Linux package behaviour
-Ubuntu uses apt packages plus SHA256-verified upstream assets. Arch Linux uses
-signed packages from the official pacman repositories when available. The
+Ubuntu uses apt for stable base packages and SHA256-verified, pinned upstream
+releases for fast-moving tools (Go, fzf, bat, fd, hyperfine, tmux, just, delta,
+zoxide, lazygit, Neovim, and the extras). gh comes from GitHub's official apt
+repository, and Git can optionally come from the git-core PPA
+(`GIT_FROM_PPA=1`). Arch Linux uses signed packages from the official pacman
+repositories when available. The
 optional **procs** source fallback is available on apt systems when no distro
 package exists; enable it with `INSTALL_PROCS_FROM_SOURCE=1`.
 :::
@@ -42,7 +46,7 @@ package exists; enable it with `INSTALL_PROCS_FROM_SOURCE=1`.
 |---------|---------------|---------|
 | **Node.js** | [nvm](https://github.com/nvm-sh/nvm) with lazy-loading | [nvm-windows](https://github.com/coreybutler/nvm-windows) via winget |
 | **Bun** | Official installer / Homebrew | winget |
-| **Go** | apt / pacman / Homebrew | winget |
+| **Go** | go.dev tarball (Ubuntu) / pacman / Homebrew | winget |
 | **Rust** | [rustup](https://rustup.rs/) + stable toolchain | rustup via winget |
 | **Python** | [uv](https://github.com/astral-sh/uv) | winget |
 

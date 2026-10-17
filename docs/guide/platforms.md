@@ -4,7 +4,7 @@ The dotfiles support Linux, macOS, Windows, and WSL — each with platform-speci
 
 ## Linux
 
-Ubuntu 22.04+ and Arch Linux are supported. Bootstrap uses `apt` on Ubuntu and `pacman` on Arch. Arch-native tools come from the signed official repositories; other upstream assets are **SHA256-verified** before installation.
+Ubuntu 22.04+ and Arch Linux are supported. Bootstrap uses `apt` on Ubuntu and `pacman` on Arch. Arch-native tools come from the signed official repositories. On Ubuntu, fast-moving tools use pinned upstream releases that are **SHA256-verified** before installation and upgraded on rerun when a pin is bumped; gh comes from GitHub's official apt repository.
 
 - Stows **6 config packages**: `bash`, `git`, `vim`, `zsh`, `tmux`, `nvim`
 - Sets **Zsh** as the default login shell

@@ -60,7 +60,13 @@ else
     maybe_run PACKAGES "$DOTFILES_DIR/install/packages.sh"
 fi
 
-# 1b. Ensure just is available when the distro package is missing
+# 1b. Optional newer Git from the Ubuntu Git Maintainers PPA (GIT_FROM_PPA=1)
+maybe_run GIT_PPA "$DOTFILES_DIR/install/git-ppa.sh"
+
+# 1c. GitHub CLI from GitHub's official apt repository
+maybe_run GH "$DOTFILES_DIR/install/gh.sh"
+
+# 1d. Install pinned just release
 maybe_run JUST "$DOTFILES_DIR/install/just.sh"
 
 # 2. Setup SSH
@@ -92,8 +98,14 @@ maybe_run BUN "$DOTFILES_DIR/install/bun.sh"
 
 # 7-14. Package installers
 if "$IS_MAC"; then
-    echo "macOS detected. Azure CLI, Neovim, eza, zoxide, lazygit, uv, git-delta, extras, operations extras, and rustup are managed via Homebrew."
+    echo "macOS detected. Azure CLI, Neovim, Go, fzf, bat, fd, hyperfine, tmux, eza, zoxide, lazygit, uv, git-delta, extras, operations extras, and rustup are managed via Homebrew."
 else
+    # 6c. Install pinned Go, fzf, bat/fd/hyperfine, and tmux releases
+    maybe_run GO "$DOTFILES_DIR/install/go.sh"
+    maybe_run FZF "$DOTFILES_DIR/install/fzf.sh"
+    maybe_run CLI_TOOLS "$DOTFILES_DIR/install/cli-tools.sh"
+    maybe_run TMUX "$DOTFILES_DIR/install/tmux.sh"
+
     # 7. Install pinned Neovim release
     maybe_run NEOVIM "$DOTFILES_DIR/install/neovim.sh"
 

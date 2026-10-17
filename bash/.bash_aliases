@@ -13,13 +13,21 @@ else
     alias l='ls -CF'
 fi
 
+# bat and fd are installed under their upstream names (install/cli-tools.sh);
+# Ubuntu's own packages call them batcat and fdfind, so fall back to those.
+if command -v bat &> /dev/null; then
+    BAT_BIN="bat"
+elif command -v batcat &> /dev/null; then
+    BAT_BIN="batcat"
+else
+    BAT_BIN=""
+fi
+
 # fzf aliases
 if command -v fzf &> /dev/null; then
     # Preview file content using bat (if installed) or cat
-    if command -v batcat &> /dev/null; then
-        alias fp="fzf --preview 'batcat --style=numbers --color=always --line-range :500 {}'"
-    elif command -v bat &> /dev/null; then
-        alias fp="fzf --preview 'bat --style=numbers --color=always --line-range :500 {}'"
+    if [ -n "$BAT_BIN" ]; then
+        alias fp="fzf --preview '$BAT_BIN --style=numbers --color=always --line-range :500 {}'"
     else
         alias fp="fzf --preview 'cat {}'"
     fi
@@ -28,17 +36,16 @@ if command -v fzf &> /dev/null; then
     alias fe='printenv | fzf'
 fi
 
-# fd alias (if installed as fdfind)
-if command -v fdfind &> /dev/null; then
+# fd alias (only when fd is installed as fdfind)
+if ! command -v fd &> /dev/null && command -v fdfind &> /dev/null; then
     alias fd='fdfind'
 fi
 
 # bat alias (use bat as cat)
-if command -v batcat &> /dev/null; then
-    alias cat='batcat'
-elif command -v bat &> /dev/null; then
-    alias cat='bat'
+if [ -n "$BAT_BIN" ]; then
+    alias cat="$BAT_BIN"
 fi
+unset BAT_BIN
 
 # lazygit
 if command -v lazygit &> /dev/null; then

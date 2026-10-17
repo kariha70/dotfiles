@@ -19,11 +19,13 @@ if command -v apt-get &> /dev/null; then
     echo "Detected apt-get. Updating and installing packages..."
     apt_update_once
 
-    # List of packages to install
+    # List of packages to install. Tools with pins in versions.env (Go, fzf,
+    # bat, fd, hyperfine, just, gh, ...) come from their dedicated installers so
+    # bumping a pin upgrades them; only stable base tools come from the distro.
+    # tmux stays here as a fallback for the pinned source build (install/tmux.sh).
     PACKAGES=(
         curl
         git
-        golang-go
         vim
         stow
         htop
@@ -31,10 +33,7 @@ if command -v apt-get &> /dev/null; then
         build-essential
         zsh
         fontconfig
-        fzf
-        bat
         ripgrep
-        fd-find
         btop
         tmux
         unzip
@@ -70,14 +69,11 @@ if command -v apt-get &> /dev/null; then
         echo "procs not available via apt."
     fi
     add_optional_package gping gping
-    add_optional_package hyperfine hyperfine
     add_optional_package httpie "HTTPie"
-    add_optional_package just just
     add_optional_package miller "Miller (mlr)"
     add_optional_package xh xh
     add_optional_package bottom bottom
     add_optional_package tealdeer "tealdeer (tldr)"
-    add_optional_package gh "GitHub CLI (gh)"
     add_optional_package direnv direnv
     add_optional_package age age
     add_optional_package duf duf
@@ -87,9 +83,10 @@ if command -v apt-get &> /dev/null; then
     if [ -n "${EXTRA_TOOLS:-}" ]; then
         IFS=' ' read -r -a EXTRA_TOOL_PACKAGES <<< "${EXTRA_TOOLS}"
         for extra_pkg in "${EXTRA_TOOL_PACKAGES[@]}"; do
-            if [ -n "${extra_pkg}" ]; then
-                add_optional_package "$extra_pkg" "$extra_pkg"
-            fi
+            case "$extra_pkg" in
+                ""|gh) ;; # gh comes from install/gh.sh
+                *) add_optional_package "$extra_pkg" "$extra_pkg" ;;
+            esac
         done
     fi
 
@@ -107,7 +104,10 @@ if command -v apt-get &> /dev/null; then
         MISSING_PACKAGES+=("$pkg")
     done < <(filter_missing_packages "${PACKAGES[@]}")
 
-    if [ "${#MISSING_PACKAGES[@]}" -gt 0 ]; then
+    if is_true "${UPGRADE_PACKAGES:-0}"; then
+        echo "UPGRADE_PACKAGES set. Installing or upgrading all requested packages."
+        sudo apt-get install -y --no-install-recommends "${PACKAGES[@]}"
+    elif [ "${#MISSING_PACKAGES[@]}" -gt 0 ]; then
         sudo apt-get install -y --no-install-recommends "${MISSING_PACKAGES[@]}"
     else
         echo "All requested packages already installed."

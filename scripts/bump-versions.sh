@@ -260,6 +260,67 @@ delta_version="${delta_tag#v}"
 delta_sha_amd64=$(fetch_sha "https://github.com/dandavison/delta/releases/download/${delta_version}/git-delta_${delta_version}_amd64.deb" "$TMP_DIR/git-delta_${delta_version}_amd64.deb")
 delta_sha_arm64=$(fetch_sha "https://github.com/dandavison/delta/releases/download/${delta_version}/git-delta_${delta_version}_arm64.deb" "$TMP_DIR/git-delta_${delta_version}_arm64.deb")
 
+# zoxide
+zoxide_tag="${ZOXIDE_VERSION_OVERRIDE:-$(latest_tag "ajeetdsouza/zoxide")}"
+if [ -z "$zoxide_tag" ] || [ "$zoxide_tag" = "null" ]; then
+    echo "Could not determine latest zoxide release tag."
+    exit 1
+fi
+zoxide_version="${zoxide_tag#v}"
+zoxide_sha_x86=$(fetch_sha "https://github.com/ajeetdsouza/zoxide/releases/download/v${zoxide_version}/zoxide-${zoxide_version}-x86_64-unknown-linux-musl.tar.gz" "$TMP_DIR/zoxide-x86_64.tar.gz")
+zoxide_sha_arm64=$(fetch_sha "https://github.com/ajeetdsouza/zoxide/releases/download/v${zoxide_version}/zoxide-${zoxide_version}-aarch64-unknown-linux-musl.tar.gz" "$TMP_DIR/zoxide-arm64.tar.gz")
+
+# fzf
+fzf_tag="${FZF_VERSION_OVERRIDE:-$(latest_tag "junegunn/fzf")}"
+if [ -z "$fzf_tag" ] || [ "$fzf_tag" = "null" ]; then
+    echo "Could not determine latest fzf release tag."
+    exit 1
+fi
+fzf_version="${fzf_tag#v}"
+fzf_sha_x86=$(fetch_sha "https://github.com/junegunn/fzf/releases/download/v${fzf_version}/fzf-${fzf_version}-linux_amd64.tar.gz" "$TMP_DIR/fzf-amd64.tar.gz")
+fzf_sha_arm64=$(fetch_sha "https://github.com/junegunn/fzf/releases/download/v${fzf_version}/fzf-${fzf_version}-linux_arm64.tar.gz" "$TMP_DIR/fzf-arm64.tar.gz")
+
+# bat, fd, hyperfine (sharkdp .deb releases)
+resolve_sharkdp_deb() {
+    local repo="$1" override="$2" tag version sha_amd64 sha_arm64
+    tag="${override:-$(latest_tag "sharkdp/${repo}")}"
+    if [ -z "$tag" ] || [ "$tag" = "null" ]; then
+        echo "Could not determine latest ${repo} release tag." >&2
+        return 1
+    fi
+    version="${tag#v}"
+    sha_amd64="$(fetch_sha "https://github.com/sharkdp/${repo}/releases/download/v${version}/${repo}_${version}_amd64.deb" "$TMP_DIR/${repo}_amd64.deb")" || return 1
+    sha_arm64="$(fetch_sha "https://github.com/sharkdp/${repo}/releases/download/v${version}/${repo}_${version}_arm64.deb" "$TMP_DIR/${repo}_arm64.deb")" || return 1
+    printf '%s %s %s\n' "$version" "$sha_amd64" "$sha_arm64"
+}
+bat_pin="$(resolve_sharkdp_deb bat "${BAT_VERSION_OVERRIDE:-}")"
+fd_pin="$(resolve_sharkdp_deb fd "${FD_VERSION_OVERRIDE:-}")"
+hyperfine_pin="$(resolve_sharkdp_deb hyperfine "${HYPERFINE_VERSION_OVERRIDE:-}")"
+read -r bat_version bat_sha_amd64 bat_sha_arm64 <<<"$bat_pin"
+read -r fd_version fd_sha_amd64 fd_sha_arm64 <<<"$fd_pin"
+read -r hyperfine_version hyperfine_sha_amd64 hyperfine_sha_arm64 <<<"$hyperfine_pin"
+
+# tmux (source tarball; upstream publishes no binaries)
+tmux_tag="${TMUX_VERSION_OVERRIDE:-$(latest_tag "tmux/tmux")}"
+if [ -z "$tmux_tag" ] || [ "$tmux_tag" = "null" ]; then
+    echo "Could not determine latest tmux release tag."
+    exit 1
+fi
+tmux_sha=$(fetch_sha "https://github.com/tmux/tmux/releases/download/${tmux_tag}/tmux-${tmux_tag}.tar.gz" "$TMP_DIR/tmux.tar.gz")
+
+# Go (official tarballs from go.dev)
+go_version="${GO_VERSION_OVERRIDE:-}"
+if [ -z "$go_version" ]; then
+    go_version="$(curl "${CURL_ARGS[@]}" "https://go.dev/dl/?mode=json" | jq -er '[ .[] | select(.stable) | .version ][0]')"
+fi
+go_version="${go_version#go}"
+if [ -z "$go_version" ]; then
+    echo "Could not determine latest Go release."
+    exit 1
+fi
+go_sha_x86=$(fetch_sha "https://go.dev/dl/go${go_version}.linux-amd64.tar.gz" "$TMP_DIR/go-amd64.tar.gz")
+go_sha_arm64=$(fetch_sha "https://go.dev/dl/go${go_version}.linux-arm64.tar.gz" "$TMP_DIR/go-arm64.tar.gz")
+
 # glow
 glow_tag="${GLOW_VERSION_OVERRIDE:-$(latest_tag "charmbracelet/glow")}"
 if [ -z "$glow_tag" ] || [ "$glow_tag" = "null" ]; then
@@ -347,9 +408,6 @@ if [ "$herdr_windows_sha" != "$herdr_windows_declared_sha" ]; then
     exit 1
 fi
 
-# zoxide installer
-zoxide_sha=$(fetch_sha "https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh" "$TMP_DIR/zoxide-install.sh")
-
 # rustup installer
 rustup_sha=$(fetch_sha "https://sh.rustup.rs" "$TMP_DIR/rustup-install.sh")
 
@@ -368,6 +426,17 @@ azure_cli_apt_installer_sha=$(fetch_sha "https://aka.ms/InstallAzureCLIDeb" "$TM
 # eza apt repository signing key
 curl "${CURL_ARGS[@]}" "https://raw.githubusercontent.com/eza-community/eza/main/deb.asc" -o "$TMP_DIR/eza.asc"
 eza_key_fingerprint=$(gpg_fingerprint "$TMP_DIR/eza.asc")
+
+# GitHub CLI apt repository keyring
+gh_apt_keyring_sha=$(fetch_sha "https://cli.github.com/packages/githubcli-archive-keyring.gpg" "$TMP_DIR/githubcli-archive-keyring.gpg")
+
+# Ubuntu Git Maintainers PPA signing key (cross-checked against the keyserver)
+git_core_ppa_fingerprint="$(curl "${CURL_ARGS[@]}" "https://api.launchpad.net/1.0/~git-core/+archive/ubuntu/ppa" | jq -er '.signing_key_fingerprint')"
+curl "${CURL_ARGS[@]}" "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x${git_core_ppa_fingerprint}" -o "$TMP_DIR/git-core.asc"
+if [ "$(gpg_fingerprint "$TMP_DIR/git-core.asc")" != "$git_core_ppa_fingerprint" ]; then
+    echo "git-core PPA signing key fingerprint does not match Launchpad metadata."
+    exit 1
+fi
 
 # Pinned git refs
 ohmyzsh_ref="${OHMYZSH_REF_OVERRIDE:-$(resolve_git_ref "Oh My Zsh" "ohmyzsh/ohmyzsh" "${OHMYZSH_REF:-}")}"
@@ -409,6 +478,33 @@ DELTA_VERSION=${delta_version}
 DELTA_DEB_SHA256_amd64=${delta_sha_amd64}
 DELTA_DEB_SHA256_arm64=${delta_sha_arm64}
 
+ZOXIDE_VERSION=${zoxide_version}
+ZOXIDE_TAR_SHA256_x86_64=${zoxide_sha_x86}
+ZOXIDE_TAR_SHA256_arm64=${zoxide_sha_arm64}
+
+FZF_VERSION=${fzf_version}
+FZF_TAR_SHA256_x86_64=${fzf_sha_x86}
+FZF_TAR_SHA256_arm64=${fzf_sha_arm64}
+
+BAT_VERSION=${bat_version}
+BAT_DEB_SHA256_amd64=${bat_sha_amd64}
+BAT_DEB_SHA256_arm64=${bat_sha_arm64}
+
+FD_VERSION=${fd_version}
+FD_DEB_SHA256_amd64=${fd_sha_amd64}
+FD_DEB_SHA256_arm64=${fd_sha_arm64}
+
+HYPERFINE_VERSION=${hyperfine_version}
+HYPERFINE_DEB_SHA256_amd64=${hyperfine_sha_amd64}
+HYPERFINE_DEB_SHA256_arm64=${hyperfine_sha_arm64}
+
+TMUX_VERSION=${tmux_tag}
+TMUX_TAR_SHA256=${tmux_sha}
+
+GO_VERSION=${go_version}
+GO_TAR_SHA256_x86_64=${go_sha_x86}
+GO_TAR_SHA256_arm64=${go_sha_arm64}
+
 GLOW_VERSION=${glow_tag}
 GLOW_DEB_SHA256_amd64=${glow_sha_amd64}
 GLOW_DEB_SHA256_arm64=${glow_sha_arm64}
@@ -436,8 +532,6 @@ HERDR_WINDOWS_PREVIEW_TAG=${herdr_windows_preview_tag}
 HERDR_WINDOWS_ASSET=${herdr_windows_asset}
 HERDR_WINDOWS_BINARY_SHA256_x86_64=${herdr_windows_sha}
 
-ZOXIDE_INSTALLER_SHA256=${zoxide_sha}
-
 RUSTUP_INSTALLER_SHA256=${rustup_sha}
 
 UV_INSTALLER_SHA256=${uv_sha}
@@ -449,6 +543,10 @@ HOMEBREW_INSTALLER_SHA256=${homebrew_installer_sha}
 AZURE_CLI_APT_INSTALLER_SHA256=${azure_cli_apt_installer_sha}
 
 EZA_KEY_FINGERPRINT=${eza_key_fingerprint}
+
+GH_APT_KEYRING_SHA256=${gh_apt_keyring_sha}
+
+GIT_CORE_PPA_KEY_FINGERPRINT=${git_core_ppa_fingerprint}
 
 OHMYZSH_REF=${ohmyzsh_ref}
 ZSH_AUTOSUGGESTIONS_REF=${zsh_autosuggestions_ref}
