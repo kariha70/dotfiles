@@ -97,6 +97,18 @@ unset -f _dotfiles_cached_completion
 
 # --- Aliases -----------------------------------------------------------------
 
+# Listing: Omarchy's ls is already eza's long view (plus lsa, lt, lta); these
+# add the default profile's ll/la/l in the same style.
+if command -v eza &>/dev/null; then
+    alias ll='eza -lah --group-directories-first --icons=auto'
+    alias la='eza -a --group-directories-first --icons=auto'
+    alias l='eza -F --group-directories-first --icons=auto'
+else
+    alias ll='ls -alFh'
+    alias la='ls -A'
+    alias l='ls -CF'
+fi
+
 if command -v kubectl &>/dev/null; then
     alias k='kubectl'
     complete -o default -F __start_kubectl k 2>/dev/null
@@ -105,6 +117,7 @@ command -v lazygit &>/dev/null && alias lg='lazygit'
 command -v bat &>/dev/null && alias cat='bat'
 alias py='python3'
 alias fe='printenv | fzf'
+alias fp="fzf --preview 'bat --style=numbers --color=always --line-range :500 {}'"
 alias v='nvim'
 alias vim='nvim'
 alias mkdir='mkdir -p'

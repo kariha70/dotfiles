@@ -44,7 +44,7 @@ Every direct-download installer detects the CPU architecture at runtime and fetc
 | `git` plugin aliases | `gs gc gco gb gp gl` + Omarchy's `g gcm gcam gcad` |
 | atuin (`Ctrl+R`) | atuin via bash-preexec |
 | zsh-autosuggestions, zsh-syntax-highlighting | [ble.sh](https://github.com/akinomyoga/ble.sh) 0.4 (`blesh-git`), opt-in from the AUR: `OMARCHY_BLESH=1 ./bootstrap.sh` |
-| direnv, kubectl/gh completions, `y` (yazi), `k`, `lg`, `cat`→bat | Same, in `personal.sh` |
+| direnv, kubectl/gh completions, `y` (yazi), `k`, `lg`, `ll`/`la`/`l`, `fp`, `cat`→bat | Same, in `personal.sh` |
 
 Omarchy's own names win: `ls`/`lt` (eza), `cd` (zoxide), `t` (tmux `Work` session), `c` (opencode), `n` (nvim), `ff`, and the `ga`/`gd` worktree functions are not redefined.
 

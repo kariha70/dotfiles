@@ -100,9 +100,9 @@ fi
 # Interactive bash loads Omarchy's rc, then the personal layer, without errors,
 # and keeps Omarchy's names.
 output="$(HOME="$TEST_HOME" XDG_CONFIG_HOME="$TEST_HOME/.config" OMARCHY_PATH="$FAKE_OMARCHY" DOTFILES_BLESH=0 \
-    bash -i -c 'alias g gs; type -t y extract web_search; ga; echo "starship=$STARSHIP_CONFIG"' 2>"$TEST_ROOT/stderr" </dev/null)"
+    bash -i -c 'alias g gs ll; type -t y extract web_search; ga; echo "starship=$STARSHIP_CONFIG"' 2>"$TEST_ROOT/stderr" </dev/null)"
 grep -v -e 'cannot set terminal process group' -e 'no job control' -e "stty: 'standard input'" "$TEST_ROOT/stderr" | grep . && fail "interactive bash printed errors"
-for expected in "alias g='git'" "alias gs='git status'" "omarchy worktree" "starship=$TEST_HOME/.config/starship/dotfiles.toml"; do
+for expected in "alias g='git'" "alias gs='git status'" "alias ll=" "omarchy worktree" "starship=$TEST_HOME/.config/starship/dotfiles.toml"; do
     grep -Fq "$expected" <<<"$output" || fail "interactive bash output lacks: $expected"
 done
 [ "$(grep -c '^function$' <<<"$output")" = 3 ] || fail "personal functions not defined"
