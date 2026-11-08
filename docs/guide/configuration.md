@@ -15,6 +15,9 @@ Customize the bootstrap behavior with environment variables, skip flags, and loc
 | `BREW_CLEANUP=1` | Remove unlisted Homebrew packages after install |
 | `UPGRADE_PACKAGES=1` | Also upgrade already-installed apt, Homebrew, and winget packages (pinned tools always upgrade to their pin) |
 | `GIT_FROM_PPA=1` | Ubuntu only: install Git from the git-core PPA instead of the distro package |
+| `DOTFILES_PROFILE=default\|omarchy` | Force the full profile or the [Omarchy profile](./platforms.md#omarchy) (auto-detected by default) |
+| `OMARCHY_BLESH=1` | Omarchy: install ble.sh 0.4 (`blesh-git`) from the AUR for bash autosuggestions and syntax highlighting |
+| `OMARCHY_DEV_ENVS="go bun"` | Omarchy: runtimes installed with `omarchy install dev-env` (`""` for none) |
 
 ::: tip Stow-only mode
 Run `ONLY_STOW=1 ./bootstrap.sh` to re-link configs without re-running any installers. Useful after editing a dotfile.
@@ -53,6 +56,8 @@ Use `SKIP_<STEP>=1` to disable individual bootstrap steps.
 | `SKIP_GIT_SIGNING` | 1Password SSH commit signing |
 | `SKIP_GIT_CREDENTIALS` | GitHub credential helper |
 | `SKIP_SHELL` | Default shell change |
+| `SKIP_OMARCHY` | Omarchy profile: extra packages, dev envs, npm globals, ble.sh |
+| `SKIP_OMARCHY_CONFIG` | Omarchy profile: hooking `personal.sh` and `dotfiles.gitconfig` into Omarchy's files |
 
 ### Windows
 

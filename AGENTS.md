@@ -2,6 +2,7 @@
 
 ## Project Structure & Module Organization
 - Core configs live in `bash/`, `git/`, `vim/`, and `zsh/`; each mirrors files symlinked into `$HOME`.
+- Omarchy (omarchy.org) gets its own profile, auto-detected by `is_omarchy` (override with `DOTFILES_PROFILE=default|omarchy`). It keeps bash, Omarchy's `~/.bashrc`, `~/.config/git/config`, Neovim, tmux, fonts, mise runtimes, and AI CLIs untouched: bootstrap runs only `OMARCHY_INSTALL_STEPS` (`install/omarchy.sh`, `rust.sh`, `azure-cli.sh`), stows only the `omarchy/` overlay package, and `install/omarchy-config.sh` hooks the overlays in with one include each. Never stow files that replace Omarchy-owned configs, never alias names Omarchy defines (`c`, `t`, `n`, `ff`, `ga`, `gd`, `ls`, `cd`, ...), and install packages there with `omarchy pkg add`.
 - `install/` holds modular installers (`packages.sh`, `ohmyzsh.sh`, `fonts.sh`, etc.) invoked by the bootstrap flow; each should be re-runnable. Linux package paths must support both apt-based Ubuntu and pacman-based Arch Linux.
 - Shared shell helpers live in `install/lib/helpers.sh`; **always hard-source it** (`source "$SCRIPT_DIR/lib/helpers.sh"`) at the top of every installer — never conditionally fall back to inline definitions. It provides: `is_wsl`, `is_macos`, `is_linux`, `apt_update_once`, `pacman_update_once`, `pacman_install`, `get_arch`, `sha256_file`, `verify_sha256`, `source_versions`, `download_and_verify`, `command_version`, `pinned_version_satisfied`, `install_verified_deb`, `fetch_apt_key`, `install_apt_source`, `resolve_mise_bin`, `mise_install_npm_tools`, `release_info`, `install_release`, `load_brew_shellenv`.
 - Pinned versions and checksums are centralized in `install/versions.env`; use `source_versions "$SCRIPT_DIR"` instead of inline sourcing boilerplate. For downloads, prefer `download_and_verify <url> <output> <sha> <label>` (or `install_verified_deb` for `.deb` assets).
@@ -17,6 +18,7 @@
 - Iterate on one tool: `bash install/<script>.sh` (e.g., `bash install/eza.sh`) instead of the whole bootstrap.
 - Restow after config edits: `stow -v -R -t "$HOME" -d "$(pwd)" bash git vim zsh tmux nvim`.
 - Spot-check shell scripts: `shellcheck install/*.sh install/lib/helpers.sh` to catch quoting and portability issues (bootstrap installs shellcheck).
+- Omarchy profile: `bash scripts/test-omarchy-profile.sh` checks it in a throwaway HOME (needs stow; runs in CI).
 - CI runs automatically on push/PR to `main`: shellcheck + PSScriptAnalyzer linting, and cross-platform bootstrap smoke tests on Ubuntu, Arch Linux, macOS, and Windows.
 
 ## Coding Style & Naming Conventions

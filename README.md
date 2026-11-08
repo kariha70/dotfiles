@@ -89,6 +89,21 @@ Bootstrap uses `apt` on Ubuntu and `pacman` on Arch Linux. Arch-native packages 
 </details>
 
 <details>
+<summary><strong>🅾️ Omarchy</strong></summary>
+
+Auto-detected. [Omarchy](https://omarchy.org/) already ships bash + starship, mise, zoxide, fzf, eza, LazyVim, tmux, fonts, gh, Node.js, and the AI CLIs, wired into its themes, so the **Omarchy profile** keeps them and only adds a personal layer:
+
+- Keeps **bash** and Omarchy's own `~/.bashrc`, `~/.config/git/config`, Neovim, and tmux configs
+- Installs extras with `omarchy pkg add` and Go/Bun with `omarchy install dev-env`
+- Stows only the `omarchy/` overlay package (`~/.config/shell/personal.sh`, `~/.config/git/dotfiles.gitconfig`) and includes it from Omarchy's files
+- Ports the zsh extras to bash (atuin, extract, web search, git aliases); `OMARCHY_BLESH=1` adds ble.sh autosuggestions and syntax highlighting
+- Skips Oh My Zsh, Powerlevel10k, fonts, the zsh login shell, and the SSH server
+
+See [docs/guide/platforms.md](docs/guide/platforms.md#omarchy) for details. `DOTFILES_PROFILE=default` forces the full profile.
+
+</details>
+
+<details>
 <summary><strong>🪟 WSL (Windows Subsystem for Linux)</strong></summary>
 
 Auto-detected via `/proc/version`. WSL-specific behavior:
@@ -143,12 +158,17 @@ Parallel bootstrap flow using `winget` and PowerShell modules:
 | `BREW_CLEANUP=1` | Remove unlisted Homebrew packages |
 | `UPGRADE_PACKAGES=1` | Also upgrade already-installed apt, Homebrew, and winget packages |
 | `GIT_FROM_PPA=1` | Ubuntu only: install Git from the [git-core PPA](https://launchpad.net/~git-core/+archive/ubuntu/ppa) |
+| `DOTFILES_PROFILE=default\|omarchy` | Force the full profile or the Omarchy profile (auto-detected by default) |
+| `OMARCHY_BLESH=1` | Omarchy: install ble.sh 0.4 (`blesh-git`) from the AUR (bash autosuggestions + syntax highlighting) |
+| `OMARCHY_DEV_ENVS="go bun"` | Omarchy: runtimes installed with `omarchy install dev-env` (`""` for none) |
 
 <details>
 <summary><strong>All SKIP flags</strong></summary>
 
 **Linux/macOS** (`SKIP_<STEP>=1`):
 `MACOS` · `PACKAGES` · `GIT_PPA` · `GH` · `SSH` · `OHMYZSH` · `FONTS` · `MISE` · `BUN` · `RELEASE_TOOLS` · `TMUX` · `NEOVIM` · `EZA` · `UV` · `AZURE_CLI` · `AI_TOOLS` · `RUST` · `WSL` · `MACOS_DEFAULTS` · `STOW` · `GIT_CONFIG` · `GIT_SIGNING` · `GIT_CREDENTIALS` · `SHELL`
+
+Omarchy profile: `OMARCHY` · `RUST` · `AZURE_CLI` · `STOW` · `GIT_CONFIG` · `OMARCHY_CONFIG`
 
 Individual release tools: `SKIP_<TOOL>=1`, e.g. `SKIP_LAZYGIT`, `SKIP_FZF` (see `RELEASE_TOOLS` in `install/lib/releases.sh`).
 
@@ -301,7 +321,7 @@ Every push and PR is validated automatically:
 | Workflow | What it checks |
 |----------|---------------|
 | **[Lint](https://github.com/kariha70/dotfiles/actions/workflows/lint.yml)** | ShellCheck · PSScriptAnalyzer · version-pin validation · cross-platform CLI parity |
-| **[Bootstrap](https://github.com/kariha70/dotfiles/actions/workflows/bootstrap.yml)** | Full bootstrap on Ubuntu 22.04, 24.04, and 26.04, Arch Linux, macOS, and Windows · Tool verification · Symlink checks · Idempotency (runs twice) |
+| **[Bootstrap](https://github.com/kariha70/dotfiles/actions/workflows/bootstrap.yml)** | Full bootstrap on Ubuntu 22.04, 24.04, and 26.04, Arch Linux, macOS, and Windows · Tool verification · Symlink checks · Idempotency (runs twice) · Omarchy profile in a simulated home |
 
 ## 📁 Project Structure
 
@@ -335,6 +355,12 @@ dotfiles/
 │       ├── lazy-lock.json          # Locked plugin versions
 │       └── lua/plugins/            # Custom plugin specs
 │
+├── omarchy/                        # Omarchy profile overlays (stowed → ~/ on Omarchy only)
+│   ├── .config/shell/personal.sh   # Personal bash layer, sourced from Omarchy's ~/.bashrc
+│   └── .config/git/
+│       ├── dotfiles.gitconfig      # Identity, delta, included from Omarchy's git config
+│       └── ignore                  # → git/.gitignore_global
+│
 ├── tmux/                           # Tmux config (stowed → ~/)
 │   └── .tmux.conf                  # Ctrl+A prefix, mouse, renumber
 │
@@ -360,6 +386,7 @@ dotfiles/
 │   ├── mise.sh / bun.sh / rust.sh / uv.sh / ai-tools.sh
 │   ├── azure-cli.sh / ssh.sh / wsl.sh
 │   ├── git-config.sh / default-shell.sh
+│   ├── omarchy.sh / omarchy-config.sh  # Omarchy profile: extras + hooking overlays in
 │   └── *.ps1                       # Windows equivalents (winget-based)
 │
 ├── scripts/
@@ -369,7 +396,8 @@ dotfiles/
 │   ├── check-tool-parity.sh        # Cross-platform tool list check (CI)
 │   ├── check-installed-versions.sh # Installed tools match pins (CI)
 │   ├── import-npm-globals.sh       # Copy nvm globals into npm-globals.txt
-│   └── arch-smoke-test.sh          # Arch bootstrap + idempotency test
+│   ├── arch-smoke-test.sh          # Arch bootstrap + idempotency test
+│   └── test-omarchy-profile.sh     # Omarchy profile in a simulated home
 │
 ├── .github/
 │   ├── workflows/

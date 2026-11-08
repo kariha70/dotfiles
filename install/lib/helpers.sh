@@ -75,6 +75,16 @@ is_linux() {
     [ "$(platform_uname)" = "Linux" ]
 }
 
+# Return 0 when the Omarchy profile applies: Omarchy (omarchy.org) is installed,
+# or DOTFILES_PROFILE=omarchy forces it. DOTFILES_PROFILE=default disables it.
+is_omarchy() {
+    case "${DOTFILES_PROFILE:-auto}" in
+        omarchy) return 0 ;;
+        default) return 1 ;;
+    esac
+    is_linux && [ -r "${OMARCHY_PATH:-/usr/share/omarchy}/default/bash/rc" ]
+}
+
 # Normalize uname arch to stable tokens used by installers.
 get_arch() {
     local arch

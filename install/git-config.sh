@@ -38,6 +38,11 @@ fi
 # HTTPS credentials for GitHub and Gist through the GitHub CLI.
 if is_true "${SKIP_GIT_CREDENTIALS:-0}"; then
     echo "Skipping GitHub credential helper (via SKIP_GIT_CREDENTIALS)."
+elif git config --file "$GIT_LOCAL" --get-all 'credential.https://github.com.helper' 2>/dev/null | grep -q 'gh auth git-credential'; then
+    echo "GitHub credential helper already configured in $GIT_LOCAL."
+elif git config --global --includes --get-all 'credential.https://github.com.helper' 2>/dev/null | grep -q 'gh auth git-credential'; then
+    # Omarchy's ~/.config/git/config sets this up already (via `gh auth setup-git`).
+    echo "GitHub credential helper already configured globally; leaving it as is."
 elif command -v gh >/dev/null 2>&1; then
     echo "Configuring the GitHub CLI as Git credential helper..."
     set_local_git 'credential.https://github.com.helper' '!gh auth git-credential'
