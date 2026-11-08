@@ -16,6 +16,40 @@ Ubuntu 22.04+ and Arch Linux are supported. Bootstrap uses `apt` on Ubuntu and `
 Every direct-download installer detects the CPU architecture at runtime and fetches the correct binary. No manual flags are needed.
 :::
 
+## Omarchy
+
+[Omarchy](https://omarchy.org/) is detected automatically (`/usr/share/omarchy`) and gets its own **Omarchy profile**. Omarchy already ships an opinionated, themed setup: bash with starship, mise, zoxide, fzf, eza, Neovim (LazyVim), tmux, a Nerd Font, gh, Node.js, uv, herdr, and the AI coding CLIs. The profile keeps all of that and only layers personal settings on top, so `omarchy theme set`, `omarchy refresh`, and `omarchy update` keep working.
+
+**What runs**
+
+| Step | What it does |
+|------|--------------|
+| `install/omarchy.sh` | Extra CLIs with `omarchy pkg add` (stow, delta, direnv, atuin, bash-preexec, just, yazi, kubectl, helm, …), Go and Bun with `omarchy install dev-env`, and `install/npm-globals.txt` |
+| `install/rust.sh` | rustup from pacman (Omarchy's own dev-env pipes an unverified script) |
+| `install/azure-cli.sh` | Azure CLI from pacman |
+| stow `omarchy/` | `~/.config/shell/personal.sh`, `~/.config/git/dotfiles.gitconfig`, `~/.config/starship/dotfiles.toml`, `~/.config/git/ignore`, the SSH export/import helpers |
+| `install/git-config.sh` | 1Password SSH signing in `~/.gitconfig.local` (keeps Omarchy's gh credential helper) |
+| `install/omarchy-config.sh` | Sources `personal.sh` at the end of Omarchy's `~/.bashrc` and includes `dotfiles.gitconfig` from `~/.config/git/config` (once each) |
+
+**What is skipped**: Oh My Zsh, Powerlevel10k, MesloLGS font, the zsh login shell, the `bash`/`zsh`/`git`/`tmux`/`nvim`/`vim` stow packages, pinned tmux/Neovim/eza/release-tool installs, gh, uv, the AI CLI installer, the pinned Node.js/Go runtimes, and the SSH server (run `bash install/ssh.sh` if you want one).
+
+**Bash instead of zsh**: everything the zsh setup provides is available in bash:
+
+| zsh setup | Omarchy profile (bash) |
+|-----------|------------------------|
+| Powerlevel10k | starship, one line, with `~/.config/starship/dotfiles.toml` (via `STARSHIP_CONFIG`; ANSI colors, so Omarchy themes apply; right side needs ble.sh; `DOTFILES_STARSHIP=0` keeps Omarchy's prompt) |
+| Oh My Zsh history/completion | Omarchy's bash defaults + bash-completion |
+| `fzf` plugin | Omarchy's fzf key bindings (`Ctrl+T`, `Alt+C`), `fd --hidden` as source |
+| `extract`, `web-search` plugins | `extract`, `google`, `ddg` functions in `personal.sh` |
+| `git` plugin aliases | `gs gc gco gb gp gl` + Omarchy's `g gcm gcam gcad` |
+| atuin (`Ctrl+R`) | atuin via bash-preexec |
+| zsh-autosuggestions, zsh-syntax-highlighting | [ble.sh](https://github.com/akinomyoga/ble.sh) 0.4 (`blesh-git`), opt-in from the AUR: `OMARCHY_BLESH=1 ./bootstrap.sh` |
+| direnv, kubectl/gh completions, `y` (yazi), `k`, `lg`, `ll`/`la`/`l`, `fp`, `cat`→bat | Same, in `personal.sh` |
+
+Omarchy's own names win: `ls`/`lt` (eza), `cd` (zoxide), `t` (tmux `Work` session), `c` (opencode), `n` (nvim), `ff`, and the `ga`/`gd` worktree functions are not redefined.
+
+Use `DOTFILES_PROFILE=default ./bootstrap.sh` to force the full cross-platform profile instead, or `DOTFILES_PROFILE=omarchy` to force this one.
+
 ## WSL
 
 Auto-detected via `/proc/version`. WSL-specific behavior adjusts the bootstrap to work within the Windows Subsystem for Linux constraints.

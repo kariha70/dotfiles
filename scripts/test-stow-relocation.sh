@@ -35,6 +35,7 @@ for target_spec in "${STOW_TARGETS[@]}"; do
 done
 
 HOME="$TEST_HOME" \
+DOTFILES_PROFILE=default \
 ONLY_STOW=1 \
 SKIP_GIT_SIGNING=1 \
 SKIP_GIT_CREDENTIALS=1 \

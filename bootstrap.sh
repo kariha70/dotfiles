@@ -38,8 +38,20 @@ INSTALL_STEPS=(
     MACOS_DEFAULTS:macos-defaults # opt-in (APPLY_MACOS_DEFAULTS=1)
 )
 
+# Omarchy (omarchy.org) already ships bash with starship, mise, zoxide, fzf,
+# eza, Neovim (LazyVim), tmux, fonts, gh, Node.js, uv, herdr, and the AI coding
+# CLIs, all wired into its theme system. On Omarchy only the extras run, and
+# configs are layered on top of Omarchy's own files instead of replacing them.
+# DOTFILES_PROFILE=default forces the full profile; =omarchy forces this one.
+OMARCHY_INSTALL_STEPS=(
+    OMARCHY:omarchy               # extra CLIs, Go/Bun, npm globals, opt-in ble.sh
+    RUST:rust                     # rustup from pacman (verified, unlike curl | sh)
+    AZURE_CLI:azure-cli
+)
+
 # Configuration packages stowed into $HOME.
 STOW_DIRS=(bash git vim zsh tmux nvim)
+OMARCHY_STOW_DIRS=(omarchy)
 
 # Paths that may exist as real files before the first stow; they are backed up.
 # Add more with EXTRA_CONFLICT_FILES="path1 path2".
@@ -47,6 +59,19 @@ CONFLICT_FILES=(
     .bashrc .bash_aliases .config/shell .gitconfig .gitignore_global
     export_ssh.sh import_ssh.sh .vimrc .zshrc .zlogin .tmux.conf .config/nvim
 )
+OMARCHY_CONFLICT_FILES=(
+    .config/shell .config/git/dotfiles.gitconfig .config/git/ignore
+    export_ssh.sh import_ssh.sh
+)
+
+if is_omarchy; then
+    PROFILE="omarchy"
+    INSTALL_STEPS=("${OMARCHY_INSTALL_STEPS[@]}")
+    STOW_DIRS=("${OMARCHY_STOW_DIRS[@]}")
+    CONFLICT_FILES=("${OMARCHY_CONFLICT_FILES[@]}")
+else
+    PROFILE="default"
+fi
 
 run_step() {
     local name="$1" script="$DOTFILES_DIR/install/$2.sh" skip_var="SKIP_$1"
@@ -98,7 +123,7 @@ stow_configs() {
     stow -v -R -t "$HOME" -d "$DOTFILES_DIR" "${STOW_DIRS[@]}"
 }
 
-echo "Bootstrapping dotfiles from $DOTFILES_DIR..."
+echo "Bootstrapping dotfiles from $DOTFILES_DIR ($PROFILE profile)..."
 
 for step in "${INSTALL_STEPS[@]}"; do
     run_step "${step%%:*}" "${step#*:}"
@@ -115,6 +140,11 @@ fi
 
 # These run even with ONLY_STOW: they only adjust local configuration.
 is_true "${SKIP_GIT_CONFIG:-0}" || bash "$DOTFILES_DIR/install/git-config.sh"
-is_true "${SKIP_SHELL:-0}" || bash "$DOTFILES_DIR/install/default-shell.sh"
+if [ "$PROFILE" = "omarchy" ]; then
+    # Keep bash as the login shell; hook the overlays into Omarchy's own files.
+    is_true "${SKIP_OMARCHY_CONFIG:-0}" || bash "$DOTFILES_DIR/install/omarchy-config.sh"
+else
+    is_true "${SKIP_SHELL:-0}" || bash "$DOTFILES_DIR/install/default-shell.sh"
+fi
 
 echo "Dotfiles bootstrap complete!"
