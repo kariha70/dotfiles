@@ -1,0 +1,260 @@
+# Starship prompt for the Omarchy profile.
+#
+# Stowed to ~/.config/starship/dotfiles.toml and selected through
+# STARSHIP_CONFIG in ~/.config/shell/personal.sh, so Omarchy's own
+# ~/.config/starship.toml stays untouched (DOTFILES_STARSHIP=0 keeps it).
+#
+# One line, in Omarchy's style (cyan accent, ❯). Colors are ANSI names only,
+# never hex, so every Omarchy theme recolors it through the terminal palette.
+# Glyphs need a Nerd Font (Omarchy ships JetBrainsMono Nerd Font).
+#
+#   ~/c/dotfiles  main ⇡1 !2 ?1 ❯                      󱦟 3s ✘ 1  22.11 14:32
+#
+# The right side needs ble.sh 0.4+ (plain bash has no right prompt); without
+# it the left side stands alone and a failed command still turns ❯ red.
+
+"$schema" = "https://starship.rs/config-schema.json"
+
+add_newline = true
+command_timeout = 500
+scan_timeout = 30
+continuation_prompt = "[∙](bright-black) "
+
+format = """
+$username\
+$hostname\
+$container\
+$directory\
+$git_branch\
+$git_commit\
+$git_state\
+$git_status\
+$character"""
+
+right_format = """
+$cmd_duration\
+$jobs\
+$status\
+$direnv\
+$nix_shell\
+$python\
+$nodejs\
+$bun\
+$deno\
+$rust\
+$golang\
+$java\
+$dotnet\
+$ruby\
+$lua\
+$terraform\
+$docker_context\
+$kubernetes\
+$time"""
+
+# --- Left --------------------------------------------------------------------
+
+[character]
+success_symbol = "[❯](bold cyan)"
+error_symbol = "[❯](bold red)"
+vimcmd_symbol = "[❮](bold green)"
+vimcmd_visual_symbol = "[❮](bold yellow)"
+vimcmd_replace_symbol = "[❮](bold purple)"
+
+# Only on SSH or as root, where it matters.
+[username]
+style_user = "yellow"
+style_root = "bold red"
+format = "[$user]($style)[@](bright-black)"
+
+[hostname]
+ssh_only = true
+ssh_symbol = "󰒋 "
+style = "bold yellow"
+format = "[$ssh_symbol$hostname]($style) "
+
+[container]
+symbol = "󰏖 "
+style = "bold blue"
+format = "[$symbol$name]($style) "
+
+# Repo root bold, the path above it dimmed, other parents shortened to one letter.
+[directory]
+truncation_length = 3
+truncation_symbol = "…/"
+truncate_to_repo = false
+fish_style_pwd_dir_length = 1
+style = "cyan"
+before_repo_root_style = "bright-black"
+repo_root_style = "bold cyan"
+repo_root_format = "[$before_root_path]($before_repo_root_style)[$repo_root]($repo_root_style)[$path]($style)[$read_only]($read_only_style) "
+read_only = " 󰌾"
+read_only_style = "red"
+
+[git_branch]
+symbol = " "
+style = "italic purple"
+truncation_length = 28
+truncation_symbol = "…"
+format = "[$symbol$branch]($style) "
+
+# Commit hash (and tag) only when HEAD is detached.
+[git_commit]
+only_detached = true
+tag_disabled = false
+tag_symbol = " 󰓹 "
+style = "italic purple"
+format = "[󰜘 $hash$tag]($style) "
+
+[git_state]
+style = "bold yellow"
+format = '[\($state( $progress_current/$progress_total)\)]($style) '
+
+[git_status]
+format = "([$conflicted$stashed$deleted$renamed$modified$typechanged$staged$untracked$ahead_behind]($style))"
+style = "bright-black"
+conflicted = "[=${count} ](bold red)"
+ahead = "[⇡${count} ](cyan)"
+behind = "[⇣${count} ](cyan)"
+diverged = "[⇡${ahead_count}⇣${behind_count} ](bold red)"
+up_to_date = ""
+untracked = "[?${count} ](blue)"
+stashed = "[≡${count} ](bright-black)"
+modified = "[!${count} ](yellow)"
+typechanged = "[!${count} ](yellow)"
+staged = "[+${count} ](green)"
+renamed = "[»${count} ](purple)"
+deleted = "[✘${count} ](red)"
+
+# --- Right (ble.sh) ----------------------------------------------------------
+
+[cmd_duration]
+min_time = 2_000
+style = "yellow"
+format = "[󱦟 $duration]($style) "
+
+[jobs]
+symbol = "✦"
+number_threshold = 1
+style = "blue"
+format = "[$symbol$number]($style) "
+
+[status]
+disabled = false
+pipestatus = true
+symbol = "✘ "
+not_executable_symbol = "✘ "
+not_found_symbol = "✘ "
+sigint_symbol = "✘ "
+signal_symbol = "⚡"
+style = "red"
+format = "[$symbol$status( $signal_name)]($style) "
+pipestatus_format = "[$symbol]($style)$pipestatus "
+pipestatus_segment_format = "[$status]($style)"
+pipestatus_separator = "[|](bright-black)"
+
+[direnv]
+disabled = false
+symbol = "󱁿 "
+style = "bright-black"
+loaded_msg = ""
+unloaded_msg = "unloaded "
+allowed_msg = ""
+not_allowed_msg = "blocked"
+denied_msg = "denied"
+format = "[$symbol$loaded$allowed]($style) "
+
+[nix_shell]
+symbol = " "
+style = "bright-black"
+format = "[$symbol$state( \\($name\\))]($style) "
+
+[python]
+symbol = " "
+style = "bright-black"
+version_format = "${major}.${minor}"
+format = '[$symbol$pyenv_prefix($version )(\($virtualenv\) )]($style)'
+
+[nodejs]
+symbol = " "
+style = "bright-black"
+version_format = "${major}.${minor}"
+format = "[$symbol($version )]($style)"
+
+[bun]
+symbol = " "
+style = "bright-black"
+version_format = "${major}.${minor}"
+format = "[$symbol($version )]($style)"
+
+[deno]
+symbol = " "
+style = "bright-black"
+version_format = "${major}.${minor}"
+format = "[$symbol($version )]($style)"
+
+[rust]
+symbol = " "
+style = "bright-black"
+version_format = "${major}.${minor}"
+format = "[$symbol($version )]($style)"
+
+[golang]
+symbol = " "
+style = "bright-black"
+version_format = "${major}.${minor}"
+format = "[$symbol($version )]($style)"
+
+[java]
+symbol = " "
+style = "bright-black"
+version_format = "${major}"
+format = "[$symbol($version )]($style)"
+
+[dotnet]
+symbol = "󰪮 "
+style = "bright-black"
+version_format = "${major}.${minor}"
+format = "[$symbol($version )]($style)"
+
+[ruby]
+symbol = " "
+style = "bright-black"
+version_format = "${major}.${minor}"
+format = "[$symbol($version )]($style)"
+
+[lua]
+symbol = " "
+style = "bright-black"
+version_format = "${major}.${minor}"
+format = "[$symbol($version )]($style)"
+
+[terraform]
+symbol = "󱁢 "
+style = "bright-black"
+format = "[$symbol$workspace]($style) "
+
+[docker_context]
+symbol = " "
+style = "bright-black"
+only_with_files = true
+format = "[$symbol$context]($style) "
+
+# Only inside Kubernetes projects; production-looking contexts turn red.
+[kubernetes]
+disabled = false
+symbol = "󱃾 "
+style = "blue"
+detect_files = ["Chart.yaml", "kustomization.yaml", "helmfile.yaml", "skaffold.yaml", "Tiltfile"]
+detect_folders = ["k8s", "kubernetes", "charts", "manifests"]
+format = "[$symbol$context( \\($namespace\\))]($style) "
+
+[[kubernetes.contexts]]
+context_pattern = ".*(prod|prd|live).*"
+style = "bold red"
+
+[time]
+disabled = false
+time_format = "%H:%M"
+style = "bright-black"
+format = "[$time]($style)"

@@ -18,8 +18,9 @@
 # 0.4 only, and with the 0.3 release (AUR blesh) the prompt falls back to
 # bash's default "[user@host dir]$".
 if [[ ${DOTFILES_BLESH:-1} != 0 && -z ${BLE_VERSION-} && -f /usr/share/blesh/ble.sh ]]; then
-    _dotfiles_ble_version="$(grep -m1 -o '^BLE_VERSION=[0-9]*\.[0-9]*' /usr/share/blesh/ble.sh)"
-    _dotfiles_ble_version="${_dotfiles_ble_version#BLE_VERSION=}"
+    # 0.4 records it as "  _ble_init_version=0.4.0-...", 0.3 as "BLE_VERSION=0.3.4+...".
+    _dotfiles_ble_version="$(grep -m1 -oE '^[[:space:]]*(_ble_init_version|BLE_VERSION)=[0-9]+\.[0-9]+' /usr/share/blesh/ble.sh)"
+    _dotfiles_ble_version="${_dotfiles_ble_version#*=}"
     if [[ ${_dotfiles_ble_version%%.*} -gt 0 || ${_dotfiles_ble_version#*.} -ge 4 ]]; then
         # shellcheck source=/dev/null
         source /usr/share/blesh/ble.sh --attach=none
@@ -30,6 +31,14 @@ if [[ ${DOTFILES_BLESH:-1} != 0 && -z ${BLE_VERSION-} && -f /usr/share/blesh/ble
 fi
 
 # --- Prompt ------------------------------------------------------------------
+
+# Omarchy's rc has already run `starship init`, and starship reads
+# STARSHIP_CONFIG on every prompt, so this swaps in the dotfiles prompt
+# (~/.config/starship/dotfiles.toml) without touching Omarchy's
+# ~/.config/starship.toml. Set DOTFILES_STARSHIP=0 to keep Omarchy's prompt.
+if [[ ${DOTFILES_STARSHIP:-1} != 0 && -z ${STARSHIP_CONFIG-} && -f ${XDG_CONFIG_HOME:-$HOME/.config}/starship/dotfiles.toml ]]; then
+    export STARSHIP_CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/starship/dotfiles.toml"
+fi
 
 # Omarchy ran `starship init` before ble.sh was loaded, so starship hooked
 # PROMPT_COMMAND and PS0. Drop those hooks and init again so starship uses

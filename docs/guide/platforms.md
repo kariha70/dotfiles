@@ -27,7 +27,7 @@ Every direct-download installer detects the CPU architecture at runtime and fetc
 | `install/omarchy.sh` | Extra CLIs with `omarchy pkg add` (stow, delta, direnv, atuin, bash-preexec, just, yazi, kubectl, helm, …), Go and Bun with `omarchy install dev-env`, and `install/npm-globals.txt` |
 | `install/rust.sh` | rustup from pacman (Omarchy's own dev-env pipes an unverified script) |
 | `install/azure-cli.sh` | Azure CLI from pacman |
-| stow `omarchy/` | `~/.config/shell/personal.sh`, `~/.config/git/dotfiles.gitconfig`, `~/.config/git/ignore`, the SSH export/import helpers |
+| stow `omarchy/` | `~/.config/shell/personal.sh`, `~/.config/git/dotfiles.gitconfig`, `~/.config/starship/dotfiles.toml`, `~/.config/git/ignore`, the SSH export/import helpers |
 | `install/git-config.sh` | 1Password SSH signing in `~/.gitconfig.local` (keeps Omarchy's gh credential helper) |
 | `install/omarchy-config.sh` | Sources `personal.sh` at the end of Omarchy's `~/.bashrc` and includes `dotfiles.gitconfig` from `~/.config/git/config` (once each) |
 
@@ -37,7 +37,7 @@ Every direct-download installer detects the CPU architecture at runtime and fetc
 
 | zsh setup | Omarchy profile (bash) |
 |-----------|------------------------|
-| Powerlevel10k | starship, themed by Omarchy |
+| Powerlevel10k | starship, one line, with `~/.config/starship/dotfiles.toml` (via `STARSHIP_CONFIG`; ANSI colors, so Omarchy themes apply; right side needs ble.sh; `DOTFILES_STARSHIP=0` keeps Omarchy's prompt) |
 | Oh My Zsh history/completion | Omarchy's bash defaults + bash-completion |
 | `fzf` plugin | Omarchy's fzf key bindings (`Ctrl+T`, `Alt+C`), `fd --hidden` as source |
 | `extract`, `web-search` plugins | `extract`, `google`, `ddg` functions in `personal.sh` |

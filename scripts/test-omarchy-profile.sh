@@ -73,6 +73,8 @@ done
 # Overlays are stowed and hooked in exactly once.
 [ -f "$TEST_HOME/.config/shell/personal.sh" ] || fail "personal.sh not stowed"
 [ -f "$TEST_HOME/.config/git/dotfiles.gitconfig" ] || fail "dotfiles.gitconfig not stowed"
+[ -f "$TEST_HOME/.config/starship/dotfiles.toml" ] || fail "starship prompt config not stowed"
+[ ! -e "$TEST_HOME/.config/starship.toml" ] || fail "Omarchy's ~/.config/starship.toml was replaced"
 grep -q node_modules "$TEST_HOME/.config/git/ignore" || fail "HOME/.config/git/ignore does not resolve to the global ignore list"
 [ -f "$TEST_HOME/export_ssh.sh" ] || fail "export_ssh.sh not stowed"
 [ "$(grep -c '>>> dotfiles personal layer >>>' "$TEST_HOME/.bashrc")" = 1 ] || fail "personal layer hook missing from ~/.bashrc"
@@ -98,11 +100,18 @@ fi
 # Interactive bash loads Omarchy's rc, then the personal layer, without errors,
 # and keeps Omarchy's names.
 output="$(HOME="$TEST_HOME" XDG_CONFIG_HOME="$TEST_HOME/.config" OMARCHY_PATH="$FAKE_OMARCHY" DOTFILES_BLESH=0 \
-    bash -i -c 'alias g gs; type -t y extract web_search; ga' 2>"$TEST_ROOT/stderr" </dev/null)"
+    bash -i -c 'alias g gs; type -t y extract web_search; ga; echo "starship=$STARSHIP_CONFIG"' 2>"$TEST_ROOT/stderr" </dev/null)"
 grep -v -e 'cannot set terminal process group' -e 'no job control' -e "stty: 'standard input'" "$TEST_ROOT/stderr" | grep . && fail "interactive bash printed errors"
-for expected in "alias g='git'" "alias gs='git status'" "omarchy worktree"; do
+for expected in "alias g='git'" "alias gs='git status'" "omarchy worktree" "starship=$TEST_HOME/.config/starship/dotfiles.toml"; do
     grep -Fq "$expected" <<<"$output" || fail "interactive bash output lacks: $expected"
 done
 [ "$(grep -c '^function$' <<<"$output")" = 3 ] || fail "personal functions not defined"
+
+# The prompt config parses cleanly (when starship is available).
+if command -v starship >/dev/null 2>&1; then
+    STARSHIP_CONFIG="$TEST_HOME/.config/starship/dotfiles.toml" starship prompt >/dev/null 2>"$TEST_ROOT/starship.err"
+    STARSHIP_CONFIG="$TEST_HOME/.config/starship/dotfiles.toml" starship prompt --right >/dev/null 2>>"$TEST_ROOT/starship.err"
+    grep . "$TEST_ROOT/starship.err" && fail "starship reported problems with dotfiles.toml"
+fi
 
 echo "Omarchy profile test passed."

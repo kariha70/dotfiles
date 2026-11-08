@@ -95,7 +95,7 @@ Auto-detected. [Omarchy](https://omarchy.org/) already ships bash + starship, mi
 
 - Keeps **bash** and Omarchy's own `~/.bashrc`, `~/.config/git/config`, Neovim, and tmux configs
 - Installs extras with `omarchy pkg add` and Go/Bun with `omarchy install dev-env`
-- Stows only the `omarchy/` overlay package (`~/.config/shell/personal.sh`, `~/.config/git/dotfiles.gitconfig`) and includes it from Omarchy's files
+- Stows only the `omarchy/` overlay package (`~/.config/shell/personal.sh`, `~/.config/git/dotfiles.gitconfig`, `~/.config/starship/dotfiles.toml`) and includes it from Omarchy's files
 - Ports the zsh extras to bash (atuin, extract, web search, git aliases); `OMARCHY_BLESH=1` adds ble.sh autosuggestions and syntax highlighting
 - Skips Oh My Zsh, Powerlevel10k, fonts, the zsh login shell, and the SSH server
 
@@ -357,6 +357,7 @@ dotfiles/
 │
 ├── omarchy/                        # Omarchy profile overlays (stowed → ~/ on Omarchy only)
 │   ├── .config/shell/personal.sh   # Personal bash layer, sourced from Omarchy's ~/.bashrc
+│   ├── .config/starship/dotfiles.toml  # One-line starship prompt (via STARSHIP_CONFIG)
 │   └── .config/git/
 │       ├── dotfiles.gitconfig      # Identity, delta, included from Omarchy's git config
 │       └── ignore                  # → git/.gitignore_global
