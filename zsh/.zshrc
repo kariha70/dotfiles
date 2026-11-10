@@ -39,115 +39,14 @@ plugins=(
 
 source $ZSH/oh-my-zsh.sh
 
-# FZF Configuration
-# Use fd (faster than find) for fzf
-if command -v fd &> /dev/null; then
-    FD_CMD="fd"
-elif command -v fdfind &> /dev/null; then
-    FD_CMD="fdfind"
-else
-    FD_CMD="find"
-fi
-
-if [ "$FD_CMD" != "find" ]; then
-    export FZF_DEFAULT_COMMAND="$FD_CMD --type f --hidden --follow --exclude .git"
-    export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
-fi
-
-# Use bat for previews
-if command -v bat &> /dev/null; then
-    BAT_CMD="bat"
-elif command -v batcat &> /dev/null; then
-    BAT_CMD="batcat"
-fi
-
-if [ -n "$BAT_CMD" ]; then
-    export FZF_CTRL_T_OPTS="
-      --preview '$BAT_CMD -n --color=always {}'
-      --bind 'ctrl-/:change-preview-window(down|hidden|)'"
-    
-    # Use bat as man pager
-    export MANPAGER="sh -c 'col -bx | $BAT_CMD -l man -p'"
-fi
-
-# Initialize direnv
-if command -v direnv &> /dev/null; then
-    eval "$(direnv hook zsh)" || true
-fi
-
-# Optional CLI completion helpers (cached for fast startup)
-_cache_completion() {
-    local cmd="$1" flag="$2" cache="$HOME/.cache/shell/${cmd}.zsh"
-    mkdir -p "$HOME/.cache/shell"
-    if [ ! -f "$cache" ] || [ "$(find "$cache" -mmin +1440 2>/dev/null)" ]; then
-        "$cmd" $flag > "$cache" 2>/dev/null || return
-    fi
-    source "$cache"
-}
-if command -v kubectl &> /dev/null; then
-    _cache_completion kubectl "completion zsh"
-fi
-if command -v gh &> /dev/null; then
-    _cache_completion gh "completion -s zsh"
-fi
-
-# User configuration
-
-if command -v kubectl &> /dev/null; then
-    alias k='kubectl'
-fi
-
-# Aliases
-if [ -f ~/.bash_aliases ]; then
-    . ~/.bash_aliases
-fi
-
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
 
-# Add local bin to PATH
-if [ -d "$HOME/.local/bin" ]; then
-    export PATH="$HOME/.local/bin:$PATH"
-fi
-
-if [ -f "$HOME/.cargo/env" ]; then
-    . "$HOME/.cargo/env"
-elif [ -d "$HOME/.cargo/bin" ]; then
-    export PATH="$HOME/.cargo/bin:$PATH"
-fi
-
-# bun
-if [ -d "$HOME/.bun/bin" ]; then
-    export BUN_INSTALL="$HOME/.bun"
-    export PATH="$BUN_INSTALL/bin:$PATH"
-fi
-
-# Initialize zoxide
-if command -v zoxide &> /dev/null; then
-    eval "$(zoxide init zsh)" || true
-fi
-
-# mise: Node.js and Go runtimes (global defaults + per-project mise.toml)
-MISE_ACTIVATE="${MISE_ACTIVATE:-$HOME/.config/shell/mise-activate.sh}"
-if [ -f "$MISE_ACTIVATE" ]; then
-    . "$MISE_ACTIVATE"
-fi
-
-# Yazi Shell Wrapper (allows changing directory on exit)
-function y() {
-	local tmp="$(mktemp -t "yazi-cwd.XXXXXX")"
-	yazi "$@" --cwd-file="$tmp"
-	if cwd="$(cat -- "$tmp")" && [ -n "$cwd" ] && [ "$cwd" != "$PWD" ]; then
-		builtin cd -- "$cwd"
-	fi
-	rm -f -- "$tmp"
-}
-
-# Atuin environment (if installed)
-if [ -f "$HOME/.atuin/bin/env" ]; then
-    . "$HOME/.atuin/bin/env"
-fi
-
-if command -v atuin &> /dev/null; then
-    eval "$(atuin init zsh)" || true
+# Everything zsh shares with bash: PATH, fzf, tool hooks, completions,
+# aliases (~/.bash_aliases), and functions. Sourced after Oh My Zsh so the
+# aliases win over its git plugin's and completions find compinit loaded.
+if [ -f "$HOME/.config/shell/common.sh" ]; then
+    . "$HOME/.config/shell/common.sh"
+else
+    echo "~/.zshrc: ~/.config/shell/common.sh is missing; run ONLY_STOW=1 ./bootstrap.sh in the dotfiles repo." >&2
 fi

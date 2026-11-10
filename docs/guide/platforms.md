@@ -40,7 +40,7 @@ Every direct-download installer detects the CPU architecture at runtime and fetc
 | Powerlevel10k | starship, one line, with `~/.config/starship/dotfiles.toml` (via `STARSHIP_CONFIG`; ANSI colors, so Omarchy themes apply; right side needs ble.sh; `DOTFILES_STARSHIP=0` keeps Omarchy's prompt) |
 | Oh My Zsh history/completion | Omarchy's bash defaults + bash-completion |
 | `fzf` plugin | Omarchy's fzf key bindings (`Ctrl+T`, `Alt+C`), `fd --hidden` as source |
-| `extract`, `web-search` plugins | `extract`, `google`, `ddg` functions in `personal.sh` |
+| `extract`, `web-search` plugins | `extract`, `google`, `ddg` functions (`functions.sh`, shared with the default profile's bash) |
 | `git` plugin aliases | `gs gc gco gb gp gl` + Omarchy's `g gcm gcam gcad` |
 | atuin (`Ctrl+R`) | atuin via bash-preexec |
 | zsh-autosuggestions, zsh-syntax-highlighting | [ble.sh](https://github.com/akinomyoga/ble.sh) 0.4 (`blesh-git`), opt-in from the AUR: `OMARCHY_BLESH=1 ./bootstrap.sh` |

@@ -1,3 +1,4 @@
+# shellcheck shell=bash
 # mise activation (shared by bash and zsh)
 # Puts the global runtimes from install/mise.sh on PATH and switches to a
 # project's own versions when entering a directory with a mise.toml.

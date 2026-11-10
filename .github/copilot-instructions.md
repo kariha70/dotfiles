@@ -46,11 +46,11 @@ nvim/.config/nvim/    → ~/.config/nvim/
 
 ### Shared Shell Logic
 
-Bash and Zsh both source `~/.bash_aliases` and `~/.config/shell/mise-activate.sh`, so alias and shell helper changes apply to both shells. Shell-specific logic stays in `.bashrc` / `.zshrc`.
+Bash and Zsh both end by sourcing `~/.config/shell/common.sh`, which sets up PATH, fzf, tool hooks, cached completions, `~/.bash_aliases`, `mise-activate.sh`, and `functions.sh` for both shells. Only shell-specific logic (prompt, Oh My Zsh) stays in `.bashrc` / `.zshrc`. `functions.sh` is also linked into the Omarchy overlay (`omarchy/.config/shell/functions.sh`).
 
 ### Installer Orchestration
 
-`bootstrap.sh` runs the installers listed in `INSTALL_STEPS` in order; `run_step` checks `SKIP_<STEP>` env vars automatically. Each installer decides for itself whether it applies to the current platform (macOS, Ubuntu, Arch, WSL), so bootstrap has no platform branches. Individual installers can be run standalone. After stowing, `install/git-config.sh` and `install/default-shell.sh` adjust local configuration. macOS system defaults (`install/macos-defaults.sh`) are opt-in — require `APPLY_MACOS_DEFAULTS=1`.
+`bootstrap.sh` runs the installers listed in `INSTALL_STEPS` in order; `run_step` checks `SKIP_<STEP>` env vars automatically. Each installer decides for itself whether it applies to the current platform (macOS, Ubuntu, Arch, WSL), so bootstrap has no platform branches. Individual installers can be run standalone. After stowing, the steps in `CONFIG_STEPS` (`install/git-config.sh` and `install/default-shell.sh`) adjust local configuration. macOS system defaults (`install/macos-defaults.sh`) are opt-in — require `APPLY_MACOS_DEFAULTS=1`.
 
 ### Git Config Hierarchy
 
