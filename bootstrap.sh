@@ -49,6 +49,17 @@ OMARCHY_INSTALL_STEPS=(
     AZURE_CLI:azure-cli
 )
 
+# After stowing, these adjust local configuration. They run even with
+# ONLY_STOW; skip one with SKIP_<STEP>=1.
+CONFIG_STEPS=(
+    GIT_CONFIG:git-config         # signing and credentials in ~/.gitconfig.local
+    SHELL:default-shell           # zsh as the login shell
+)
+OMARCHY_CONFIG_STEPS=(
+    GIT_CONFIG:git-config
+    OMARCHY_CONFIG:omarchy-config # one include each in Omarchy's ~/.bashrc and git config; bash stays the login shell
+)
+
 # Configuration packages stowed into $HOME.
 STOW_DIRS=(bash git vim zsh tmux nvim)
 OMARCHY_STOW_DIRS=(omarchy)
@@ -67,15 +78,17 @@ OMARCHY_CONFLICT_FILES=(
 if is_omarchy; then
     PROFILE="omarchy"
     INSTALL_STEPS=("${OMARCHY_INSTALL_STEPS[@]}")
+    CONFIG_STEPS=("${OMARCHY_CONFIG_STEPS[@]}")
     STOW_DIRS=("${OMARCHY_STOW_DIRS[@]}")
     CONFLICT_FILES=("${OMARCHY_CONFLICT_FILES[@]}")
 else
     PROFILE="default"
 fi
 
+# run_step <NAME> <script> [config]: config steps also run with ONLY_STOW.
 run_step() {
-    local name="$1" script="$DOTFILES_DIR/install/$2.sh" skip_var="SKIP_$1"
-    if is_true "${ONLY_STOW:-0}"; then
+    local name="$1" script="$DOTFILES_DIR/install/$2.sh" skip_var="SKIP_$1" kind="${3:-install}"
+    if [ "$kind" = install ] && is_true "${ONLY_STOW:-0}"; then
         echo "ONLY_STOW set. Skipping $name."
     elif is_true "${!skip_var:-0}"; then
         echo "Skipping $name (via $skip_var)."
@@ -138,13 +151,8 @@ else
     stow_configs
 fi
 
-# These run even with ONLY_STOW: they only adjust local configuration.
-is_true "${SKIP_GIT_CONFIG:-0}" || bash "$DOTFILES_DIR/install/git-config.sh"
-if [ "$PROFILE" = "omarchy" ]; then
-    # Keep bash as the login shell; hook the overlays into Omarchy's own files.
-    is_true "${SKIP_OMARCHY_CONFIG:-0}" || bash "$DOTFILES_DIR/install/omarchy-config.sh"
-else
-    is_true "${SKIP_SHELL:-0}" || bash "$DOTFILES_DIR/install/default-shell.sh"
-fi
+for step in "${CONFIG_STEPS[@]}"; do
+    run_step "${step%%:*}" "${step#*:}" config
+done
 
 echo "Dotfiles bootstrap complete!"
