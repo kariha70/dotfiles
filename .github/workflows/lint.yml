@@ -17,7 +17,7 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y shellcheck
 
       - name: Run shellcheck
-        run: shellcheck bootstrap.sh install/*.sh install/lib/helpers.sh scripts/*.sh omarchy/.config/shell/personal.sh
+        run: shellcheck bootstrap.sh install/*.sh install/lib/helpers.sh scripts/*.sh omarchy/.config/shell/personal.sh bash/.config/shell/*.sh
 
       - name: Validate version pins
         run: bash scripts/check-version-pins.sh

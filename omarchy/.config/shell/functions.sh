@@ -1,0 +1,1 @@
+../../../bash/.config/shell/functions.sh

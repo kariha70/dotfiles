@@ -8,8 +8,8 @@
 - Pinned versions and checksums are centralized in `install/versions.env`; use `source_versions "$SCRIPT_DIR"` instead of inline sourcing boilerplate. For downloads, prefer `download_and_verify <url> <output> <sha> <label>` (or `install_verified_deb` for `.deb` assets).
 - GitHub release assets are described once in `install/lib/releases.sh` (`release_info`); installers, `scripts/bump-versions.sh`, and the pin checks all read it. Add new release tools there (and to `RELEASE_TOOLS`) instead of writing a new installer; `install_release <tool>` does download, verification, extraction, and installation. Release pins are named `<TOOL>_VERSION` (no leading `v`) and `<TOOL>_SHA256_{x86_64,arm64}`.
 - Pinned installers must not stop at "already installed": gate them with `pinned_version_satisfied <pin> <command-or-path>...` so bumping a pin upgrades existing machines. Do not install a pinned tool from the distro package manager first on apt systems; Arch keeps using pacman.
-- Shared shell logic (used by both `.bashrc` and `.zshrc`) lives in `bash/.config/shell/` and is stowed to `~/.config/shell/`.
-- `bootstrap.sh` runs the installers in `INSTALL_STEPS` (each one checks whether it applies to the current platform), then stows configs, then runs `install/git-config.sh` and `install/default-shell.sh`. macOS system defaults are opt-in via `APPLY_MACOS_DEFAULTS=1`.
+- Shared shell logic lives in `bash/.config/shell/` and is stowed to `~/.config/shell/`. `common.sh` is the default profile's interactive layer (PATH, fzf, tool hooks, cached completions, aliases, functions), sourced at the end of both `.bashrc` and `.zshrc`; put anything both shells need there and keep only shell-specific setup (prompt, Oh My Zsh) in the rc files. `functions.sh` holds profile-independent functions and is shared with the Omarchy overlay through the symlink `omarchy/.config/shell/functions.sh`, so it must work in bash and zsh and must not define names Omarchy owns.
+- `bootstrap.sh` runs the installers in `INSTALL_STEPS` (each one checks whether it applies to the current platform), then stows configs, then runs the profile's `CONFIG_STEPS` (`install/git-config.sh` and `install/default-shell.sh`; on Omarchy, `OMARCHY_CONFIG_STEPS`), which also run with `ONLY_STOW=1`. macOS system defaults are opt-in via `APPLY_MACOS_DEFAULTS=1`.
 - Adding configs: create a directory (e.g., `tmux/`), add the dotfiles, append it to `STOW_DIRS` in `bootstrap.sh`, then restow.
 
 ## Build, Test, and Development Commands
@@ -17,8 +17,8 @@
 - Bootstrap a machine: `./bootstrap.sh` (installs, stows configs, sets the login shell).
 - Iterate on one tool: `bash install/<script>.sh` (e.g., `bash install/eza.sh`) instead of the whole bootstrap.
 - Restow after config edits: `stow -v -R -t "$HOME" -d "$(pwd)" bash git vim zsh tmux nvim`.
-- Spot-check shell scripts: `shellcheck install/*.sh install/lib/helpers.sh` to catch quoting and portability issues (bootstrap installs shellcheck).
-- Omarchy profile: `bash scripts/test-omarchy-profile.sh` checks it in a throwaway HOME (needs stow; runs in CI).
+- Spot-check shell scripts: `shellcheck install/*.sh install/lib/helpers.sh bash/.config/shell/*.sh` to catch quoting and portability issues (bootstrap installs shellcheck).
+- Profile tests: `bash scripts/test-default-profile.sh` and `bash scripts/test-omarchy-profile.sh` check each profile's stowed config and interactive shells in a throwaway HOME (need stow; run in CI). Run both after touching `bash/`, `zsh/`, `omarchy/`, or `bootstrap.sh`.
 - CI runs automatically on push/PR to `main`: shellcheck + PSScriptAnalyzer linting, and cross-platform bootstrap smoke tests on Ubuntu, Arch Linux, macOS, and Windows.
 
 ## Coding Style & Naming Conventions

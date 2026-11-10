@@ -56,6 +56,9 @@ jobs:
       - name: Test repository relocation
         run: bash scripts/test-stow-relocation.sh
 
+      - name: Test default profile
+        run: bash scripts/test-default-profile.sh
+
       - name: Test Omarchy profile
         run: bash scripts/test-omarchy-profile.sh
 

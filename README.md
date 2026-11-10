@@ -70,7 +70,7 @@ Restart your shell and you're done. ✨
 | **Shell** | Zsh + Oh My Zsh | PowerShell 7+ |
 | **Prompt** | Powerlevel10k | Starship |
 | **History** | Atuin (synced, searchable) | Atuin + PSReadLine |
-| **Completions** | kubectl, gh (cached daily) | PSFzf, Terminal-Icons |
+| **Completions** | kubectl, helm, gh (cached daily) | PSFzf, Terminal-Icons |
 | **Plugins** | autosuggestions, syntax-highlighting, fzf, web-search, extract | PSFzf, Terminal-Icons |
 | **Module loading** | mise activation (no Node.js startup cost) | Modules deferred to first idle |
 
@@ -334,6 +334,8 @@ dotfiles/
 │   ├── .bashrc
 │   ├── .bash_aliases               # Shared aliases (also sourced by Zsh)
 │   └── .config/shell/
+│       ├── common.sh               # Interactive layer shared by bash + zsh (PATH, hooks, completions)
+│       ├── functions.sh            # y, extract, web search (also linked into omarchy/)
 │       └── mise-activate.sh        # mise runtime activation (bash + zsh)
 │
 ├── zsh/                            # Zsh config (stowed → ~/)
@@ -356,7 +358,9 @@ dotfiles/
 │       └── lua/plugins/            # Custom plugin specs
 │
 ├── omarchy/                        # Omarchy profile overlays (stowed → ~/ on Omarchy only)
-│   ├── .config/shell/personal.sh   # Personal bash layer, sourced from Omarchy's ~/.bashrc
+│   ├── .config/shell/
+│   │   ├── personal.sh             # Personal bash layer, sourced from Omarchy's ~/.bashrc
+│   │   └── functions.sh            # → bash/.config/shell/functions.sh
 │   ├── .config/starship/dotfiles.toml  # One-line starship prompt (via STARSHIP_CONFIG)
 │   └── .config/git/
 │       ├── dotfiles.gitconfig      # Identity, delta, included from Omarchy's git config
@@ -398,6 +402,7 @@ dotfiles/
 │   ├── check-installed-versions.sh # Installed tools match pins (CI)
 │   ├── import-npm-globals.sh       # Copy nvm globals into npm-globals.txt
 │   ├── arch-smoke-test.sh          # Arch bootstrap + idempotency test
+│   ├── test-default-profile.sh     # Default profile in a simulated home
 │   └── test-omarchy-profile.sh     # Omarchy profile in a simulated home
 │
 ├── .github/

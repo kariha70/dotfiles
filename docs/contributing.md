@@ -37,7 +37,7 @@ dotfiles/
 └── docs/                     # VitePress documentation site
 ```
 
-Each top-level directory (e.g. `bash/`, `git/`, `zsh/`) mirrors the structure of `$HOME` and is symlinked via [GNU Stow](https://www.gnu.org/software/stow/). Shared shell logic lives in `bash/.config/shell/` and is stowed to `~/.config/shell/`.
+Each top-level directory (e.g. `bash/`, `git/`, `zsh/`) mirrors the structure of `$HOME` and is symlinked via [GNU Stow](https://www.gnu.org/software/stow/). Shared shell logic lives in `bash/.config/shell/` and is stowed to `~/.config/shell/`: `common.sh` is sourced at the end of both `.bashrc` and `.zshrc`, and `functions.sh` is shared with the Omarchy overlay.
 
 ## Coding Style
 

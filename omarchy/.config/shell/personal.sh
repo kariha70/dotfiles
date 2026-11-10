@@ -2,10 +2,11 @@
 # Personal bash layer for the Omarchy profile.
 #
 # Sourced at the end of Omarchy's ~/.bashrc (see install/omarchy-config.sh),
-# after Omarchy's own defaults; machine-specific additions go in ~/.bashrc. Omarchy already sets up starship, mise, zoxide
-# (cd), fzf key bindings, eza (ls/lt), bat (MANPAGER), EDITOR, and aliases such
-# as g/gcm/t/n/ff, plus the ga/gd worktree functions. This file only adds what
-# Omarchy lacks and never redefines those names.
+# after Omarchy's own defaults; machine-specific additions go in ~/.bashrc.
+# Omarchy already sets up starship, mise, zoxide (cd), fzf key bindings, eza
+# (ls/lt), bat (MANPAGER), EDITOR, and aliases such as g/gcm/t/n/ff, plus the
+# ga/gd worktree functions. This file only adds what Omarchy lacks and never
+# redefines those names.
 
 [[ $- == *i* ]] || return 0
 
@@ -72,28 +73,22 @@ if command -v bat &>/dev/null; then
     export FZF_CTRL_T_OPTS="--preview 'bat -n --color=always {}' --bind 'ctrl-/:change-preview-window(down|hidden|)'"
 fi
 
+# --- Functions ---------------------------------------------------------------
+
+# y (yazi), extract, web_search/google/ddg, and the completion cache helper,
+# shared with the default profile (bash/.config/shell/functions.sh).
+# shellcheck source=bash/.config/shell/functions.sh
+source "${XDG_CONFIG_HOME:-$HOME/.config}/shell/functions.sh"
+
 # --- Tool hooks and completions ----------------------------------------------
 
 if command -v direnv &>/dev/null; then
     eval "$(direnv hook bash)"
 fi
 
-# Cache generated completions for a day; generating them costs startup time.
-_dotfiles_cached_completion() {
-    local name="$1" cache
-    shift
-    cache="${XDG_CACHE_HOME:-$HOME/.cache}/shell/$name.bash"
-    if [[ ! -s $cache || -n $(find "$cache" -mmin +1440 2>/dev/null) ]]; then
-        mkdir -p "${cache%/*}"
-        "$@" >"$cache" 2>/dev/null || { rm -f "$cache"; return 0; }
-    fi
-    # shellcheck source=/dev/null
-    source "$cache"
-}
 command -v kubectl &>/dev/null && _dotfiles_cached_completion kubectl kubectl completion bash
 command -v helm &>/dev/null && _dotfiles_cached_completion helm helm completion bash
 command -v gh &>/dev/null && _dotfiles_cached_completion gh gh completion -s bash
-unset -f _dotfiles_cached_completion
 
 # --- Aliases -----------------------------------------------------------------
 
@@ -139,69 +134,6 @@ if command -v code-insiders &>/dev/null; then
     alias code-p='code-insiders --user-data-dir ~/.code-data/kariha70'
     alias code-w='code-insiders --user-data-dir ~/.code-data/michag'
 fi
-
-# --- Functions ---------------------------------------------------------------
-
-# yazi: change to the directory yazi was in when it exits.
-y() {
-    local tmp cwd
-    tmp="$(mktemp -t "yazi-cwd.XXXXXX")"
-    yazi "$@" --cwd-file="$tmp"
-    if cwd="$(cat -- "$tmp")" && [[ -n $cwd && $cwd != "$PWD" ]]; then
-        builtin cd -- "$cwd" || return
-    fi
-    rm -f -- "$tmp"
-}
-
-# Extract any common archive (Oh My Zsh's extract plugin). Omarchy's
-# compress/decompress cover .tar.gz only.
-extract() {
-    local file
-    if (($# == 0)); then
-        echo "Usage: extract <archive>..." >&2
-        return 1
-    fi
-    for file in "$@"; do
-        if [[ ! -f $file ]]; then
-            echo "extract: '$file' is not a file" >&2
-            return 1
-        fi
-        case "${file,,}" in
-            *.tar | *.tar.gz | *.tgz | *.tar.bz2 | *.tbz2 | *.tar.xz | *.txz | *.tar.zst | *.tzst) tar -xf "$file" ;;
-            *.gz) gunzip -k "$file" ;;
-            *.bz2) bunzip2 -k "$file" ;;
-            *.xz) unxz -k "$file" ;;
-            *.zst) unzstd "$file" ;;
-            *.zip | *.jar) unzip "$file" ;;
-            *.7z) 7z x "$file" ;;
-            *.rar) unrar x "$file" ;;
-            *)
-                echo "extract: unsupported archive '$file'" >&2
-                return 1
-                ;;
-        esac || return
-    done
-}
-
-# Search the web from the terminal (Oh My Zsh's web-search plugin).
-web_search() {
-    local engine="$1" query url
-    shift
-    query="$(jq -rn --arg q "$*" '$q | @uri')"
-    case "$engine" in
-        google) url="https://www.google.com/search?q=$query" ;;
-        ddg) url="https://duckduckgo.com/?q=$query" ;;
-        github) url="https://github.com/search?q=$query" ;;
-        *)
-            echo "web_search: unknown engine '$engine'" >&2
-            return 1
-            ;;
-    esac
-    ${BROWSER:-xdg-open} "$url" >/dev/null 2>&1 &
-    disown
-}
-alias google='web_search google'
-alias ddg='web_search ddg'
 
 # --- History -----------------------------------------------------------------
 
