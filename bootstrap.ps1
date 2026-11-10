@@ -104,6 +104,11 @@ $linkMappings = @(
         Target = $profilePath
     },
     @{
+        # Shared identity, signing key, and delta settings; .gitconfig includes it.
+        Source = Join-Path -Path $DotfilesDir -ChildPath "git/.config/git/dotfiles.gitconfig"
+        Target = Join-Path -Path $homePath -ChildPath ".config/git/dotfiles.gitconfig"
+    },
+    @{
         Source = Join-Path -Path $DotfilesDir -ChildPath "git/.gitconfig"
         Target = Join-Path -Path $homePath -ChildPath ".gitconfig"
     },

@@ -8,7 +8,8 @@
     path = ~/.config/git/dotfiles.gitconfig
 
 # Refuse to commit with a guessed identity when the include above is missing,
-# e.g. after pulling this change without restowing (ONLY_STOW=1 ./bootstrap.sh).
+# e.g. after pulling this change without restowing (ONLY_STOW=1 ./bootstrap.sh,
+# or bootstrap.ps1 with ONLY_LINK=1 on Windows).
 [user]
     useConfigOnly = true
 

@@ -2,7 +2,8 @@
 # ~/.config/git/dotfiles.gitconfig.
 #
 # Default profile: included first by the stowed ~/.gitconfig (git/.gitconfig),
-# which adds that profile's editor, ignore file, colors, and aliases.
+# which adds that profile's editor, ignore file, colors, and aliases. Windows
+# links both files the same way (bootstrap.ps1).
 #
 # Omarchy profile: reached through the symlink
 # omarchy/.config/git/dotfiles.gitconfig and included at the end of Omarchy's
