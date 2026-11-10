@@ -98,7 +98,7 @@ run_shell() {
         "$@" 2>"$TEST_ROOT/stderr" </dev/null)
 }
 check_stderr() {
-    if grep -v -e 'cannot set terminal process group' -e 'no job control' -e "stty: 'standard input'" \
+    if grep -v -e 'cannot set terminal process group' -e 'no job control' -e 'stty: .*standard input' \
         -e "can't change option: zle" "$TEST_ROOT/stderr" | grep .; then
         fail "interactive $1 printed errors"
     fi
