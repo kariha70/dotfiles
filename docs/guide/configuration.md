@@ -92,7 +92,7 @@ reinstalled automatically on every machine. Do not use `npm install -g`.
 
 ## Git Identity
 
-The `.gitconfig` includes `~/.gitconfig.local` for machine-specific overrides (this file is not tracked by git).
+Identity, signing key, and delta settings live in one file shared by every profile, `~/.config/git/dotfiles.gitconfig`; the default profile's `~/.gitconfig` includes it and adds its editor, ignore file, and aliases. The shared file includes `~/.gitconfig.local` for machine-specific overrides (this file is not tracked by git).
 
 ```ini
 # ~/.gitconfig.local — add your own overrides here

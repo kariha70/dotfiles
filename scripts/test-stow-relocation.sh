@@ -17,6 +17,7 @@ STOW_TARGETS=(
     ".bashrc|bash/.bashrc|dotfiles/bash/.bashrc"
     ".config/shell|bash/.config/shell|../dotfiles/bash/.config/shell"
     ".gitconfig|git/.gitconfig|dotfiles/git/.gitconfig"
+    ".config/git/dotfiles.gitconfig|git/.config/git/dotfiles.gitconfig|../../dotfiles/git/.config/git/dotfiles.gitconfig"
     ".gitignore_global|git/.gitignore_global|dotfiles/git/.gitignore_global"
     "export_ssh.sh|git/export_ssh.sh|dotfiles/git/export_ssh.sh"
     "import_ssh.sh|git/import_ssh.sh|dotfiles/git/import_ssh.sh"

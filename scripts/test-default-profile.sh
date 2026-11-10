@@ -61,26 +61,35 @@ for spec in \
     ".config/shell/mise-activate.sh|bash/.config/shell/mise-activate.sh" \
     ".zshrc|zsh/.zshrc" ".zlogin|zsh/.zlogin" \
     ".gitconfig|git/.gitconfig" ".gitignore_global|git/.gitignore_global" \
+    ".config/git/dotfiles.gitconfig|git/.config/git/dotfiles.gitconfig" \
     "export_ssh.sh|git/export_ssh.sh" "import_ssh.sh|git/import_ssh.sh" \
     ".vimrc|vim/.vimrc" ".tmux.conf|tmux/.tmux.conf" ".config/nvim|nvim/.config/nvim"; do
     [ "$TEST_HOME/${spec%%|*}" -ef "$SOURCE_ROOT/${spec#*|}" ] || fail "HOME/${spec%%|*} does not link to ${spec#*|}"
 done
 
 # The Omarchy overlay stays out.
-for file in .config/shell/personal.sh .config/git/dotfiles.gitconfig .config/starship; do
+for file in .config/shell/personal.sh .config/git/config .config/git/ignore .config/starship; do
     if [ -e "$TEST_HOME/$file" ] || [ -L "$TEST_HOME/$file" ]; then
         fail "HOME/$file belongs to the omarchy profile"
     fi
 done
 grep -q "dotfiles personal layer" "$TEST_HOME/.bashrc" && fail "the Omarchy hook was added to ~/.bashrc"
 
-# The Omarchy overlay shares functions.sh with this profile instead of copying it.
-[ "$SOURCE_ROOT/omarchy/.config/shell/functions.sh" -ef "$SOURCE_ROOT/bash/.config/shell/functions.sh" ] \
-    || fail "omarchy/.config/shell/functions.sh is not a link to the shared functions.sh"
+# The Omarchy overlay shares these with this profile instead of copying them.
+for shared in bash/.config/shell/functions.sh git/.config/git/dotfiles.gitconfig; do
+    [ "$SOURCE_ROOT/omarchy/${shared#*/}" -ef "$SOURCE_ROOT/$shared" ] \
+        || fail "omarchy/${shared#*/} is not a link to the shared $shared"
+done
+[ ! -L "$TEST_HOME/.config/git" ] || fail "HOME/.config/git was folded into the repository"
 
 git_get() {
     HOME="$TEST_HOME" XDG_CONFIG_HOME="$TEST_HOME/.config" GIT_CONFIG_NOSYSTEM=1 git config --global --includes --get "$1"
 }
+# ~/.gitconfig gets identity and delta from the shared settings, adds its own,
+# and refuses to guess an identity if the shared file is ever missing.
+[ -n "$(git_get user.email)" ] || fail "identity not included from dotfiles.gitconfig"
+[ "$(git_get core.editor)" = vim ] || fail "default-profile settings missing from ~/.gitconfig"
+[ "$(git_get user.useConfigOnly)" = true ] || fail "user.useConfigOnly not set"
 [ "$(git_get init.defaultBranch)" = main ] || fail "init.defaultBranch not configured"
 [ "$(git_get core.pager)" = delta ] || fail "delta pager not configured"
 
