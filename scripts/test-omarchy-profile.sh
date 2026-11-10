@@ -87,6 +87,8 @@ git_get() {
 [ "$(git_get init.defaultBranch)" = main ] || fail "overlay does not override init.defaultBranch"
 [ "$(git_get pull.rebase)" = true ] || fail "Omarchy's pull.rebase was lost"
 [ "$(git_get core.pager)" = delta ] || fail "delta pager not configured"
+[ -n "$(git_get user.email)" ] || fail "identity not included from dotfiles.gitconfig"
+[ -z "$(git_get core.editor || true)" ] || fail "default-profile git settings leaked into the overlay"
 
 # Second run: nothing changes, no backups.
 before="$(snapshot)"

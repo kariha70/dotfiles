@@ -179,7 +179,7 @@ Individual release tools: `SKIP_<TOOL>=1`, e.g. `SKIP_LAZYGIT`, `SKIP_FZF` (see 
 
 ### Git Identity
 
-The `.gitconfig` includes `~/.gitconfig.local` for machine-specific overrides (not tracked). Bootstrap auto-configures:
+Identity, signing key, and delta settings live in one file shared by every profile, `~/.config/git/dotfiles.gitconfig`; the default profile's `~/.gitconfig` includes it and adds its editor, ignore file, and aliases. The shared file includes `~/.gitconfig.local` for machine-specific overrides (not tracked). Bootstrap auto-configures:
 
 - **1Password SSH signing** — if `op-ssh-sign` is detected, enables `gpg.format=ssh` commit signing (`SKIP_GIT_SIGNING=1` to disable)
 - **GitHub credential helper** — if `gh` CLI is detected, sets it as the HTTPS credential helper (`SKIP_GIT_CREDENTIALS=1` to disable)
@@ -343,7 +343,9 @@ dotfiles/
 │   └── .zlogin
 │
 ├── git/                            # Git config (stowed → ~/)
-│   ├── .gitconfig                  # Delta pager, SSH signing, aliases
+│   ├── .gitconfig                  # Includes dotfiles.gitconfig; editor, ignore file, aliases
+│   ├── .config/git/
+│   │   └── dotfiles.gitconfig      # Identity, signing key, delta (shared with omarchy/)
 │   ├── .gitignore_global
 │   ├── export_ssh.sh               # SSH key export utility
 │   └── import_ssh.sh               # SSH key import utility
@@ -363,7 +365,7 @@ dotfiles/
 │   │   └── functions.sh            # → bash/.config/shell/functions.sh
 │   ├── .config/starship/dotfiles.toml  # One-line starship prompt (via STARSHIP_CONFIG)
 │   └── .config/git/
-│       ├── dotfiles.gitconfig      # Identity, delta, included from Omarchy's git config
+│       ├── dotfiles.gitconfig      # → git/.config/git/dotfiles.gitconfig, included from Omarchy's git config
 │       └── ignore                  # → git/.gitignore_global
 │
 ├── tmux/                           # Tmux config (stowed → ~/)

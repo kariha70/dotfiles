@@ -68,6 +68,7 @@ OMARCHY_STOW_DIRS=(omarchy)
 # Add more with EXTRA_CONFLICT_FILES="path1 path2".
 CONFLICT_FILES=(
     .bashrc .bash_aliases .config/shell .gitconfig .gitignore_global
+    .config/git/dotfiles.gitconfig
     export_ssh.sh import_ssh.sh .vimrc .zshrc .zlogin .tmux.conf .config/nvim
 )
 OMARCHY_CONFLICT_FILES=(
@@ -131,6 +132,10 @@ stow_configs() {
             mv "$target" "$target.backup.$timestamp"
         fi
     done
+
+    # Keep ~/.config/git a real directory: stow would otherwise fold it into a
+    # link to the repository, and anything written there would land in it.
+    mkdir -p "$HOME/.config/git"
 
     echo "Stowing configurations..."
     stow -v -R -t "$HOME" -d "$DOTFILES_DIR" "${STOW_DIRS[@]}"

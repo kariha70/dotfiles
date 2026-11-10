@@ -8,7 +8,7 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 source "$SCRIPT_DIR/lib/helpers.sh"
 
 # Machine-specific Git settings live in ~/.gitconfig.local, which the stowed
-# ~/.gitconfig includes.
+# ~/.config/git/dotfiles.gitconfig includes in every profile.
 GIT_LOCAL="$HOME/.gitconfig.local"
 
 # Set a key in ~/.gitconfig.local, replacing any existing values.
