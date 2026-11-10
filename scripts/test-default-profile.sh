@@ -115,10 +115,11 @@ grep -Fqx "leak=" <<<"$output" || fail "common.sh leaked its helper variables in
 [ "$(grep -c '^function$' <<<"$output")" = 3 ] || fail "shared functions not defined in bash"
 
 # zsh: ~/.zshrc needs Oh My Zsh, which a throwaway HOME lacks, so load the
-# shared layer the way ~/.zshrc does, after compinit.
+# shared layer the way ~/.zshrc does, after compinit (-u: CI runners have
+# completion directories compinit considers insecure and would ask about).
 if command -v zsh >/dev/null 2>&1; then
     # shellcheck disable=SC2016 # expanded by the test shell
-    output="$(run_shell zsh -f -i -c 'autoload -Uz compinit && compinit -D; source ~/.config/shell/common.sh; alias gs ll; whence -w y extract; echo "leak=${_dotfiles_shell-}${_dotfiles_shell_dir-}"')"
+    output="$(run_shell zsh -f -i -c 'autoload -Uz compinit && compinit -u -D; source ~/.config/shell/common.sh; alias gs ll; whence -w y extract; echo "leak=${_dotfiles_shell-}${_dotfiles_shell_dir-}"')"
     check_stderr zsh
     for expected in "gs='git status'" "y: function" "extract: none" "leak="; do
         grep -Fqx -e "$expected" <<<"$output" || fail "interactive zsh output lacks: $expected"

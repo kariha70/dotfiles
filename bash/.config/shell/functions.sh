@@ -10,13 +10,21 @@
 # Source a tool's generated completion script, cached for a day; generating it
 # costs startup time. Usage: _dotfiles_cached_completion <name> <command...>
 _dotfiles_cached_completion() {
-    local name="$1" shell="bash" cache
+    local name="$1" shell="bash" cache tmp
     shift
     [[ -z ${ZSH_VERSION-} ]] || shell="zsh"
     cache="${XDG_CACHE_HOME:-$HOME/.cache}/shell/$name.$shell"
     if [[ ! -s $cache || -n $(find "$cache" -mmin +1440 2>/dev/null) ]]; then
         mkdir -p "${cache%/*}"
-        "$@" >"$cache" 2>/dev/null || { rm -f "$cache"; return 0; }
+        # Write to a temporary file and rename it, so a shell starting at the
+        # same time never sources a half-written script.
+        tmp="$cache.$$"
+        if "$@" >"$tmp" 2>/dev/null && [[ -s $tmp ]]; then
+            mv -f "$tmp" "$cache"
+        else
+            rm -f "$tmp"
+            return 0
+        fi
     fi
     # shellcheck source=/dev/null
     source "$cache"
